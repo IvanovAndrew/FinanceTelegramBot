@@ -1,0 +1,7 @@
+
+.idea/.idea.TelegramFinanseBot/.idea/
+*.dll
+*.pdb
+*.json
+*/bin/
+*/obj/
