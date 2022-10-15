@@ -47,6 +47,12 @@ public class BotController : ControllerBase
                     cancellationToken: cancellationToken);
                 return Ok();
             }
+            else if (message.Text.ToLower() == "/cancel")
+            {
+                answers.Clear();
+                await botClient.SendTextMessageAsync(message.Chat, $"All operations are canceled");
+                return Ok();
+            }
 
             if (answers.IsEmpty) return Ok();
 
