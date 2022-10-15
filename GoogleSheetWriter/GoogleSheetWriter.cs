@@ -40,15 +40,7 @@ public class GoogleSheetWriter
         {
             // The file token.json stores the user's access and refresh tokens, and is created
             // automatically when the authorization flow completes for the first time.
-            
             _credential = await GoogleCredential.FromStreamAsync(stream, cancellationToken);
-            //string credPath = "token.json";
-            // _credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-            //     GoogleClientSecrets.Load(stream).Secrets,
-            //     new [] { SheetsService.Scope.Spreadsheets },
-            //     "user",
-            //     CancellationToken.None,
-            //     new FileDataStore(credPath, true)).Result;
         }
 
         // Create Google Sheets API service.
@@ -58,7 +50,9 @@ public class GoogleSheetWriter
             ApplicationName = _applicationName,
         });
 
+        cancellationToken.ThrowIfCancellationRequested();
         int row = await GetNumberFilledRows(service, _options.ListName, cancellationToken) + 1;
+        cancellationToken.ThrowIfCancellationRequested();
 
         // Define request parameters.
         var amount = expense.Amount;
@@ -80,7 +74,6 @@ public class GoogleSheetWriter
             service.Spreadsheets.Values.Update(valueRange, _spreadsheetId, range);
         request.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
 
-        // TODO call it Async
         var result = await request.ExecuteAsync(cancellationToken);
         return;
     }
@@ -97,6 +90,8 @@ public class GoogleSheetWriter
         int i = 0;
         foreach (var data in sheet.Data)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             foreach (var rowData in data.RowData)
             {
                 bool filled = false;

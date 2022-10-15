@@ -21,6 +21,7 @@ public class BotController : ControllerBase
     private readonly List<Category> _categories;
     private readonly IMoneyParser _moneyParser;
     private readonly GoogleSheetWriter _spreadsheetWriter;
+    private readonly CancellationTokenSource _cancellationTokenSource;
 
     public BotController(ILogger<BotController> logger, Services.TelegramBot bot, CategoryOptions categoryOptions, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter)
     {
@@ -29,12 +30,13 @@ public class BotController : ControllerBase
         _categories = categoryOptions.Categories;
         _moneyParser = moneyParser;
         _spreadsheetWriter = spreadsheetWriter;
+        _cancellationTokenSource = new CancellationTokenSource();
     }
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Update update)
     {
-        var cancellationToken = new CancellationToken(false);
+        var cancellationToken = _cancellationTokenSource.Token;
         var botClient = await _bot.GetBot();
 
         if (update.Type == UpdateType.Message)
@@ -133,7 +135,7 @@ public class BotController : ControllerBase
                 answers[fromId] = builder;
 
                 await botClient.SendTextMessageAsync(chatId: message.Chat.Id, "Enter the date:",
-                    parseMode: ParseMode.Html);
+                    parseMode: ParseMode.Html, cancellationToken: cancellationToken);
             }
 
             else if (builder != null && builder.Category == null && _categories.Any(c => c.Name == codeOfButton))
@@ -149,7 +151,7 @@ public class BotController : ControllerBase
                 }
                 else
                 {
-                    await RequestDescription(botClient, message.Chat.Id);
+                    await RequestDescription(botClient, message.Chat.Id, cancellationToken);
                 }
             }
             else if (builder != null && builder.Category != null && _categories.First(c => c.Name == builder.Category).SubCategories.Any(c => c.Name == codeOfButton))
@@ -171,9 +173,12 @@ public class BotController : ControllerBase
             
             else if (codeOfButton == "Cancel")
             {
+                _cancellationTokenSource.Cancel();
+                answers.Remove(fromId, out var removedBuilder);
                 await botClient.SendTextMessageAsync(chatId: message.Chat.Id, "Canceled",
                     parseMode: ParseMode.Html);
-                answers.Remove(fromId, out var removedBuilder);
+                
+                
             }
         }
 
@@ -193,7 +198,6 @@ public class BotController : ControllerBase
                     // first button in row
                     InlineKeyboardButton.WithCallbackData(text: "Enter the outcome", callbackData: "startExpense"),
                 },
-
             });
 
         return await botClient.SendTextMessageAsync(
@@ -251,14 +255,14 @@ public class BotController : ControllerBase
             cancellationToken: cancellationToken);
     }
 
-    private async Task<Message> RequestDescription(ITelegramBotClient botClient, long chatId)
+    private async Task<Message> RequestDescription(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
-        return await botClient.SendTextMessageAsync(chatId, "Write description");
+        return await botClient.SendTextMessageAsync(chatId, "Write description", cancellationToken: cancellationToken);
     }
 
-    private async Task<Message> RequestPrice(ITelegramBotClient botClient, long chatId)
+    private async Task<Message> RequestPrice(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
-        return await botClient.SendTextMessageAsync(chatId, "Enter the price");
+        return await botClient.SendTextMessageAsync(chatId, "Enter the price", cancellationToken: cancellationToken);
     }
 
     private static async Task<Message> SendConfirmMessageAsync(ITelegramBotClient botClient, long chatId, string text,
