@@ -136,7 +136,7 @@ public class BotController : ControllerBase
                     parseMode: ParseMode.Html);
             }
 
-            else if (builder != null && _categories.Any(c => c.Name == codeOfButton))
+            else if (builder != null && builder.Category == null && _categories.Any(c => c.Name == codeOfButton))
             {
                 var category = message.ReplyMarkup.InlineKeyboard.SelectMany(c => c)
                     .First(c => c.CallbackData == codeOfButton);
