@@ -5,3 +5,9 @@
 *.json
 */bin/
 */obj/
+publish/
+.idea/*
+
+TelegramFinanceBot.sln.DotSettings.user
+
+TelegramFinanseBot.sln.DotSettings.user

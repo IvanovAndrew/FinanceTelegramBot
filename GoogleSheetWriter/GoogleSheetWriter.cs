@@ -1,8 +1,4 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
+using Domain;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
@@ -14,11 +10,13 @@ namespace GoogleSheet;
 public class SheetOptions
 {
     public string ListName;
+    public string MonthColumn;
     public string DateColumn;
     public string CategoryColumn;
     public string SubCategoryColumn;
     public string DescriptionColumn;
-    public string AmountColumn;
+    public string AmountRurColumn;
+    public string AmountAmdColumn;
 }
 
 public class GoogleSheetWriter
@@ -26,7 +24,7 @@ public class GoogleSheetWriter
     private SheetOptions _options;
     private string _applicationName;
     private string _spreadsheetId;
-    private UserCredential _credential;
+    private GoogleCredential _credential;
 
     public GoogleSheetWriter(SheetOptions options, string applicationName, string spreadsheetId)
     {
@@ -35,20 +33,22 @@ public class GoogleSheetWriter
         _spreadsheetId = spreadsheetId;
     }
     
-    public Task WriteToSpreadsheet(IExpense expense, CancellationToken cancellationToken)
+    public async Task WriteToSpreadsheet(IExpense expense, CancellationToken cancellationToken)
     {
         using (var stream =
-            new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
+            new FileStream("servicekey.json", FileMode.Open, FileAccess.Read))
         {
             // The file token.json stores the user's access and refresh tokens, and is created
             // automatically when the authorization flow completes for the first time.
-            string credPath = "token.json";
-            _credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                GoogleClientSecrets.Load(stream).Secrets,
-                new [] { SheetsService.Scope.Spreadsheets },
-                "user",
-                CancellationToken.None,
-                new FileDataStore(credPath, true)).Result;
+            
+            _credential = await GoogleCredential.FromStreamAsync(stream, cancellationToken);
+            //string credPath = "token.json";
+            // _credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+            //     GoogleClientSecrets.Load(stream).Secrets,
+            //     new [] { SheetsService.Scope.Spreadsheets },
+            //     "user",
+            //     CancellationToken.None,
+            //     new FileDataStore(credPath, true)).Result;
         }
 
         // Create Google Sheets API service.
@@ -58,14 +58,61 @@ public class GoogleSheetWriter
             ApplicationName = _applicationName,
         });
 
-        int row = GetRow();
+        int row = await GetNumberFilledRows(service, _options.ListName, cancellationToken) + 1;
 
         // Define request parameters.
-        string range = $"{_options.ListName}!{_options.DateColumn}{row}:{_options.AmountColumn}";
-        SpreadsheetsResource.ValuesResource.GetRequest request =
-            service.Spreadsheets.Values.Get(_spreadsheetId, range);
+        var amount = expense.Amount;
+        var currency = amount.Currency;
+        var amountColumn = currency == Currency.Rur ? _options.AmountRurColumn : _options.AmountAmdColumn;
+        
+        string range = $"{_options.ListName}!{_options.MonthColumn}{row}:{amountColumn}{row}";
+        var valueRange = new ValueRange
+        {
+            Range = range,
+            MajorDimension = "ROWS",
+            Values = new List<IList<object>>
+            {
+                new List<object>{$"=MONTH({_options.DateColumn}{row})", expense.Date.ToString("dd.MM.yyyy"), expense.Category, expense.SubCategory, expense.Description, currency == Currency.Rur? expense.Amount.Amount : "", currency == Currency.Amd? expense.Amount.Amount : ""},
+            },
+        };
+        
+        SpreadsheetsResource.ValuesResource.UpdateRequest request =
+            service.Spreadsheets.Values.Update(valueRange, _spreadsheetId, range);
+        request.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
 
-        await request.ExecuteAsync(cancellationToken);
+        // TODO call it Async
+        var result = await request.ExecuteAsync(cancellationToken);
+        return;
+    }
 
+    private async Task<int> GetNumberFilledRows(SheetsService service, string listName, CancellationToken cancellationToken)
+    {
+        // TODO call it Async
+        var request = service.Spreadsheets.Get(_spreadsheetId);
+        request.IncludeGridData = true;
+        request.Ranges = $"{listName}!A1:G2000";
+        var response = await request.ExecuteAsync(cancellationToken);
+        var sheet = response.Sheets.First(s => s.Properties.Title == listName);
+
+        int i = 0;
+        foreach (var data in sheet.Data)
+        {
+            foreach (var rowData in data.RowData)
+            {
+                bool filled = false;
+                foreach (var cellValue in rowData.Values)
+                {
+                    if (cellValue.EffectiveValue != null)
+                    {
+                        filled = true;
+                        break;
+                    }
+                }
+                if (!filled) break;
+                i++;
+            }
+        }
+        
+        return i;
     }
 }

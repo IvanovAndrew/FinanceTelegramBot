@@ -7,7 +7,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Google.Apis.Sheets.v4" Version="1.57.0.2657" />
+      <PackageReference Include="Google.Apis.Sheets.v4" Version="1.57.0.2727" />
+      <PackageReference Remove="Fake.Core.CommandLineParsing" />
+      <PackageReference Remove="Fake.Core.Context" />
+      <PackageReference Remove="Fake.Core.Environment" />
+      <PackageReference Remove="Fake.Core.FakeVar" />
+      <PackageReference Remove="Fake.Core.Process" />
+      <PackageReference Remove="Fake.Core.String" />
+      <PackageReference Remove="Fake.Core.Target" />
+      <PackageReference Remove="Fake.Core.Trace" />
+      <PackageReference Remove="Fake.IO.FileSystem" />
+      <PackageReference Remove="Farmer" />
+      <PackageReference Remove="FParsec" />
+      <PackageReference Remove="FSharp.Control.Reactive" />
+      <PackageReference Remove="FSharp.Core" />
     </ItemGroup>
 
     <ItemGroup>
