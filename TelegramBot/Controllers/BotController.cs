@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Globalization;
 using Domain;
 using GoogleSheet;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +6,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBot.StateMachine;
 
 namespace TelegramBot.Controllers;
 
@@ -14,14 +14,14 @@ namespace TelegramBot.Controllers;
 [Route(Services.TelegramBot.Route)]
 public class BotController : ControllerBase
 {
-    private static ConcurrentDictionary<long, ExpenseBuilder> answers = new();
+    private static ConcurrentDictionary<long, IExpenseInfoState> answers = new();
 
     private readonly ILogger<BotController> _logger;
     private readonly Services.TelegramBot _bot;
     private readonly List<Category> _categories;
     private readonly IMoneyParser _moneyParser;
     private readonly GoogleSheetWriter _spreadsheetWriter;
-    private readonly CancellationTokenSource _cancellationTokenSource;
+    private readonly ConcurrentDictionary<long, CancellationTokenSource> _cancellationTokenSources;
 
     public BotController(ILogger<BotController> logger, Services.TelegramBot bot, CategoryOptions categoryOptions, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter)
     {
@@ -30,270 +30,101 @@ public class BotController : ControllerBase
         _categories = categoryOptions.Categories;
         _moneyParser = moneyParser;
         _spreadsheetWriter = spreadsheetWriter;
-        _cancellationTokenSource = new CancellationTokenSource();
+        _cancellationTokenSources = new ConcurrentDictionary<long, CancellationTokenSource>();
     }
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Update update)
     {
-        var cancellationToken = _cancellationTokenSource.Token;
+        var cancellationTokenSource = GetCancellationTokenSource(update);
         var botClient = await _bot.GetBot();
+
+        long chatId = default;
+        string? userText = null;
 
         if (update.Type == UpdateType.Message)
         {
-            var message = update.Message;
-            _logger.LogInformation($"{message.Text} was received");
-            if (message.Text.ToLower() == "/start")
-            {
-                await SendGreetingInline(botClient: botClient, chatId: message.Chat.Id,
-                    cancellationToken: cancellationToken);
-                return Ok();
-            }
-            else if (message.Text.ToLower() == "/cancel")
-            {
-                answers.Clear();
-                await botClient.SendTextMessageAsync(message.Chat, $"All operations are canceled");
-                return Ok();
-            }
-
-            if (answers.IsEmpty) return Ok();
-
-            var builder = answers[message.From.Id];
-            if (builder.Date == null)
-            {
-                DateOnly date;
-                if (string.Equals("today", message.Text.Trim(), StringComparison.InvariantCultureIgnoreCase) ||
-                    string.Equals("сегодня", message.Text.Trim(), StringComparison.InvariantCultureIgnoreCase))
-                {
-                    date = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
-                    await botClient.SendTextMessageAsync(message.Chat, $"Today is {date}");
-                }
-                else if (string.Equals("yesterday", message.Text.Trim(), StringComparison.InvariantCultureIgnoreCase) ||
-                    string.Equals("вчера", message.Text.Trim(), StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var dateTime = DateTime.Now.AddDays(-1);
-                    date = new DateOnly(dateTime.Year, dateTime.Month, dateTime.Day);
-                    await botClient.SendTextMessageAsync(message.Chat, $"Yesterday is {date}");
-                }
-                else if (!DateOnly.TryParse(message.Text, out date))
-                {
-                    _logger.LogDebug($"{message.Text} isn't a date");
-                    await botClient.SendTextMessageAsync(message.Chat, $"{message.Text} isn't a date. Try again");
-                    return Ok();
-                }
-                builder.Date = date;
-                string infoMessage = "Enter the category";
-
-                await SendCategoriesInline(botClient, message.Chat.Id, infoMessage, cancellationToken);
-                return Ok();
-            }
-            else if (builder.Description == null)
-            {
-                builder.Description = message.Text;
-                await RequestPrice(botClient, message.Chat.Id);
-            }
-            else if (builder.Sum == null)
-            {
-                if (!_moneyParser.TryParse(message.Text, out var money))
-                {
-                    string warning = $"{message.Text} wasn't recognized as money.";
-                    _logger.LogWarning(warning);
-                    await botClient.SendTextMessageAsync(message.Chat.Id, $"{warning} Try again", cancellationToken: cancellationToken);
-
-                    return Ok();
-                }
-
-                builder.Sum = money;
-
-                string s = string.Join(", ", 
-                    $"{builder.Date.Value:dd.MM.yyyy}", 
-                    $"{builder.Category}", 
-                    $"{builder.SubCategory ?? string.Empty}", 
-                    $"{builder.Description ?? string.Empty}",
-                    $"{builder.Sum}"
-                );
-                string infoMessage = $"Check your data: {s}";
-                await SendConfirmMessageAsync(botClient, message.Chat.Id, infoMessage, cancellationToken);
-            }
+            chatId = update.Message.Chat.Id;
+            userText = update.Message.Text;
         }
         else if (update.Type == UpdateType.CallbackQuery)
         {
-            string codeOfButton = update.CallbackQuery.Data;
-            var message = update.CallbackQuery.Message;
-            
-            _logger.LogInformation($"{codeOfButton} was received");
-            
-            long fromId = update.CallbackQuery.From.Id;
+            chatId = update.CallbackQuery.Message.Chat.Id;
+            userText = update.CallbackQuery.Data;
+        }
 
-            if (!answers.TryGetValue(fromId, out ExpenseBuilder builder))
-            {
-                builder = new ExpenseBuilder();
-            }
-            
-            if (codeOfButton == "startExpense")
-            {
-                answers[fromId] = builder;
+        _logger.LogInformation($"{userText} was received");
+        
+        var text = userText!;
+        
+        if (text.ToLowerInvariant() == "/start")
+        {
+            await SendGreetingInline(botClient: botClient, chatId: chatId, cancellationToken: cancellationTokenSource.Token);
+            return Ok();
+        }
+        else if (text.ToLowerInvariant() == "/cancel")
+        {
+            cancellationTokenSource.Cancel();
+            answers.Remove(chatId, out var prevState);
+            await botClient.SendTextMessageAsync(chatId, $"All operations are canceled");
+            return Ok();
+        }
 
-                await botClient.SendTextMessageAsync(chatId: message.Chat.Id, "Enter the date:",
-                    parseMode: ParseMode.Html, cancellationToken: cancellationToken);
-            }
-
-            else if (builder != null && builder.Category == null && _categories.Any(c => c.Name == codeOfButton))
+        if (!answers.TryGetValue(chatId, out IExpenseInfoState state))
+        {
+            state = new EnterTheDateState(_categories, _moneyParser, _spreadsheetWriter, _logger);
+            answers[chatId] = state;
+            await state.Request(botClient, chatId, cancellationTokenSource.Token);
+        }
+        else
+        {
+            var newState = state.Handle(text, cancellationTokenSource.Token);
+            if (newState != null)
             {
-                var category = message.ReplyMarkup.InlineKeyboard.SelectMany(c => c)
-                    .First(c => c.CallbackData == codeOfButton);
-                builder.Category = category.Text;
-
-                var categoryDomain = _categories.First(c => c.Name == codeOfButton);
-                if (categoryDomain.SubCategories.Any())
-                {
-                    await SendSubCategoriesInline(botClient, message.Chat.Id, categoryDomain, cancellationToken);
-                }
-                else
-                {
-                    await RequestDescription(botClient, message.Chat.Id, cancellationToken);
-                }
+                answers[chatId] = newState;
+                await newState.Request(botClient, chatId, cancellationTokenSource.Token);
             }
-            else if (builder != null && builder.Category != null && _categories.First(c => c.Name == builder.Category).SubCategories.Any(c => c.Name == codeOfButton))
+            else
             {
-                var subCategory = _categories.First(c => c.Name == builder.Category).SubCategories.First(c => c.Name == codeOfButton);
-                builder.SubCategory = subCategory.Name;
-
-                await RequestDescription(botClient, message.Chat.Id);
-            }
-            
-            else if (builder != null && codeOfButton == "Save")
-            {
-                await botClient.SendTextMessageAsync(chatId: message.Chat.Id, "Saving... It can take some time.");
-                var expense = builder.Build();
-                await _spreadsheetWriter.WriteToSpreadsheet(expense, cancellationToken);
-                await botClient.SendTextMessageAsync(chatId: message.Chat.Id, "Saved");
-                answers.Remove(fromId, out var removedBuilder);
-            }
-            
-            else if (codeOfButton == "Cancel")
-            {
-                _cancellationTokenSource.Cancel();
-                answers.Remove(fromId, out var removedBuilder);
-                await botClient.SendTextMessageAsync(chatId: message.Chat.Id, "Canceled",
-                    parseMode: ParseMode.Html);
-                
-                
+                answers.Remove(chatId, out var previousState);
             }
         }
 
         return Ok();
     }
 
+    private CancellationTokenSource GetCancellationTokenSource(Update update)
+    {
+        long senderId = default;
+        if (update.Type == UpdateType.Message)
+        {
+            senderId = update.Message.From.Id;
+        } 
+        else if (update.Type == UpdateType.CallbackQuery)
+        {
+            senderId = update.CallbackQuery.Message.From.Id;
+        }
+
+        if (!_cancellationTokenSources.TryGetValue(senderId, out var cancellationTokenSource))
+        {
+            cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSources[senderId] = cancellationTokenSource;
+        }
+
+        return cancellationTokenSource;
+    }
+
     private static async Task<Message> SendGreetingInline(ITelegramBotClient botClient, long chatId,
         CancellationToken cancellationToken)
     {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-            // keyboard
-            new[]
-            {
-                // first row
-                new[]
-                {
-                    // first button in row
-                    InlineKeyboardButton.WithCallbackData(text: "Enter the outcome", callbackData: "startExpense"),
-                },
-            });
+                new[] { InlineKeyboardButton.WithCallbackData(text: "Enter the outcome", callbackData: "startExpense") }
+            );
 
         return await botClient.SendTextMessageAsync(
             chatId: chatId,
             text: "What should I do?",
             replyMarkup: inlineKeyboard,
             cancellationToken: cancellationToken);
-    }
-
-    private async Task<Message> SendCategoriesInline(ITelegramBotClient botClient, long chatId, string text,
-        CancellationToken cancellationToken)
-    {
-        var firstRow = _categories.Take(4);
-        var secondRow = _categories.Skip(4).Take(4);
-        
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-            // keyboard
-            new[]
-            {
-                // first row
-                firstRow.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name)).ToArray(),
-                secondRow.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name)).ToArray(),
-            });
-
-        return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: text,
-            replyMarkup: inlineKeyboard,
-            cancellationToken: cancellationToken);
-    }
-
-    private async Task<Message> SendSubCategoriesInline(ITelegramBotClient botClient, long chatId, Category category,
-        CancellationToken cancellationToken)
-    {
-        var firstRow = category.SubCategories.Take(4);
-        var secondRow = Enumerable.Empty<SubCategory>();
-        if (category.SubCategories.Length > 4)
-        {
-            secondRow = category.SubCategories.Skip(4).Take(4);
-        }    
-        
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-            // keyboard
-            new[]
-            {
-                // first row
-                firstRow.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name)).ToArray(),
-                secondRow.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name)).ToArray(),
-            });
-
-        return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: "Choose the subcategory",
-            replyMarkup: inlineKeyboard,
-            cancellationToken: cancellationToken);
-    }
-
-    private async Task<Message> RequestDescription(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
-    {
-        return await botClient.SendTextMessageAsync(chatId, "Write description", cancellationToken: cancellationToken);
-    }
-
-    private async Task<Message> RequestPrice(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
-    {
-        return await botClient.SendTextMessageAsync(chatId, "Enter the price", cancellationToken: cancellationToken);
-    }
-
-    private static async Task<Message> SendConfirmMessageAsync(ITelegramBotClient botClient, long chatId, string text,
-        CancellationToken cancellationToken)
-    {
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-            // keyboard
-            new[]
-            {
-                // first row
-                new[]
-                {
-                    // first button in row
-                    InlineKeyboardButton.WithCallbackData(text: "Save", callbackData: "Save"),
-                    InlineKeyboardButton.WithCallbackData(text: "Cancel", callbackData: "Cancel"),
-                }
-            });
-
-        return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: $"{text}. Can I save it?",
-            replyMarkup: inlineKeyboard,
-            cancellationToken: cancellationToken);
-    }
-}
-
-public class CategoryOptions
-{
-    public List<Category> Categories { get; private set; }
-    public CategoryOptions(IConfiguration configuration)
-    {
-        Categories = configuration.GetSection("Categories").Get<List<Category>>();
     }
 }
