@@ -40,7 +40,7 @@ public class GoogleSheetWriter
     
     public async Task WriteToSpreadsheet(IExpense expense, CancellationToken cancellationToken)
     {
-        using (var stream =
+        await using (var stream =
             new FileStream("servicekey.json", FileMode.Open, FileAccess.Read))
         {
             // The file token.json stores the user's access and refresh tokens, and is created
@@ -60,18 +60,26 @@ public class GoogleSheetWriter
         cancellationToken.ThrowIfCancellationRequested();
 
         // Define request parameters.
-        var amount = expense.Amount;
-        var currency = amount.Currency;
-        var amountColumn = currency == Currency.Rur ? _options.AmountRurColumn : _options.AmountAmdColumn;
+        var money = expense.Amount;
         
-        string range = $"{_options.ListName}!{_options.MonthColumn}{row}:{amountColumn}{row}";
+        // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
+        string range = $"{_options.ListName}!{_options.MonthColumn}{row}:{_options.AmountAmdColumn}{row}";
         var valueRange = new ValueRange
         {
             Range = range,
             MajorDimension = "ROWS",
             Values = new List<IList<object>>
             {
-                new List<object>{$"=MONTH({_options.DateColumn}{row})", expense.Date.ToString("dd.MM.yyyy"), expense.Category, expense.SubCategory, expense.Description, currency == Currency.Rur? expense.Amount.Amount : "", currency == Currency.Amd? expense.Amount.Amount : ""},
+                new List<object>
+                {
+                    $"=MONTH({_options.DateColumn}{row})", 
+                    expense.Date.ToString("dd.MM.yyyy"), 
+                    expense.Category, 
+                    expense.SubCategory, 
+                    expense.Description, 
+                    money.Currency == Currency.Rur? money.Amount : "", 
+                    money.Currency == Currency.Amd? money.Amount : ""
+                },
             },
         };
         
@@ -79,8 +87,7 @@ public class GoogleSheetWriter
             service.Spreadsheets.Values.Update(valueRange, _spreadsheetId, range);
         request.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
 
-        var result = await request.ExecuteAsync(cancellationToken);
-        return;
+        await request.ExecuteAsync(cancellationToken);
     }
 
     private async Task<int> GetNumberFilledRows(SheetsService service, string listName, CancellationToken cancellationToken)
