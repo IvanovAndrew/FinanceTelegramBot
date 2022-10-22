@@ -37,11 +37,10 @@ class EnterTheDateState : IExpenseInfoState
 
         if (_askCustomDate)
         {
-            return await botClient.SendTextMessageAsync(chatId, $"{info} (${DateFormat})", cancellationToken: cancellationToken);
+            return await botClient.SendTextMessageAsync(chatId, $"{info} ({DateFormat})", cancellationToken: cancellationToken);
         }
         
-        // TODO fix this
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
+        InlineKeyboardMarkup inlineKeyboard = new(
             // keyboard
             new[]
             {
