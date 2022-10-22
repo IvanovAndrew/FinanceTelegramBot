@@ -13,14 +13,17 @@ namespace TelegramBot.StateMachine;
 
 class EnterTheDateState : IExpenseInfoState
 {
+    private readonly DateOnly _today;
     private readonly IMoneyParser _moneyParser;
     private readonly IEnumerable<Category> _categories;
     private readonly GoogleSheetWriter _spreadsheetWriter;
     private readonly ILogger _logger;
-    private readonly bool _askCustomDate; 
+    private readonly bool _askCustomDate;
+    private const string DateFormat = "MM.dd.yyyy";
     
-    public EnterTheDateState(IEnumerable<Category> categories, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter, ILogger logger, bool askCustomDate = false)
+    public EnterTheDateState(DateOnly today, IEnumerable<Category> categories, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter, ILogger logger, bool askCustomDate = false)
     {
+        _today = today;
         _categories = categories;
         _spreadsheetWriter = spreadsheetWriter;
         _moneyParser = moneyParser;
@@ -34,18 +37,17 @@ class EnterTheDateState : IExpenseInfoState
 
         if (_askCustomDate)
         {
-            return await botClient.SendTextMessageAsync(chatId, info, cancellationToken: cancellationToken);
+            return await botClient.SendTextMessageAsync(chatId, $"{info} (${DateFormat})", cancellationToken: cancellationToken);
         }
         
         // TODO fix this
-        DateTime today = DateTime.Today;
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
             // keyboard
             new[]
             {
                 // first row
-                InlineKeyboardButton.WithCallbackData(text:"Today", callbackData:today.ToString("dd.MM.yyyy")),
-                InlineKeyboardButton.WithCallbackData(text:"Yesterday", callbackData:today.ToString("dd.MM.yyyy")),
+                InlineKeyboardButton.WithCallbackData(text:"Today", callbackData:_today.ToString(DateFormat)),
+                InlineKeyboardButton.WithCallbackData(text:"Yesterday", callbackData:_today.AddDays(-1).ToString(DateFormat)),
                 InlineKeyboardButton.WithCallbackData(text:"Other", callbackData:"Other"),
             });
         
@@ -59,14 +61,13 @@ class EnterTheDateState : IExpenseInfoState
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
         var expenseBuilder = new ExpenseBuilder();
-        DateOnly date;
 
         if (text.ToLowerInvariant() == "other")
         {
-            return new EnterTheDateState(_categories, _moneyParser, _spreadsheetWriter, _logger, true);
+            return new EnterTheDateState(_today, _categories, _moneyParser, _spreadsheetWriter, _logger, true);
         }
         
-        if (!DateOnly.TryParse(text, out date))
+        if (!DateOnly.TryParse(text, out var date))
         {
             _logger.LogDebug($"{text} isn't a date");
             return new ErrorWithRetry($"{text} isn't a date.", this);

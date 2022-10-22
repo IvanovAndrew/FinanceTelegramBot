@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Domain;
@@ -73,7 +74,7 @@ public class BotController : ControllerBase
 
         if (!answers.TryGetValue(chatId, out IExpenseInfoState state))
         {
-            state = new EnterTheDateState(_categories, _moneyParser, _spreadsheetWriter, _logger);
+            state = new EnterTheDateState(DateOnly.FromDateTime(DateTime.Today), _categories, _moneyParser, _spreadsheetWriter, _logger);
             answers[chatId] = state;
             await state.Request(botClient, chatId, cancellationTokenSource.Token);
         }
