@@ -2,18 +2,19 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace TelegramBot;
-
-public class Program
+namespace TelegramBot
 {
-    public static async Task Main(string[] args)
+    public class Program
     {
-        await CreateHostBuilder(args).Build().RunAsync();
-    }
+        public static async Task Main(string[] args)
+        {
+            await CreateHostBuilder(args).Build().RunAsync();
+        }
 
-    private static IHostBuilder CreateHostBuilder(string[] args)
-    {
-        return Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
+        private static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
+        }
     }
 }

@@ -23,6 +23,8 @@ internal class ErrorWithRetry : IExpenseInfoState
         return await _state.Request(botClient, chatId, cancellationToken: cancellationToken);
     }
 
+    public bool AnswerIsRequired => true;
+
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
         return _state.Handle(text, cancellationToken);

@@ -8,5 +8,6 @@ namespace TelegramBot.StateMachine;
 interface IExpenseInfoState
 {
     Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken);
+    bool AnswerIsRequired { get; }
     IExpenseInfoState Handle(string text, CancellationToken cancellationToken);
 }

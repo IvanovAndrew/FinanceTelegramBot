@@ -1,7 +1,14 @@
+using System;
 using Domain;
 using GoogleSheet;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using TelegramBot.Controllers;
+using TelegramBot.Services;
 
 namespace TelegramBot;
 
@@ -18,7 +25,7 @@ public class Startup
     {
         var builder = services.AddControllers().AddNewtonsoftJson();
 
-        services.AddSingleton<Services.TelegramBot>(s => ActivatorUtilities.CreateInstance<Services.TelegramBot>(s, _configuration.GetSection("Telegram")["Url"], _configuration.GetSection("Telegram")["Token"]));
+        services.AddSingleton<TelegramBotService>(s => ActivatorUtilities.CreateInstance<TelegramBotService>(s, _configuration.GetSection("Telegram")["Url"], _configuration.GetSection("Telegram")["Token"]));
         services.AddSingleton<CategoryOptions>();
         
         services.AddScoped<ICurrencyParser, CurrencyParser>();
@@ -55,7 +62,7 @@ public class Startup
 
         app.UseSwagger();
         app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Warrior's finance bot"));
-        serviceProvider.GetRequiredService<Services.TelegramBot>().GetBot().Wait();
+        serviceProvider.GetRequiredService<TelegramBotService>().GetBot().Wait();
         
         app.UseRouting();
 

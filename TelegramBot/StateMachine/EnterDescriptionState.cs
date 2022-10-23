@@ -28,6 +28,8 @@ class EnterDescriptionState : IExpenseInfoState
         return await botClient.SendTextMessageAsync(chatId, "Write description", cancellationToken: cancellationToken);
     }
 
+    public bool AnswerIsRequired => true;
+
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();

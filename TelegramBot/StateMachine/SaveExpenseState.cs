@@ -30,8 +30,10 @@ internal class SaveExpenseState : IExpenseInfoState
         return await botClient.SendTextMessageAsync(chatId: chatId, "Saved");
     }
 
+    public bool AnswerIsRequired => false;
+
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 }

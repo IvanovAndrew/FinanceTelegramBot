@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Domain;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBot.StateMachine;
 
 namespace TelegramBot.StateMachine;
 
@@ -52,16 +54,18 @@ class ConfirmExpenseState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
+    public bool AnswerIsRequired => true;
+
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
-        if (text == "Save")
+        if (string.Equals(text, "Save", StringComparison.InvariantCultureIgnoreCase))
         {
             return new SaveExpenseState(_expense, _spreadsheetWriter, _logger);
         }
             
-        if (text == "Cancel")
+        if (string.Equals(text, "Cancel", StringComparison.InvariantCultureIgnoreCase))
         {
-            return null;
+            return new CancelExpenseState();
         }
 
         return null;

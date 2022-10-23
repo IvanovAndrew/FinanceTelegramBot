@@ -31,6 +31,8 @@ class EnterTheDateState : IExpenseInfoState
         _logger = logger;
     }
 
+    public bool AnswerIsRequired => true;
+
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
         var info = "Enter the date";

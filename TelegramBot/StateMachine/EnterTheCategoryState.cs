@@ -51,6 +51,8 @@ class EnterTheCategoryState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
+    public bool AnswerIsRequired => true;
+
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
         var categoryDomain = _categories.FirstOrDefault(c => c.Name == text);

@@ -62,4 +62,6 @@ class EnterSubcategoryState : IExpenseInfoState
 
         return this;
     }
+
+    public bool AnswerIsRequired => true;
 }

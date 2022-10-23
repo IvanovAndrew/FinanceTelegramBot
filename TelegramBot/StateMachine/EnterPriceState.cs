@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using Domain;
 using GoogleSheet;
 using Telegram.Bot;
@@ -19,6 +21,8 @@ class EnterPriceState : IExpenseInfoState
         _spreadsheetWriter = spreadsheetWriter;
         _logger = logger;
     }
+
+    public bool AnswerIsRequired => true;
 
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
