@@ -1,13 +1,10 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Domain;
 using GoogleSheet;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBot.StateMachine;
 
 namespace TelegramBot.Controllers;
@@ -40,7 +37,7 @@ public class BotController : ControllerBase
     {
         var cancellationTokenSource = GetCancellationTokenSource(update);
         var botClient = await _bot.GetBot();
-
+        
         long chatId = default;
         string? userText = null;
 
@@ -59,12 +56,7 @@ public class BotController : ControllerBase
         
         var text = userText!;
         
-        if (text.ToLowerInvariant() == "/start")
-        {
-            await SendGreetingInline(botClient: botClient, chatId: chatId, cancellationToken: cancellationTokenSource.Token);
-            return Ok();
-        }
-        else if (text.ToLowerInvariant() == "/cancel")
+        if (text.ToLowerInvariant() == "/cancel")
         {
             cancellationTokenSource.Cancel();
             answers.Remove(chatId, out var prevState);
@@ -74,21 +66,21 @@ public class BotController : ControllerBase
 
         if (!answers.TryGetValue(chatId, out IExpenseInfoState state))
         {
-            state = new EnterTheDateState(DateOnly.FromDateTime(DateTime.Today), _categories, _moneyParser, _spreadsheetWriter, _logger);
+            state = new GreetingState(DateOnly.FromDateTime(DateTime.Today), _categories, _moneyParser, _spreadsheetWriter, _logger);
             answers[chatId] = state;
             await state.Request(botClient, chatId, cancellationTokenSource.Token);
         }
         else
         {
-            var newState = state.Handle(text, cancellationTokenSource.Token);
-            if (newState != null)
+            var newState = answers[chatId] = state.Handle(text, cancellationTokenSource.Token);
+            
+            await newState.Request(botClient, chatId, cancellationTokenSource.Token);
+            
+            if (!newState.UserAnswerIsRequired)
             {
-                answers[chatId] = newState;
+                answers[chatId] = newState = new GreetingState(DateOnly.FromDateTime(DateTime.Today), _categories,
+                    _moneyParser, _spreadsheetWriter, _logger);
                 await newState.Request(botClient, chatId, cancellationTokenSource.Token);
-            }
-            else
-            {
-                answers.Remove(chatId, out var previousState);
             }
         }
 
@@ -114,19 +106,5 @@ public class BotController : ControllerBase
         }
 
         return cancellationTokenSource;
-    }
-
-    private static async Task<Message> SendGreetingInline(ITelegramBotClient botClient, long chatId,
-        CancellationToken cancellationToken)
-    {
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-                new[] { InlineKeyboardButton.WithCallbackData(text: "Enter the outcome", callbackData: "startExpense") }
-            );
-
-        return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: "What should I do?",
-            replyMarkup: inlineKeyboard,
-            cancellationToken: cancellationToken);
     }
 }

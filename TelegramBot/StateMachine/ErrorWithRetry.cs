@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -15,6 +13,8 @@ internal class ErrorWithRetry : IExpenseInfoState
         _errorMessage = message;
         _state = state;
     }
+
+    public bool UserAnswerIsRequired => _state.UserAnswerIsRequired;
 
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {

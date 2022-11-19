@@ -1,8 +1,5 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Domain;
 using GoogleSheet;
-using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -20,6 +17,8 @@ class ConfirmExpenseState : IExpenseInfoState
         _spreadsheetWriter = spreadsheetWriter;
         _logger = logger;
     }
+
+    public bool UserAnswerIsRequired => true;
 
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
@@ -61,9 +60,9 @@ class ConfirmExpenseState : IExpenseInfoState
             
         if (text == "Cancel")
         {
-            return null;
+            return new CancelledState(_logger);
         }
 
-        return null;
+        throw new ArgumentOutOfRangeException(nameof(text), $"Expected values are ""Save"" or ""Cancel"". {text} was received.");
     }
 }
