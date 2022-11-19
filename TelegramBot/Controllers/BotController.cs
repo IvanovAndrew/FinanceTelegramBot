@@ -14,6 +14,7 @@ namespace TelegramBot.Controllers;
 public class BotController : ControllerBase
 {
     private static ConcurrentDictionary<long, IExpenseInfoState> answers = new();
+    private static ConcurrentDictionary<IExpenseInfoState, Message> _sentMessage = new();
 
     private readonly ILogger<BotController> _logger;
     private readonly Services.TelegramBot _bot;
@@ -68,19 +69,30 @@ public class BotController : ControllerBase
         {
             state = new GreetingState(DateOnly.FromDateTime(DateTime.Today), _categories, _moneyParser, _spreadsheetWriter, _logger);
             answers[chatId] = state;
-            await state.Request(botClient, chatId, cancellationTokenSource.Token);
+            var message = await state.Request(botClient, chatId, cancellationTokenSource.Token);
+            _sentMessage[state] = message;
         }
         else
         {
             var newState = answers[chatId] = state.Handle(text, cancellationTokenSource.Token);
             
-            await newState.Request(botClient, chatId, cancellationTokenSource.Token);
+            var message = await newState.Request(botClient, chatId, cancellationTokenSource.Token);
+            _sentMessage[newState] = message;
             
             if (!newState.UserAnswerIsRequired)
             {
                 answers[chatId] = newState = new GreetingState(DateOnly.FromDateTime(DateTime.Today), _categories,
                     _moneyParser, _spreadsheetWriter, _logger);
-                await newState.Request(botClient, chatId, cancellationTokenSource.Token);
+                message = await newState.Request(botClient, chatId, cancellationTokenSource.Token);
+                _sentMessage[newState] = message;
+            }
+            else
+            {
+                if (_sentMessage.TryGetValue(state, out var previousMessage))
+                {
+                    _logger.LogInformation($"Removing message {previousMessage.MessageId} {previousMessage.Text}");
+                    await botClient.DeleteMessageAsync(chatId, previousMessage.MessageId);
+                }
             }
         }
 
