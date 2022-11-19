@@ -51,6 +51,10 @@ public class BotController : ControllerBase
         {
             chatId = update.CallbackQuery.Message.Chat.Id;
             userText = update.CallbackQuery.Data;
+
+            var selectedText = update.CallbackQuery.Message.ReplyMarkup.InlineKeyboard.SelectMany(c =>
+                c.Select(b => b)).First(b => b.CallbackData == userText).Text;
+            await botClient.SendTextMessageAsync(chatId, selectedText);
         }
 
         _logger.LogInformation($"{userText} was received");
@@ -74,6 +78,13 @@ public class BotController : ControllerBase
         }
         else
         {
+            if (_sentMessage.TryGetValue(state, out var previousMessage))
+            {
+                _logger.LogInformation($"Removing message {previousMessage.MessageId} {previousMessage.Text}");
+                await botClient.DeleteMessageAsync(chatId, previousMessage.MessageId, cancellationTokenSource.Token);
+                _logger.LogInformation($"Message {previousMessage.MessageId} {previousMessage.Text} is removed");
+            }
+            
             var newState = answers[chatId] = state.Handle(text, cancellationTokenSource.Token);
             
             var message = await newState.Request(botClient, chatId, cancellationTokenSource.Token);
@@ -85,14 +96,6 @@ public class BotController : ControllerBase
                     _moneyParser, _spreadsheetWriter, _logger);
                 message = await newState.Request(botClient, chatId, cancellationTokenSource.Token);
                 _sentMessage[newState] = message;
-            }
-            else
-            {
-                if (_sentMessage.TryGetValue(state, out var previousMessage))
-                {
-                    _logger.LogInformation($"Removing message {previousMessage.MessageId} {previousMessage.Text}");
-                    await botClient.DeleteMessageAsync(chatId, previousMessage.MessageId);
-                }
             }
         }
 

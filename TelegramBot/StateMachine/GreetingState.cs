@@ -29,7 +29,7 @@ class GreetingState : IExpenseInfoState
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-            new[] { InlineKeyboardButton.WithCallbackData(text: "Enter the outcome", callbackData: "startExpense") }
+            new[] { InlineKeyboardButton.WithCallbackData(text: "Outcome", callbackData: "startExpense") }
         );
 
         return await botClient.SendTextMessageAsync(
