@@ -22,15 +22,16 @@ class ConfirmExpenseState : IExpenseInfoState
 
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
-        string s = string.Join(", ", 
-            $"{_expense.Date:dd.MM.yyyy}", 
-            $"{_expense.Category}", 
-            $"{_expense.SubCategory ?? string.Empty}", 
-            $"{_expense.Description ?? string.Empty}",
-            $"{_expense.Amount}"
+        string infoMessage = string.Join($"{Environment.NewLine}", 
+            $"Date: {_expense.Date:dd.MM.yyyy}", 
+            $"Category: {_expense.Category}", 
+            $"SubCategory: {_expense.SubCategory ?? string.Empty}", 
+            $"Description: {_expense.Description ?? string.Empty}",
+            $"Amount: {_expense.Amount}",
+            "",
+            "Would you like to save it?"
         );
-        string infoMessage = $"Check your data: {s}";
-        
+
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
             // keyboard
             new[]
@@ -46,7 +47,7 @@ class ConfirmExpenseState : IExpenseInfoState
 
         return await botClient.SendTextMessageAsync(
             chatId: chatId,
-            text: $"{infoMessage}. Can I save it?",
+            text: $"{infoMessage}",
             replyMarkup: inlineKeyboard,
             cancellationToken: cancellationToken);
     }
