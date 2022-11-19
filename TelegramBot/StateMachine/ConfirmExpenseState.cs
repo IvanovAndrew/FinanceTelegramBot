@@ -63,6 +63,6 @@ class ConfirmExpenseState : IExpenseInfoState
             return new CancelledState(_logger);
         }
 
-        throw new ArgumentOutOfRangeException(nameof(text), $"Expected values are ""Save"" or ""Cancel"". {text} was received.");
+        throw new ArgumentOutOfRangeException(nameof(text), $@"Expected values are ""Save"" or ""Cancel"". {text} was received.");
     }
 }
