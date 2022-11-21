@@ -23,6 +23,8 @@ class EnterDescriptionState : IExpenseInfoState
         _logger = logger;
     }
 
+    public bool UserAnswerIsRequired => true;
+
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
         return await botClient.SendTextMessageAsync(chatId, "Write description", cancellationToken: cancellationToken);

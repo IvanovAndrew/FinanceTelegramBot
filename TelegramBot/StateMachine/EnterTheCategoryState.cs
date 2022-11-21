@@ -28,6 +28,8 @@ class EnterTheCategoryState : IExpenseInfoState
         _logger = logger;
     }
 
+    public bool UserAnswerIsRequired => true;
+
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
         string infoMessage = "Enter the category";

@@ -1,9 +1,5 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Domain;
 using GoogleSheet;
-using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -21,12 +17,16 @@ internal class SaveExpenseState : IExpenseInfoState
         _spreadsheetWriter = spreadsheetWriter;
         _logger = logger;
     }
-    
+
+    public bool UserAnswerIsRequired => false;
+
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Saving... It can take some time.");
         await botClient.SendTextMessageAsync(chatId: chatId, "Saving... It can take some time.");
         await _spreadsheetWriter.WriteToSpreadsheet(_expense, cancellationToken);
-        
+
+        _logger.LogInformation("Saved");
         return await botClient.SendTextMessageAsync(chatId: chatId, "Saved");
     }
 

@@ -22,7 +22,7 @@ class EnterPriceState : IExpenseInfoState
         _logger = logger;
     }
 
-    public bool AnswerIsRequired => true;
+    public bool UserAnswerIsRequired => true;
 
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {

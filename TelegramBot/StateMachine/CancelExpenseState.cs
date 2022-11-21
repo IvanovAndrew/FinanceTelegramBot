@@ -13,7 +13,7 @@ namespace TelegramBot.StateMachine
             return await botClient.SendTextMessageAsync(chatId, "Operation is canceled", cancellationToken: cancellationToken);
         }
 
-        public bool AnswerIsRequired => false;
+        public bool UserAnswerIsRequired => false;
         public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
         {
             throw new InvalidOperationException();

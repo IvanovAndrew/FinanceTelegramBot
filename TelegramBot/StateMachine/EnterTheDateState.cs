@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Domain;
@@ -19,7 +20,7 @@ class EnterTheDateState : IExpenseInfoState
     private readonly GoogleSheetWriter _spreadsheetWriter;
     private readonly ILogger _logger;
     private readonly bool _askCustomDate;
-    private const string DateFormat = "MM.dd.yyyy";
+    private readonly CultureInfo _culture = new CultureInfo("en-us");
     
     public EnterTheDateState(DateOnly today, IEnumerable<Category> categories, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter, ILogger logger, bool askCustomDate = false)
     {
@@ -31,7 +32,7 @@ class EnterTheDateState : IExpenseInfoState
         _logger = logger;
     }
 
-    public bool AnswerIsRequired => true;
+    public bool UserAnswerIsRequired => true;
 
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
@@ -39,7 +40,7 @@ class EnterTheDateState : IExpenseInfoState
 
         if (_askCustomDate)
         {
-            return await botClient.SendTextMessageAsync(chatId, $"{info} ({DateFormat})", cancellationToken: cancellationToken);
+            return await botClient.SendTextMessageAsync(chatId, $"{info}", cancellationToken: cancellationToken);
         }
         
         InlineKeyboardMarkup inlineKeyboard = new(
@@ -47,8 +48,8 @@ class EnterTheDateState : IExpenseInfoState
             new[]
             {
                 // first row
-                InlineKeyboardButton.WithCallbackData(text:"Today", callbackData:_today.ToString(DateFormat)),
-                InlineKeyboardButton.WithCallbackData(text:"Yesterday", callbackData:_today.AddDays(-1).ToString(DateFormat)),
+                InlineKeyboardButton.WithCallbackData(text:"Today", callbackData:_today.ToString(_culture)),
+                InlineKeyboardButton.WithCallbackData(text:"Yesterday", callbackData:_today.AddDays(-1).ToString(_culture)),
                 InlineKeyboardButton.WithCallbackData(text:"Other", callbackData:"Other"),
             });
         
@@ -68,7 +69,7 @@ class EnterTheDateState : IExpenseInfoState
             return new EnterTheDateState(_today, _categories, _moneyParser, _spreadsheetWriter, _logger, true);
         }
         
-        if (!DateOnly.TryParse(text, out var date))
+        if (!DateOnly.TryParse(text, _culture, DateTimeStyles.None, out var date))
         {
             _logger.LogDebug($"{text} isn't a date");
             return new ErrorWithRetry($"{text} isn't a date.", this);

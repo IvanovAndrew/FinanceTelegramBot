@@ -23,7 +23,7 @@ public class Money
     public Currency Currency { get; init; }
     public decimal Amount { get; init; }
 
-    public override string ToString() => $"{Amount}{Currency}";
+    public override string ToString() => $"{Amount} {Currency}";
 }
 
 public interface IMoneyParser
