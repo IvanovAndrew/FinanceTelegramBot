@@ -81,11 +81,26 @@ public class BotController : ControllerBase
         }
         else
         {
-            if (_sentMessage.TryGetValue(state, out var previousMessage))
+            if (_sentMessage.TryRemove(state, out var previousMessage))
             {
-                _logger.LogInformation($"Removing message {previousMessage.MessageId} {previousMessage.Text}");
-                await botClient.DeleteMessageAsync(chatId, previousMessage.MessageId, cancellationTokenSource.Token);
-                _logger.LogInformation($"Message {previousMessage.MessageId} {previousMessage.Text} is removed");
+                var diff = DateTime.Now.Subtract(previousMessage.Date);
+                if (diff.Hours > 24)
+                {
+                    _logger.LogWarning($"Couldn't delete message {previousMessage.MessageId} {previousMessage.Text} because it was sent less than 24 hours ago");
+                }
+                else
+                {
+                    _logger.LogInformation($"Removing message {previousMessage.MessageId} {previousMessage.Text}");
+                    try
+                    {
+                        await botClient.DeleteMessageAsync(chatId, previousMessage.MessageId, cancellationTokenSource.Token);
+                        _logger.LogInformation($"Message {previousMessage.MessageId} {previousMessage.Text} is removed");
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError($"Couldn't delete message {previousMessage.MessageId} {previousMessage.Text}.", e);
+                    }
+                }
             }
             
             var newState = _answers[chatId] = state.Handle(text, cancellationTokenSource.Token);
