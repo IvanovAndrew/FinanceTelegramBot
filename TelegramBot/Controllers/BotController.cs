@@ -64,7 +64,7 @@ public class BotController : ControllerBase
 
         var text = userText!;
 
-        if (text.ToLowerInvariant() == "/cancel")
+        if (text.ToLowerInvariant() == "/cancel" || text.ToLowerInvariant() == "отмена")
         {
             cancellationTokenSource.Cancel();
             _answers.Remove(chatId, out var prevState);
