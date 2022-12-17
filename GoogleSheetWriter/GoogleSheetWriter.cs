@@ -95,17 +95,17 @@ public class GoogleSheetWriter
         // TODO call it Async
         var request = service.Spreadsheets.Get(_spreadsheetId);
         request.IncludeGridData = true;
-        request.Ranges = $"{listName}!A1:G2000";
+        request.Ranges = $"{listName}!A1:B";
         var response = await request.ExecuteAsync(cancellationToken);
         var sheet = response.Sheets.First(s => s.Properties.Title == listName);
 
         int i = 0;
         foreach (var data in sheet.Data)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            
             foreach (var rowData in data.RowData)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 bool filled = false;
                 foreach (var cellValue in rowData.Values)
                 {
