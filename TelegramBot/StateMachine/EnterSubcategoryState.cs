@@ -12,29 +12,31 @@ namespace TelegramBot.StateMachine;
 
 class EnterSubcategoryState : IExpenseInfoState
 {
+    private readonly StateFactory _factory;
+    private readonly SubCategory[] _subCategories;
     private readonly ExpenseBuilder _expenseBuilder;
-    private readonly GoogleSheetWriter _spreadsheetWriter;
-    private readonly IMoneyParser _moneyParser;
     private readonly ILogger _logger;
     
-    internal EnterSubcategoryState(ExpenseBuilder builder, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter, ILogger logger)
+    public IExpenseInfoState PreviousState { get; private set; }
+    
+    internal EnterSubcategoryState(StateFactory factory, IExpenseInfoState previousState, ExpenseBuilder builder, SubCategory[] subCategories, ILogger logger)
     {
+        _factory = factory;
+        _subCategories = subCategories;
         _expenseBuilder = builder;
-        _moneyParser = moneyParser;
-        _spreadsheetWriter = spreadsheetWriter;
         _logger = logger;
+        PreviousState = previousState;
     }
 
     public bool UserAnswerIsRequired => true;
 
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
-        var category = _expenseBuilder.Category!;
-        var firstRow = category.SubCategories.Take(4);
+        var firstRow = _subCategories.Take(4);
         var secondRow = Enumerable.Empty<SubCategory>();
-        if (category.SubCategories.Length > 4)
+        if (_subCategories.Length > 4)
         {
-            secondRow = category.SubCategories.Skip(4).Take(4);
+            secondRow = _subCategories.Skip(4).Take(4);
         }    
         
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
@@ -55,11 +57,11 @@ class EnterSubcategoryState : IExpenseInfoState
 
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
-        var subCategory = _expenseBuilder.Category.SubCategories.FirstOrDefault(c => c.Name == text);
+        var subCategory = _subCategories.FirstOrDefault(c => c.Name == text);
         if (subCategory != null)
         {
             _expenseBuilder.SubCategory = subCategory;
-            return new EnterDescriptionState(_expenseBuilder, _moneyParser, _spreadsheetWriter, _logger);
+            return _factory.CreateEnterDescriptionState(_expenseBuilder, this);
         }
 
         return this;

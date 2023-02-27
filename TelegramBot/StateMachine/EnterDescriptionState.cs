@@ -1,8 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
-using Domain;
-using GoogleSheet;
-using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -10,17 +5,19 @@ namespace TelegramBot.StateMachine;
 
 class EnterDescriptionState : IExpenseInfoState
 {
+    private readonly StateFactory _factory;
     private readonly ExpenseBuilder _expenseBuilder;
-    private readonly GoogleSheetWriter _spreadsheetWriter;
-    private readonly IMoneyParser _moneyParser;
     private readonly ILogger _logger;
     
-    internal EnterDescriptionState(ExpenseBuilder expenseBuilder, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter, ILogger logger)
+    public IExpenseInfoState PreviousState { get; private set; }
+    
+    internal EnterDescriptionState(StateFactory factory, IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, ILogger logger)
     {
+        _factory = factory;
         _expenseBuilder = expenseBuilder;
-        _moneyParser = moneyParser;
-        _spreadsheetWriter = spreadsheetWriter;
         _logger = logger;
+
+        PreviousState = previousState;
     }
 
     public bool UserAnswerIsRequired => true;
@@ -30,13 +27,11 @@ class EnterDescriptionState : IExpenseInfoState
         return await botClient.SendTextMessageAsync(chatId, "Write description", cancellationToken: cancellationToken);
     }
 
-    public bool AnswerIsRequired => true;
-
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         
         _expenseBuilder.Description = text; 
-        return new EnterPriceState(_expenseBuilder, _moneyParser, _spreadsheetWriter, _logger);
+        return _factory.CreateEnterThePriceState(_expenseBuilder, this);
     }
 }

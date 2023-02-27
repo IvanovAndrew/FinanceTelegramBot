@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Domain;
 using GoogleSheet;
 using Microsoft.AspNetCore.Builder;
@@ -25,6 +26,8 @@ public class Startup
     {
         var builder = services.AddControllers().AddNewtonsoftJson();
 
+        services.AddSingleton<IDateParser, DateParser>(s =>
+            ActivatorUtilities.CreateInstance<DateParser>(s, new CultureInfo("en-US")));
         services.AddSingleton<TelegramBotService>(s => ActivatorUtilities.CreateInstance<TelegramBotService>(s, _configuration.GetSection("Telegram")["Url"], _configuration.GetSection("Telegram")["Token"]));
         services.AddSingleton<CategoryOptions>();
         
@@ -34,20 +37,34 @@ public class Startup
         services.AddSingleton<SheetOptions>(s =>
         {
             var instance = ActivatorUtilities.CreateInstance<SheetOptions>(s) as SheetOptions;
-            var usualList = _configuration.GetSection("SpreadsheetOptions").GetSection("Lists").GetSection("Usual");
-            var columns = usualList.GetSection("Columns");
-            instance.ListName = usualList["Name"];
-            instance.MonthColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Month"];
-            instance.DateColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Date"];
-            instance.CategoryColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Category"];
-            instance.SubCategoryColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:SubCategory"];
-            instance.DescriptionColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Description"];
-            instance.AmountRurColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountRUR"];
-            instance.AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountAMD"];
+            instance.UsualExpenses = new ListInfo
+            {
+                ListName = _configuration["SpreadsheetOptions:Lists:Usual:Name"],
+                YearColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Year"],
+                MonthColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Month"],
+                DateColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Date"],
+                CategoryColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Category"],
+                SubCategoryColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:SubCategory"],
+                DescriptionColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Description"],
+                AmountRurColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountRUR"],
+                AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountAMD"] 
+            };
+            
+
+            instance.FlatInfo = new ListInfo
+            {
+                ListName = _configuration["SpreadsheetOptions:Lists:Home:Name"],
+                YearColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Year"],
+                MonthColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Month"],
+                DateColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Date"],
+                DescriptionColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Description"],
+                AmountRurColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:AmountRUR"],
+                AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:AmountAMD"],
+            };
 
             return instance;
         });
-        services.AddSingleton<GoogleSheetWriter>(s => ActivatorUtilities.CreateInstance<GoogleSheetWriter>(s, s.GetRequiredService<SheetOptions>(), _configuration["SpreadsheetOptions:ApplicationName"], _configuration["SpreadsheetOptions:SpreadsheetID"]));
+        services.AddSingleton<GoogleSheetWrapper>(s => ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<SheetOptions>(), _configuration["SpreadsheetOptions:ApplicationName"], _configuration["SpreadsheetOptions:SpreadsheetID"]));
 
         services.AddSwaggerGen(c =>
             c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Warrior's finance bot", Version = "v1" }));

@@ -7,15 +7,21 @@ namespace TelegramBot.StateMachine;
 
 internal class SaveExpenseState : IExpenseInfoState
 {
+    private readonly StateFactory _factory;
     private readonly IExpense _expense;
-    private readonly GoogleSheetWriter _spreadsheetWriter;
+    private readonly GoogleSheetWrapper _spreadsheetWrapper;
     private readonly ILogger _logger;
     
-    internal SaveExpenseState(IExpense expense, GoogleSheetWriter spreadsheetWriter, ILogger logger)
+    public IExpenseInfoState PreviousState { get; private set; }
+    
+    internal SaveExpenseState(StateFactory factory, IExpenseInfoState previousState, IExpense expense, GoogleSheetWrapper spreadsheetWrapper, ILogger logger)
     {
+        _factory = factory;
         _expense = expense;
-        _spreadsheetWriter = spreadsheetWriter;
+        _spreadsheetWrapper = spreadsheetWrapper;
         _logger = logger;
+
+        PreviousState = previousState;
     }
 
     public bool UserAnswerIsRequired => false;
@@ -24,13 +30,11 @@ internal class SaveExpenseState : IExpenseInfoState
     {
         _logger.LogInformation("Saving... It can take some time.");
         await botClient.SendTextMessageAsync(chatId: chatId, "Saving... It can take some time.");
-        await _spreadsheetWriter.WriteToSpreadsheet(_expense, cancellationToken);
+        await _spreadsheetWrapper.Write(_expense, cancellationToken);
 
         _logger.LogInformation("Saved");
         return await botClient.SendTextMessageAsync(chatId: chatId, "Saved");
     }
-
-    public bool AnswerIsRequired => false;
 
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {

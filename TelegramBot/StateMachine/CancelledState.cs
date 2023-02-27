@@ -5,10 +5,14 @@ namespace TelegramBot.StateMachine;
 
 class CancelledState : IExpenseInfoState
 {
+    private readonly StateFactory _factory;
     private readonly ILogger _logger;
+    
+    public IExpenseInfoState PreviousState { get; private set; }
 
-    public CancelledState(ILogger logger)
+    public CancelledState(StateFactory factory, ILogger logger)
     {
+        _factory = factory;
         _logger = logger;
     }
     

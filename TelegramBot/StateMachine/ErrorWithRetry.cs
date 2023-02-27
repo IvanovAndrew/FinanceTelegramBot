@@ -7,6 +7,8 @@ internal class ErrorWithRetry : IExpenseInfoState
 {
     private readonly string _errorMessage;
     private readonly IExpenseInfoState _state;
+
+    public IExpenseInfoState PreviousState => _state.PreviousState;
     
     internal ErrorWithRetry(string message, IExpenseInfoState state)
     {
@@ -22,8 +24,6 @@ internal class ErrorWithRetry : IExpenseInfoState
 
         return await _state.Request(botClient, chatId, cancellationToken: cancellationToken);
     }
-
-    public bool AnswerIsRequired => true;
 
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {

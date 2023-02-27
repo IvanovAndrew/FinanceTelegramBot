@@ -8,20 +8,16 @@ namespace TelegramBot.StateMachine;
 
 class GreetingState : IExpenseInfoState
 {
-    private readonly DateOnly _today;
-    private readonly IEnumerable<Category> _categories;
-    private readonly IMoneyParser _moneyParser;
-    private readonly GoogleSheetWriter _spreadsheetWriter;
+    private StateFactory _factory;
     private readonly ILogger _logger;
     
-    public GreetingState(DateOnly today, IEnumerable<Category> categories, IMoneyParser moneyParser,
-        GoogleSheetWriter spreadsheetWriter, ILogger logger)
+    public IExpenseInfoState PreviousState { get; private set; }
+    
+    public GreetingState(StateFactory factory, ILogger logger)
     {
-        _today = today;
-        _categories = categories;
-        _moneyParser = moneyParser;
-        _spreadsheetWriter = spreadsheetWriter;
+        _factory = factory;
         _logger = logger;
+        PreviousState = this;
     }
 
     public bool UserAnswerIsRequired => true;
@@ -29,7 +25,11 @@ class GreetingState : IExpenseInfoState
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-            new[] { InlineKeyboardButton.WithCallbackData(text: "Outcome", callbackData: "startExpense") }
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData(text: "Outcome", callbackData: "startExpense"),
+                InlineKeyboardButton.WithCallbackData(text: "Statistics", callbackData: "showExpenses"),
+            }
         );
 
         return await botClient.SendTextMessageAsync(
@@ -41,6 +41,6 @@ class GreetingState : IExpenseInfoState
 
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
-        return new EnterTheDateState(_today, _categories, _moneyParser, _spreadsheetWriter, _logger);
+        return text == "showExpenses" ? _factory.CreateEnterTheMonthState(this) : _factory.CreateEnterTheDateState(this);
     }
 }

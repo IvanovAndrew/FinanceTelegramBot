@@ -9,17 +9,21 @@ namespace TelegramBot.StateMachine;
 
 class ConfirmExpenseState : IExpenseInfoState
 {
+    private readonly StateFactory _factory;
     private readonly IExpense _expense;
-    private readonly GoogleSheetWriter _spreadsheetWriter;
     private readonly ILogger _logger;
-    public ConfirmExpenseState(IExpense expense, GoogleSheetWriter spreadsheetWriter, ILogger logger)
+    public IExpenseInfoState PreviousState { get; private set; }
+    public bool UserAnswerIsRequired => true;
+    
+    public ConfirmExpenseState(StateFactory stateFactory, IExpenseInfoState previousState, IExpense expense, ILogger logger)
     {
+        _factory = stateFactory;
         _expense = expense;
-        _spreadsheetWriter = spreadsheetWriter;
         _logger = logger;
+        PreviousState = previousState;
     }
 
-    public bool UserAnswerIsRequired => true;
+    
 
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
@@ -53,18 +57,16 @@ class ConfirmExpenseState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public bool AnswerIsRequired => true;
-
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
         if (string.Equals(text, "Save", StringComparison.InvariantCultureIgnoreCase))
         {
-            return new SaveExpenseState(_expense, _spreadsheetWriter, _logger);
+            return _factory.CreateSaveState(this, _expense);
         }
             
         if (string.Equals(text, "Cancel", StringComparison.InvariantCultureIgnoreCase))
         {
-            return new CancelledState(_logger);
+            return _factory.CreateCancelState();
         }
 
         throw new ArgumentOutOfRangeException(nameof(text), $@"Expected values are ""Save"" or ""Cancel"". {text} was received.");

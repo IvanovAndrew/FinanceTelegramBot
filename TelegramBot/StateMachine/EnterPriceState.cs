@@ -9,17 +9,20 @@ namespace TelegramBot.StateMachine;
 
 class EnterPriceState : IExpenseInfoState
 {
+    private readonly StateFactory _factory;
     private readonly ExpenseBuilder _expenseBuilder;
-    private readonly GoogleSheetWriter _spreadsheetWriter;
     private readonly IMoneyParser _moneyParser;
     private readonly ILogger _logger;
+    
+    public IExpenseInfoState PreviousState { get; private set; }
 
-    internal EnterPriceState(ExpenseBuilder expenseBuilder, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter, ILogger logger)
+    internal EnterPriceState(StateFactory factory, IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, IMoneyParser moneyParser, ILogger logger)
     {
+        _factory = factory;
         _expenseBuilder = expenseBuilder;
         _moneyParser = moneyParser;
-        _spreadsheetWriter = spreadsheetWriter;
         _logger = logger;
+        PreviousState = previousState;
     }
 
     public bool UserAnswerIsRequired => true;
@@ -36,11 +39,11 @@ class EnterPriceState : IExpenseInfoState
             string warning = $"{text} wasn't recognized as money.";
             _logger.LogDebug(warning);
             
-            return new ErrorWithRetry(warning, this);
+            return _factory.CreateErrorWithRetryState(warning, this);
         }
 
         _expenseBuilder.Sum = money;
 
-        return new ConfirmExpenseState(_expenseBuilder.Build(), _spreadsheetWriter, _logger);
+        return _factory.CreateConfirmState(_expenseBuilder.Build(), this);
     }
 }

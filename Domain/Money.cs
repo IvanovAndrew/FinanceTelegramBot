@@ -23,6 +23,14 @@ public class Money
     public Currency Currency { get; init; }
     public decimal Amount { get; init; }
 
+    public static Money operator +(Money one, Money two)
+    {
+        if (one.Currency != two.Currency)
+            throw new InvalidOperationException("Money should have the same currency!");
+
+        return new Money { Currency = one.Currency, Amount = one.Amount + two.Amount };
+    }
+    
     public override string ToString() => $"{Amount} {Currency}";
 }
 

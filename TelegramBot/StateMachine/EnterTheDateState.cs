@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
-using Domain;
-using GoogleSheet;
-using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -14,25 +7,24 @@ namespace TelegramBot.StateMachine;
 
 class EnterTheDateState : IExpenseInfoState
 {
-    private readonly DateOnly _today;
-    private readonly IMoneyParser _moneyParser;
-    private readonly IEnumerable<Category> _categories;
-    private readonly GoogleSheetWriter _spreadsheetWriter;
+    private readonly StateFactory _factory;
+    private readonly IDateParser _dateParser;
     private readonly ILogger _logger;
     private readonly bool _askCustomDate;
     private readonly CultureInfo _culture = new CultureInfo("en-us");
     
-    public EnterTheDateState(DateOnly today, IEnumerable<Category> categories, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter, ILogger logger, bool askCustomDate = false)
+    public IExpenseInfoState PreviousState { get; private set; }
+    public bool UserAnswerIsRequired => true;
+    
+    public EnterTheDateState(StateFactory factory, IExpenseInfoState previousState, IDateParser dateParser, ILogger logger, bool askCustomDate = false)
     {
-        _today = today;
-        _categories = categories;
-        _spreadsheetWriter = spreadsheetWriter;
-        _moneyParser = moneyParser;
+        _factory = factory;
+        _dateParser = dateParser;
         _askCustomDate = askCustomDate;
         _logger = logger;
+        PreviousState = previousState;
     }
-
-    public bool UserAnswerIsRequired => true;
+    
 
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
@@ -48,8 +40,8 @@ class EnterTheDateState : IExpenseInfoState
             new[]
             {
                 // first row
-                InlineKeyboardButton.WithCallbackData(text:"Today", callbackData:_today.ToString(_culture)),
-                InlineKeyboardButton.WithCallbackData(text:"Yesterday", callbackData:_today.AddDays(-1).ToString(_culture)),
+                InlineKeyboardButton.WithCallbackData(text:"Today", callbackData:"today"),
+                InlineKeyboardButton.WithCallbackData(text:"Yesterday", callbackData:"yesterday"),
                 InlineKeyboardButton.WithCallbackData(text:"Other", callbackData:"Other"),
             });
         
@@ -66,17 +58,16 @@ class EnterTheDateState : IExpenseInfoState
 
         if (text.ToLowerInvariant() == "other")
         {
-            return new EnterTheDateState(_today, _categories, _moneyParser, _spreadsheetWriter, _logger, true);
+            return _factory.CreateEnterTheDateState(this, true);
         }
         
         if (!DateOnly.TryParse(text, _culture, DateTimeStyles.None, out var date))
         {
             _logger.LogDebug($"{text} isn't a date");
-            return new ErrorWithRetry($"{text} isn't a date.", this);
+            return _factory.CreateErrorWithRetryState($"{text} isn't a date.", this);
         }
 
         expenseBuilder.Date = date;
-
-        return new EnterTheCategoryState(expenseBuilder, _categories, _moneyParser, _spreadsheetWriter, _logger);
+        return _factory.CreateEnterTheCategoryState(expenseBuilder, this);
     }
 }

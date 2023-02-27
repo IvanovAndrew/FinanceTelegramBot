@@ -13,19 +13,21 @@ namespace TelegramBot.StateMachine;
 
 class EnterTheCategoryState : IExpenseInfoState
 {
+    private readonly StateFactory _factory;
     private readonly ExpenseBuilder _expenseBuilder;
     private readonly IEnumerable<Category> _categories;
-    private readonly GoogleSheetWriter _spreadsheetWriter;
-    private readonly IMoneyParser _moneyParser;
     private readonly ILogger _logger;
+    
+    public IExpenseInfoState PreviousState { get; private set; }
 
-    internal EnterTheCategoryState(ExpenseBuilder expenseBuilder, IEnumerable<Category> categories, IMoneyParser moneyParser, GoogleSheetWriter spreadsheetWriter, ILogger logger)
+    internal EnterTheCategoryState(StateFactory stateFactory, IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, IEnumerable<Category> categories, ILogger logger)
     {
+        _factory = stateFactory;
         _expenseBuilder = expenseBuilder;
         _categories = categories;
-        _spreadsheetWriter = spreadsheetWriter;
-        _moneyParser = moneyParser;
         _logger = logger;
+
+        PreviousState = previousState;
     }
 
     public bool UserAnswerIsRequired => true;
@@ -34,17 +36,12 @@ class EnterTheCategoryState : IExpenseInfoState
     {
         string infoMessage = "Enter the category";
 
-        var firstRow = _categories.Take(4);
-        var secondRow = _categories.Skip(4).Take(4);
+        var rows = _categories.Chunk(4);
         
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
             // keyboard
-            new[]
-            {
-                // first row
-                firstRow.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name)).ToArray(),
-                secondRow.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name)).ToArray(),
-            });
+            rows.Select(row => row.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name))).ToArray()
+        );
         
         return await botClient.SendTextMessageAsync(
             chatId: chatId,
@@ -52,8 +49,6 @@ class EnterTheCategoryState : IExpenseInfoState
             replyMarkup: inlineKeyboard,
             cancellationToken: cancellationToken);
     }
-
-    public bool AnswerIsRequired => true;
 
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
@@ -63,11 +58,11 @@ class EnterTheCategoryState : IExpenseInfoState
             _expenseBuilder.Category = categoryDomain;
             if (categoryDomain.SubCategories.Any())
             {
-                return new EnterSubcategoryState(_expenseBuilder, _moneyParser, _spreadsheetWriter, _logger);
+                return _factory.CreateEnterTheSubcategoryState(_expenseBuilder, this, categoryDomain.SubCategories);
             }
             else
             {
-                return new EnterDescriptionState(_expenseBuilder, _moneyParser, _spreadsheetWriter, _logger);
+                return _factory.CreateEnterDescriptionState(_expenseBuilder, this);
             }
         }
 
