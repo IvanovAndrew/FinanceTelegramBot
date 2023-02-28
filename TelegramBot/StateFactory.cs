@@ -109,6 +109,7 @@ class DateParser : IDateParser
         else if (string.Equals(s, "yesterday", StringComparison.InvariantCultureIgnoreCase))
         {
             date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
+            return true;
         }
 
         return DateOnly.TryParse(s, _cultureInfo, DateTimeStyles.None, out date);
