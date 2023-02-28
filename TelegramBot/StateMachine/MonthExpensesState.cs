@@ -3,6 +3,7 @@ using Domain;
 using GoogleSheet;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using TelegramBot.StateMachine;
 
 namespace TelegramBot;
@@ -53,17 +54,22 @@ internal class MonthExpensesState : IExpenseInfoState
             total += row.Amount;
         }
 
-        var stringBuilder = new StringBuilder();
+        string[,] telegramTable = new string[dictionaryCategoryToSum.Count + 1, 2];
+        int i = 0;
         foreach ((string category, Money sum) in dictionaryCategoryToSum.OrderByDescending(kvp => kvp.Value.Amount))
         {
-            stringBuilder.AppendLine($"{category} {sum}");
+            telegramTable[i, 0] = category;
+            telegramTable[i, 1] = sum.ToString();
+            i++;
         }
 
-        stringBuilder.AppendLine();
-        stringBuilder.AppendLine($"Total {total}");
+        telegramTable[dictionaryCategoryToSum.Count, 0] = "Total";
+        telegramTable[dictionaryCategoryToSum.Count, 1] = total.ToString();
 
-        return await botClient.SendTextMessageAsync(chatId: chatId, stringBuilder.ToString(),
-            cancellationToken: cancellationToken);
+        var table = MarkdownFormatter.FormatTable(new[] { "Category", "Sum" }, telegramTable);
+
+        return await botClient.SendTextMessageAsync(chatId: chatId, $"```{TelegramEscaper.EscapeString(table)}```",
+            cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);
     }
 
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
