@@ -1,4 +1,3 @@
-using System.Globalization;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -11,7 +10,6 @@ class EnterTheDateState : IExpenseInfoState
     private readonly IDateParser _dateParser;
     private readonly ILogger _logger;
     private readonly bool _askCustomDate;
-    private readonly CultureInfo _culture = new CultureInfo("en-us");
     
     public IExpenseInfoState PreviousState { get; private set; }
     public bool UserAnswerIsRequired => true;
@@ -61,7 +59,7 @@ class EnterTheDateState : IExpenseInfoState
             return _factory.CreateEnterTheDateState(this, true);
         }
         
-        if (!DateOnly.TryParse(text, _culture, DateTimeStyles.None, out var date))
+        if (!_dateParser.TryParse(text, out var date))
         {
             _logger.LogDebug($"{text} isn't a date");
             return _factory.CreateErrorWithRetryState($"{text} isn't a date.", this);
