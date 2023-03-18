@@ -50,7 +50,6 @@ public class Startup
                 AmountRurColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountRUR"],
                 AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountAMD"] 
             };
-            
 
             instance.FlatInfo = new ListInfo
             {
@@ -61,6 +60,17 @@ public class Startup
                 DescriptionColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Description"],
                 AmountRurColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:AmountRUR"],
                 AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:AmountAMD"],
+            };
+
+            instance.BigDealInfo = new ListInfo()
+            {
+                ListName = _configuration["SpreadsheetOptions:Lists:BigDeal:Name"],
+                YearColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:Year"],
+                MonthColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:Month"],
+                DateColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:Date"],
+                DescriptionColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:Description"],
+                AmountRurColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:AmountRUR"],
+                AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:AmountAMD"],
             };
 
             return instance;

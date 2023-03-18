@@ -10,8 +10,8 @@ namespace GoogleSheet;
 public class SheetOptions
 {
     public ListInfo UsualExpenses;
-
     public ListInfo FlatInfo;
+    public ListInfo BigDealInfo;
 }
 
 public class ListInfo
@@ -144,8 +144,9 @@ public class GoogleSheetWrapper
 
         var usualExpenses = await GetRows(service, _options.UsualExpenses, "", month, cancellationToken);
         var flatExpenses = await GetRows(service, _options.FlatInfo, "Квартира", month, cancellationToken);
+        var bigExpenses = await GetRows(service, _options.BigDealInfo, "Крупные", month, cancellationToken);
 
-        return usualExpenses.Union(flatExpenses).OrderBy(e => e.Date).ToList();
+        return usualExpenses.Union(flatExpenses).Union(bigExpenses).OrderBy(e => e.Date).ToList();
     }
 
     private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, string category, DateOnly monthAndYear,
@@ -172,6 +173,8 @@ public class GoogleSheetWrapper
             foreach (var rowData in data.RowData)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                
+                if (rowData.Values == null) continue;
 
                 bool filled = false;
                 if (DateTime.TryParse(rowData.Values[dateIndex].FormattedValue, _cultureInfo, DateTimeStyles.None,
@@ -190,7 +193,7 @@ public class GoogleSheetWrapper
                             Description = descriptionIndex != null
                                 ? rowData.Values[descriptionIndex.Value].FormattedValue
                                 : null,
-                            Amount = ParseMoney(rowData.Values[rurAmountIndex].FormattedValue, rowData.Values[amdAmountIndex].FormattedValue),
+                            Amount = ParseMoney(rowData.Values[rurAmountIndex].FormattedValue,  rowData.Values.Count > amdAmountIndex? rowData.Values[amdAmountIndex].FormattedValue : null),
                         });
                 }
 
