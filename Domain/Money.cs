@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -30,8 +31,20 @@ public class Money
 
         return new Money { Currency = one.Currency, Amount = one.Amount + two.Amount };
     }
+
+    public static bool TryParse(string s, Currency currency, IFormatProvider formatProvider, [NotNullWhen(true)] out Money? money)
+    {
+        if (decimal.TryParse(s, NumberStyles.Currency, formatProvider, out var amount))
+        {
+            money = new Money() { Currency = currency, Amount = amount };
+            return true;
+        }
+
+        money = null;
+        return false;
+    }
     
-    public override string ToString() => $"{Amount} {Currency}";
+    public override string ToString() => $"{Amount}{Currency}";
 }
 
 public interface IMoneyParser

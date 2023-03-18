@@ -66,18 +66,18 @@ public class GoogleSheetWrapper
                 new List<object>
                 {
                     $"=YEAR({listInfo.DateColumn}{row})",
-                    $"=MONTH({listInfo.DateColumn}{row})", 
-                    expense.Date.ToString("dd.MM.yyyy"), 
-                    expense.Category, 
-                    expense.SubCategory, 
-                    expense.Description, 
-                    money.Currency == Currency.Rur? money.Amount : "", 
-                    money.Currency == Currency.Amd? money.Amount : ""
+                    $"=MONTH({listInfo.DateColumn}{row})",
+                    expense.Date.ToString("dd.MM.yyyy"),
+                    expense.Category,
+                    expense.SubCategory,
+                    expense.Description,
+                    money.Currency == Currency.Rur ? money.Amount : "",
+                    money.Currency == Currency.Amd ? money.Amount : ""
                 },
             },
-            
+
         };
-        
+
         SpreadsheetsResource.ValuesResource.UpdateRequest request =
             service.Spreadsheets.Values.Update(valueRange, _spreadsheetId, range);
         request.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
@@ -172,29 +172,50 @@ public class GoogleSheetWrapper
             foreach (var rowData in data.RowData)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                
+
                 bool filled = false;
-                if (DateTime.TryParse(rowData.Values[dateIndex].FormattedValue, _cultureInfo, DateTimeStyles.None, out var date) && date.Month == monthAndYear.Month && date.Year == monthAndYear.Year)
+                if (DateTime.TryParse(rowData.Values[dateIndex].FormattedValue, _cultureInfo, DateTimeStyles.None,
+                        out var date) && date.Month == monthAndYear.Month && date.Year == monthAndYear.Year)
                 {
                     expenses.Add(
                         new Expense
                         {
                             Date = DateOnly.FromDateTime(date),
-                            Category = categoryIndex != null? rowData.Values[categoryIndex.Value].FormattedValue : category,
-                            SubCategory = subCategoryIndex != null? rowData.Values[subCategoryIndex.Value].FormattedValue : null,
-                            Description = descriptionIndex != null? rowData.Values[descriptionIndex.Value].FormattedValue : null,
-                            Amount = 
-                                new Money
-                                {
-                                    Currency = rowData.Values[rurAmountIndex].FormattedValue != null? Currency.Rur : Currency.Amd,
-                                    Amount = decimal.TryParse(rowData.Values[rurAmountIndex].FormattedValue?? rowData.Values[amdAmountIndex].FormattedValue, out var amount)? amount : 0, 
-                                }
+                            Category = categoryIndex != null
+                                ? rowData.Values[categoryIndex.Value].FormattedValue
+                                : category,
+                            SubCategory = subCategoryIndex != null
+                                ? rowData.Values[subCategoryIndex.Value].FormattedValue
+                                : null,
+                            Description = descriptionIndex != null
+                                ? rowData.Values[descriptionIndex.Value].FormattedValue
+                                : null,
+                            Amount = ParseMoney(rowData.Values[rurAmountIndex].FormattedValue, rowData.Values[amdAmountIndex].FormattedValue),
                         });
                 }
+
                 i++;
             }
         }
-        
+
         return expenses;
+    }
+
+    private Money ParseMoney(string rurValue, string amdValue)
+    {
+        if (string.IsNullOrEmpty(rurValue) && string.IsNullOrEmpty(amdValue))
+            return new Money() { Currency = Currency.Amd, Amount = 0m };
+        
+        if (Money.TryParse(rurValue, Currency.Rur, _cultureInfo, out var money))
+        {
+            return money;
+        }
+
+        else if (Money.TryParse(amdValue, Currency.Amd, _cultureInfo, out money))
+        {
+            return money;
+        }
+
+        throw new ArgumentOutOfRangeException($"Couldn't parse money from {rurValue} and {amdValue}");
     }
 }
