@@ -35,45 +35,60 @@ internal class MonthExpensesState : IExpenseInfoState
         
         _logger.LogInformation($"Found {rows.Count} row(s) for month {_selectedMonth}");
 
-        var dictionaryCategoryToSum = new Dictionary<string, Money>();
-        Money total = new Money { Currency = Currency.Amd, Amount = 0m };
+        Message lastMessage = default;
+        foreach (var currency in new []{Currency.Amd, Currency.Rur})
+        {
+            var (categories, total) = SumByCategories(rows, currency);
+            string[,] telegramTable = new string[categories.Count + 2, 2];
+            int i = 0;
+            foreach ((string category, Money sum) in categories.OrderByDescending(kvp => kvp.Value.Amount))
+            {
+                telegramTable[i, 0] = category;
+                telegramTable[i, 1] = sum.ToString();
+                i++;
+            }
         
-        foreach (var row in rows)
-        {
-            if (row.Amount.Currency != Currency.Amd) continue;
+            telegramTable[categories.Count, 0] = new string('=', categories.Keys.MaxBy(s => s.Length)?.Length?? 5);
+            telegramTable[categories.Count, 1] = "";
+
+            telegramTable[categories.Count + 1, 0] = "Всего";
+            telegramTable[categories.Count + 1, 1] = total.ToString();
             
-            if (dictionaryCategoryToSum.TryGetValue(row.Category, out var sum))
-            {
-                dictionaryCategoryToSum[row.Category] = sum + row.Amount;
-            }
-            else
-            {
-                dictionaryCategoryToSum[row.Category] = row.Amount;
-            }
+            var table = MarkdownFormatter.FormatTable(new[] { "Category", "Sum" }, telegramTable);
 
-            total += row.Amount;
+            lastMessage = await botClient.SendTextMessageAsync(chatId: chatId, $"```{TelegramEscaper.EscapeString(table)}```",
+                cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);
         }
 
-        string[,] telegramTable = new string[dictionaryCategoryToSum.Count + 1, 2];
-        int i = 0;
-        foreach ((string category, Money sum) in dictionaryCategoryToSum.OrderByDescending(kvp => kvp.Value.Amount))
-        {
-            telegramTable[i, 0] = category;
-            telegramTable[i, 1] = sum.ToString();
-            i++;
-        }
-
-        telegramTable[dictionaryCategoryToSum.Count, 0] = "Total";
-        telegramTable[dictionaryCategoryToSum.Count, 1] = total.ToString();
-
-        var table = MarkdownFormatter.FormatTable(new[] { "Category", "Sum" }, telegramTable);
-
-        return await botClient.SendTextMessageAsync(chatId: chatId, $"```{TelegramEscaper.EscapeString(table)}```",
-            cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);
+        return lastMessage;
     }
 
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
         return _factory.CreateGreetingState();
+    }
+
+    private (Dictionary<string, Money>, Money total) SumByCategories(IEnumerable<IExpense> expenses, Currency currency)
+    {
+        var categoriesSum = new Dictionary<string, Money>();
+        Money total = new Money { Currency = currency, Amount = 0m };
+        
+        foreach (var row in expenses)
+        {
+            if (row.Amount.Currency != currency) continue;
+            
+            if (categoriesSum.TryGetValue(row.Category, out var sum))
+            {
+                categoriesSum[row.Category] = sum + row.Amount;
+            }
+            else
+            {
+                categoriesSum[row.Category] = row.Amount;
+            }
+
+            total += row.Amount;
+        }
+
+        return (categoriesSum, total);
     }
 }

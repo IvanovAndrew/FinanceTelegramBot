@@ -44,7 +44,7 @@ public class Money
         return false;
     }
     
-    public override string ToString() => $"{Amount}{Currency}";
+    public override string ToString() => $"{Amount} {Currency}";
 }
 
 public interface IMoneyParser
