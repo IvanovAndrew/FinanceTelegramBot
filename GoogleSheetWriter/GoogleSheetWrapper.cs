@@ -138,18 +138,18 @@ public class GoogleSheetWrapper
         return i;
     }
 
-    public async Task<List<Expense>> GetRows(DateOnly month, CancellationToken cancellationToken)
+    public async Task<List<Expense>> GetRows(Predicate<DateOnly> filter, CancellationToken cancellationToken)
     {
         var service = await InitializeService(cancellationToken);
 
-        var usualExpenses = await GetRows(service, _options.UsualExpenses, "", month, cancellationToken);
-        var flatExpenses = await GetRows(service, _options.FlatInfo, "Квартира", month, cancellationToken);
-        var bigExpenses = await GetRows(service, _options.BigDealInfo, "Крупные", month, cancellationToken);
+        var usualExpenses = await GetRows(service, _options.UsualExpenses, "", filter, cancellationToken);
+        var flatExpenses = await GetRows(service, _options.FlatInfo, "Квартира", filter, cancellationToken);
+        var bigExpenses = await GetRows(service, _options.BigDealInfo, "Крупные", filter, cancellationToken);
 
         return usualExpenses.Union(flatExpenses).Union(bigExpenses).OrderBy(e => e.Date).ToList();
     }
 
-    private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, string category, DateOnly monthAndYear,
+    private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, string category, Predicate<DateOnly> filter,
         CancellationToken cancellationToken)
     {
         var request = service.Spreadsheets.Get(_spreadsheetId);
@@ -178,7 +178,7 @@ public class GoogleSheetWrapper
 
                 bool filled = false;
                 if (DateTime.TryParse(rowData.Values[dateIndex].FormattedValue, _cultureInfo, DateTimeStyles.None,
-                        out var date) && date.Month == monthAndYear.Month && date.Year == monthAndYear.Year)
+                        out var date) && filter(DateOnly.FromDateTime(date)))
                 {
                     expenses.Add(
                         new Expense

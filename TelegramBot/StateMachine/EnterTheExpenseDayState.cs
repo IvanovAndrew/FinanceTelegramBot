@@ -4,7 +4,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TelegramBot.StateMachine;
 
-internal class EnterTheMonthState : IExpenseInfoState
+internal class EnterTheExpenseDayState : IExpenseInfoState
 {
     private static readonly string[] MonthNames = {
         "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
@@ -18,7 +18,7 @@ internal class EnterTheMonthState : IExpenseInfoState
     
     public IExpenseInfoState PreviousState { get; private set; }
 
-    public EnterTheMonthState(StateFactory factory, IExpenseInfoState previousState, DateOnly today, ILogger logger)
+    public EnterTheExpenseDayState(StateFactory factory, IExpenseInfoState previousState, DateOnly today, ILogger logger)
     {
         _factory = factory;
         _today = today;
@@ -28,14 +28,9 @@ internal class EnterTheMonthState : IExpenseInfoState
     
     public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
-        var info = "Enter the month";
-
-        var buttons = new[]
-            {
-                _today.AddMonths(-5), _today.AddMonths(-4), _today.AddMonths(-3),
-                _today.AddMonths(-2), _today.AddMonths(-1), _today 
-            }.Chunk(3)
-            .Select(row => row.Select(date => InlineKeyboardButton.WithCallbackData(text: $"{MonthNames[date.Month - 1]} {date.Year}", callbackData: date.ToString(_dateFormat))))
+        var info = "Enter the day";
+        var buttons = Enumerable.Range(0, 6).Reverse().Select(c => _today.AddDays(-c)).Chunk(3)
+            .Select(row => row.Select(date => InlineKeyboardButton.WithCallbackData(text: $"{date.Day} {MonthNames[date.Month - 1]} {date.Year}", callbackData: date.ToString(_dateFormat))))
             .ToList();
         
         InlineKeyboardMarkup inlineKeyboard = new(buttons);
@@ -49,9 +44,9 @@ internal class EnterTheMonthState : IExpenseInfoState
 
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
-        if (DateOnly.TryParseExact(text, _dateFormat, out var selectedMonth))
+        if (DateOnly.TryParseExact(text, _dateFormat, out var selectedDay))
         {
-            return _factory.GetExpensesState(this, d => d.Month == selectedMonth.Month && d.Year == selectedMonth.Year);
+            return _factory.GetExpensesState(this, d => d == selectedDay);
         }
 
         return this;

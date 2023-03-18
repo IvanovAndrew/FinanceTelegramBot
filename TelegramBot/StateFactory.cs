@@ -33,9 +33,19 @@ internal class StateFactory
         return new EnterTheDateState(this, previousState, _dateParser, _logger, askCustomDate);
     }
     
+    internal IExpenseInfoState CreateChooseStatisticState(IExpenseInfoState previousState)
+    {
+        return new CreateStatisticTypeState(this, previousState, _logger);
+    }
+    
     internal IExpenseInfoState CreateEnterTheMonthState(IExpenseInfoState previousState)
     {
         return new EnterTheMonthState(this, previousState, DateOnly.FromDateTime(DateTime.Today), _logger);
+    }
+    
+    internal IExpenseInfoState CreateEnterTheExpenseDayState(IExpenseInfoState previousState)
+    {
+        return new EnterTheExpenseDayState(this, previousState, DateOnly.FromDateTime(DateTime.Today), _logger);
     }
 
     internal IExpenseInfoState CreateEnterTheCategoryState(ExpenseBuilder expenseBuilder, IExpenseInfoState previousState)
@@ -78,9 +88,9 @@ internal class StateFactory
         return new CancelledState(this, _logger);
     }
 
-    public IExpenseInfoState GetMonthExpensesState(IExpenseInfoState previousState, DateOnly selectedMonth)
+    public IExpenseInfoState GetExpensesState(IExpenseInfoState previousState, Predicate<DateOnly> filter)
     {
-        return new MonthExpensesState(this, previousState, selectedMonth, _spreadsheetWrapper, _logger);
+        return new CollectExpensesState(this, previousState, filter, _spreadsheetWrapper, _logger);
     }
 }
 

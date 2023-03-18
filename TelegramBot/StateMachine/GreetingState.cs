@@ -41,6 +41,8 @@ class GreetingState : IExpenseInfoState
 
     public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
     {
-        return text == "showExpenses" ? _factory.CreateEnterTheMonthState(this) : _factory.CreateEnterTheDateState(this);
+        return text == "showExpenses" ? 
+            _factory.CreateChooseStatisticState(this) : 
+            _factory.CreateEnterTheDateState(this);
     }
 }

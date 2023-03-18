@@ -8,18 +8,18 @@ using TelegramBot.StateMachine;
 
 namespace TelegramBot;
 
-internal class MonthExpensesState : IExpenseInfoState
+internal class CollectExpensesState : IExpenseInfoState
 {
     private readonly StateFactory _factory;
-    private readonly DateOnly _selectedMonth;
+    private readonly Predicate<DateOnly> _filter;
     private readonly GoogleSheetWrapper _spreadsheetWrapper;
     private readonly ILogger _logger;
     
     public IExpenseInfoState PreviousState { get; private set; }
-    public MonthExpensesState(StateFactory stateFactory, IExpenseInfoState previousState, DateOnly selectedMonth, GoogleSheetWrapper spreadsheetWrapper, ILogger logger)
+    public CollectExpensesState(StateFactory stateFactory, IExpenseInfoState previousState, Predicate<DateOnly> filter, GoogleSheetWrapper spreadsheetWrapper, ILogger logger)
     {
         _factory = stateFactory;
-        _selectedMonth = selectedMonth;
+        _filter = filter;
         _spreadsheetWrapper = spreadsheetWrapper;
         _logger = logger;
         PreviousState = previousState;
@@ -31,9 +31,9 @@ internal class MonthExpensesState : IExpenseInfoState
         _logger.LogInformation("Collecting expenses... It can take some time.");
         await botClient.SendTextMessageAsync(chatId: chatId, "Collecting expenses... It can take some time.");
         
-        var rows = await _spreadsheetWrapper.GetRows(_selectedMonth, cancellationToken);
+        var rows = await _spreadsheetWrapper.GetRows(_filter, cancellationToken);
         
-        _logger.LogInformation($"Found {rows.Count} row(s) for month {_selectedMonth}");
+        _logger.LogInformation($"Found {rows.Count} row(s).");
 
         Message lastMessage = default;
         foreach (var currency in new []{Currency.Amd, Currency.Rur})
@@ -48,7 +48,7 @@ internal class MonthExpensesState : IExpenseInfoState
                 i++;
             }
         
-            telegramTable[categories.Count, 0] = new string('=', categories.Keys.MaxBy(s => s.Length)?.Length?? 5);
+            telegramTable[categories.Count, 0] = "";
             telegramTable[categories.Count, 1] = "";
 
             telegramTable[categories.Count + 1, 0] = "Всего";
@@ -56,7 +56,16 @@ internal class MonthExpensesState : IExpenseInfoState
             
             var table = MarkdownFormatter.FormatTable(new[] { "Category", "Sum" }, telegramTable);
 
-            lastMessage = await botClient.SendTextMessageAsync(chatId: chatId, $"```{TelegramEscaper.EscapeString(table)}```",
+            if (total.Amount > 0)
+            {
+                lastMessage = await botClient.SendTextMessageAsync(chatId: chatId, $"```{TelegramEscaper.EscapeString(table)}```",
+                    cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);
+            }
+        }
+
+        if (lastMessage == default)
+        {
+            lastMessage = await botClient.SendTextMessageAsync(chatId: chatId, $"There is no any expenses for this period",
                 cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);
         }
 
