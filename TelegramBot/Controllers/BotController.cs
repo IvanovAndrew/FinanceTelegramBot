@@ -17,7 +17,7 @@ public class BotController : ControllerBase
     private static ConcurrentDictionary<long, IExpenseInfoState> _answers = new();
     private static ConcurrentDictionary<IExpenseInfoState, Message> _sentMessage = new();
 
-    private readonly ILogger<BotController> _logger;
+    private readonly ILogger _logger;
     private readonly TelegramBotService _bot;
     private readonly IDateParser _dateParser;
     private readonly List<Category> _categories;

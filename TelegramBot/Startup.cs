@@ -26,6 +26,7 @@ public class Startup
     {
         var builder = services.AddControllers().AddNewtonsoftJson();
 
+        services.AddLogging();
         services.AddSingleton<IDateParser, DateParser>(s =>
             ActivatorUtilities.CreateInstance<DateParser>(s, new CultureInfo("en-US")));
         services.AddSingleton<TelegramBotService>(s => ActivatorUtilities.CreateInstance<TelegramBotService>(s, _configuration.GetSection("Telegram")["Url"], _configuration.GetSection("Telegram")["Token"]));
