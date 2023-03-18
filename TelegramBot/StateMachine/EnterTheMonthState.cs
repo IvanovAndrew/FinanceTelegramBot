@@ -30,13 +30,6 @@ internal class EnterTheMonthState : IExpenseInfoState
     {
         var info = "Enter the month";
 
-        Func<int, int> toMonthNumber = (num) =>
-        {
-            if (num < 1) return num + 12;
-
-            return num;
-        };
-
         var buttons = new[]
             {
                 _today.AddMonths(-5), _today.AddMonths(-4), _today.AddMonths(-3),
