@@ -21,6 +21,7 @@
       <PackageReference Remove="FParsec" />
       <PackageReference Remove="FSharp.Control.Reactive" />
       <PackageReference Remove="FSharp.Core" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>

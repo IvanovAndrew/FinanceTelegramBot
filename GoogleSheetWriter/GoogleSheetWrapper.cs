@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 using Domain;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Sheets.v4;
@@ -35,6 +36,7 @@ public class GoogleSheetWrapper
     private string _spreadsheetId;
     private GoogleCredential _credential;
     private CultureInfo _cultureInfo = new("ru-RU");
+    private const int BatchSize = 500;
 
     public GoogleSheetWrapper(SheetOptions options, string applicationName, string spreadsheetId)
     {
@@ -138,69 +140,82 @@ public class GoogleSheetWrapper
         return i;
     }
 
-    public async Task<List<Expense>> GetRows(Predicate<DateOnly> filter, CancellationToken cancellationToken)
+    public async Task<List<Expense>> GetRows(Predicate<DateOnly> filter, Microsoft.Extensions.Logging.ILogger logger, CancellationToken cancellationToken)
     {
         var service = await InitializeService(cancellationToken);
 
-        var usualExpenses = await GetRows(service, _options.UsualExpenses, "", filter, cancellationToken);
-        var flatExpenses = await GetRows(service, _options.FlatInfo, "Квартира", filter, cancellationToken);
-        var bigExpenses = await GetRows(service, _options.BigDealInfo, "Крупные", filter, cancellationToken);
+        var usualExpenses = await GetRows(service, _options.UsualExpenses, "", filter, logger, cancellationToken);
+        var flatExpenses = await GetRows(service, _options.FlatInfo, "Квартира", filter, logger, cancellationToken);
+        var bigExpenses = await GetRows(service, _options.BigDealInfo, "Крупные", filter, logger, cancellationToken);
 
         return usualExpenses.Union(flatExpenses).Union(bigExpenses).OrderBy(e => e.Date).ToList();
     }
 
     private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, string category, Predicate<DateOnly> filter,
-        CancellationToken cancellationToken)
+        Microsoft.Extensions.Logging.ILogger logger, CancellationToken cancellationToken)
     {
-        var request = service.Spreadsheets.Get(_spreadsheetId);
-        request.IncludeGridData = true;
-        request.Ranges = $"{info.ListName}!{info.DateColumn}1:{info.AmountAmdColumn}";
-        var response = await request.ExecuteAsync(cancellationToken);
-        var sheet = response.Sheets.First(s => s.Properties.Title == info.ListName);
-
-        List<Expense> expenses = new List<Expense>();
-
         var dateIndex = 0;
         int? categoryIndex = string.IsNullOrEmpty(category) ? info.CategoryColumn[0] - info.DateColumn[0] : null;
         int? subCategoryIndex = !string.IsNullOrEmpty(info.SubCategoryColumn)? info.SubCategoryColumn[0] - info.DateColumn[0] : null;
         int? descriptionIndex = !string.IsNullOrEmpty(info.DescriptionColumn)? info.DescriptionColumn[0] - info.DateColumn[0] : null;
         int rurAmountIndex = info.AmountRurColumn[0] - info.DateColumn[0];
         int amdAmountIndex = info.AmountAmdColumn[0] - info.DateColumn[0];
+        
+        List<Expense> expenses = new List<Expense>();
 
-        int i = 0;
-        foreach (var data in sheet.Data)
+        int fromRangeRow = 1;
+        int toRangeRow = BatchSize;
+
+        int lastFilledRow = await GetNumberFilledRows(service, info.ListName, cancellationToken);
+
+        while (fromRangeRow < lastFilledRow)
         {
-            foreach (var rowData in data.RowData)
+            logger.LogInformation($"Range is {fromRangeRow}:{toRangeRow}. Last filled row is {lastFilledRow}");
+            var request = service.Spreadsheets.Get(_spreadsheetId);
+            request.IncludeGridData = true;
+            request.Ranges = $"{info.ListName}!{info.DateColumn}{fromRangeRow}:{info.AmountAmdColumn}{toRangeRow}";
+            var response = await request.ExecuteAsync(cancellationToken);
+            var sheet = response.Sheets.First(s => s.Properties.Title == info.ListName);
+    
+            int i = 0;
+            foreach (var data in sheet.Data)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                
-                if (rowData.Values == null) continue;
-
-                bool filled = false;
-                if (DateTime.TryParse(rowData.Values[dateIndex].FormattedValue, _cultureInfo, DateTimeStyles.None,
-                        out var date) && filter(DateOnly.FromDateTime(date)))
+                foreach (var rowData in data.RowData)
                 {
-                    expenses.Add(
-                        new Expense
-                        {
-                            Date = DateOnly.FromDateTime(date),
-                            Category = categoryIndex != null
-                                ? rowData.Values[categoryIndex.Value].FormattedValue
-                                : category,
-                            SubCategory = subCategoryIndex != null
-                                ? rowData.Values[subCategoryIndex.Value].FormattedValue
-                                : null,
-                            Description = descriptionIndex != null
-                                ? rowData.Values[descriptionIndex.Value].FormattedValue
-                                : null,
-                            Amount = ParseMoney(rowData.Values[rurAmountIndex].FormattedValue,  rowData.Values.Count > amdAmountIndex? rowData.Values[amdAmountIndex].FormattedValue : null),
-                        });
+                    cancellationToken.ThrowIfCancellationRequested();
+                    
+                    if (rowData.Values == null) continue;
+    
+                    bool filled = false;
+                    if (DateTime.TryParse(rowData.Values[dateIndex].FormattedValue, _cultureInfo, DateTimeStyles.None,
+                            out var date) && filter(DateOnly.FromDateTime(date)))
+                    {
+                        expenses.Add(
+                            new Expense
+                            {
+                                Date = DateOnly.FromDateTime(date),
+                                Category = categoryIndex != null
+                                    ? rowData.Values[categoryIndex.Value].FormattedValue
+                                    : category,
+                                SubCategory = subCategoryIndex != null
+                                    ? rowData.Values[subCategoryIndex.Value].FormattedValue
+                                    : null,
+                                Description = descriptionIndex != null
+                                    ? rowData.Values[descriptionIndex.Value].FormattedValue
+                                    : null,
+                                Amount = ParseMoney(rowData.Values[rurAmountIndex].FormattedValue,  rowData.Values.Count > amdAmountIndex? rowData.Values[amdAmountIndex].FormattedValue : null),
+                            });
+                    }
+    
+                    i++;
                 }
-
-                i++;
             }
-        }
+            
 
+            fromRangeRow += BatchSize;
+            toRangeRow += BatchSize;
+        }
+        
         return expenses;
     }
 

@@ -31,7 +31,7 @@ internal class CollectExpensesState : IExpenseInfoState
         _logger.LogInformation("Collecting expenses... It can take some time.");
         await botClient.SendTextMessageAsync(chatId: chatId, "Collecting expenses... It can take some time.");
         
-        var rows = await _spreadsheetWrapper.GetRows(_filter, cancellationToken);
+        var rows = await _spreadsheetWrapper.GetRows(_filter, _logger, cancellationToken);
         
         _logger.LogInformation($"Found {rows.Count} row(s).");
 
