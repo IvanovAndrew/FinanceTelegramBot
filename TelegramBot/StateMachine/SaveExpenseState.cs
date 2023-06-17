@@ -42,6 +42,7 @@ namespace TelegramBot.StateMachine
                 $"SubCategory: {_expense.SubCategory ?? string.Empty}", 
                 $"Description: {_expense.Description ?? string.Empty}",
                 $"Amount: {_expense.Amount}",
+                "",
                 "Saved"
             );
             
