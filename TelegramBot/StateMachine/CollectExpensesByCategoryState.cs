@@ -43,13 +43,14 @@ namespace TelegramBot.StateMachine
         public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Collecting expenses... It can take some time.");
-            await botClient.SendTextMessageAsync(chatId: chatId, "Collecting expenses... It can take some time.");
+            var message = await botClient.SendTextMessageAsync(chatId: chatId, "Collecting expenses... It can take some time.");
 
             var rows = await _spreadsheetWrapper.GetRows(_dateFilter, _logger, cancellationToken);
             rows = rows.Where(expense => _categoryFilter(expense.Category)).ToList();
 
             _logger.LogInformation($"Found {rows.Count} row(s).");
 
+            string text = "There is no any expenses for this period";
             Message lastMessage = default;
             foreach (var currency in new[] {Currency.Amd, Currency.Rur})
             {
@@ -73,20 +74,12 @@ namespace TelegramBot.StateMachine
 
                 if (total.Amount > 0)
                 {
-                    lastMessage = await botClient.SendTextMessageAsync(chatId: chatId,
-                        $"```{TelegramEscaper.EscapeString(table)}```",
-                        cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);
+                    text = $"```{TelegramEscaper.EscapeString(table)}```";
                 }
             }
 
-            if (lastMessage == default)
-            {
-                lastMessage = await botClient.SendTextMessageAsync(chatId: chatId,
-                    $"There is no any expenses for this period",
-                    cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);
-            }
-
-            return lastMessage;
+            await botClient.DeleteMessageAsync(chatId, message.MessageId, cancellationToken);
+            return await botClient.SendTextMessageAsync(chatId: chatId, text, cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);;
         }
 
         public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)

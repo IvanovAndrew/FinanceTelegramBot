@@ -62,10 +62,6 @@ namespace TelegramBot.Controllers
             {
                 chatId = update.CallbackQuery!.Message!.Chat.Id;
                 userText = update.CallbackQuery.Data;
-
-                var selectedText = update.CallbackQuery.Message.ReplyMarkup!.InlineKeyboard.SelectMany(c =>
-                    c.Select(b => b)).First(b => b.CallbackData == userText).Text;
-                await botClient.SendTextMessageAsync(chatId, selectedText);
             }
         
             var cancellationTokenSource = GetCancellationTokenSource(chatId);
@@ -84,7 +80,7 @@ namespace TelegramBot.Controllers
             if (text.ToLowerInvariant() == "/cancel" || text.ToLowerInvariant() == "отмена")
             {
                 cancellationTokenSource.Cancel();
-                _answers.Remove(chatId, out var prevState);
+                _answers.Remove(chatId, out _);
                 await botClient.SendTextMessageAsync(chatId, $"All operations are canceled");
                 return Ok();
             }

@@ -33,7 +33,7 @@ namespace TelegramBot.StateMachine
         public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Saving... It can take some time.");
-            await botClient.SendTextMessageAsync(chatId: chatId, "Saving... It can take some time.");
+            var message = await botClient.SendTextMessageAsync(chatId: chatId, "Saving... It can take some time.");
             await _spreadsheetWrapper.Write(_expense, cancellationToken);
 
             string infoMessage = string.Join($"{Environment.NewLine}", 
@@ -47,6 +47,8 @@ namespace TelegramBot.StateMachine
             );
             
             _logger.LogInformation(infoMessage);
+
+            await botClient.DeleteMessageAsync(chatId, message.MessageId, cancellationToken);
             return await botClient.SendTextMessageAsync(chatId: chatId, infoMessage);
         }
 

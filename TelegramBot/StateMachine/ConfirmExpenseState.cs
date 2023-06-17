@@ -39,7 +39,7 @@ namespace TelegramBot.StateMachine
                 "Would you like to save it?"
             );
 
-            InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
+            InlineKeyboardMarkup inlineKeyboard = new(
                 // keyboard
                 new[]
                 {
