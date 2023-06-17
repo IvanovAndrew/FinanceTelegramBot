@@ -1,7 +1,8 @@
-﻿namespace TelegramBot;
-
-public enum Options
+﻿namespace TelegramBot
 {
-    AddExpense,
-    ShowExpenses
+    public enum Options
+    {
+        AddExpense,
+        ShowExpenses
+    }
 }

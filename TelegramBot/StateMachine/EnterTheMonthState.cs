@@ -1,8 +1,13 @@
-﻿using Telegram.Bot;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
-
-namespace TelegramBot.StateMachine;
+using TelegramBot;
+using TelegramBot.StateMachine;
 
 internal class EnterTheMonthState : IExpenseInfoState
 {
@@ -35,7 +40,7 @@ internal class EnterTheMonthState : IExpenseInfoState
                 _today.AddMonths(-5), _today.AddMonths(-4), _today.AddMonths(-3),
                 _today.AddMonths(-2), _today.AddMonths(-1), _today 
             }.Chunk(3)
-            .Select(row => row.Select(date => InlineKeyboardButton.WithCallbackData(text: $"{MonthNames[date.Month - 1]} {date.Year}", callbackData: date.ToString(_dateFormat))))
+            .Select(row => row.Select(date => InlineKeyboardButton.WithCallbackData(text: $"{date.ToString("MMMM yyyy")}", callbackData: date.ToString(_dateFormat))))
             .ToList();
         
         InlineKeyboardMarkup inlineKeyboard = new(buttons);
@@ -51,7 +56,12 @@ internal class EnterTheMonthState : IExpenseInfoState
     {
         if (DateOnly.TryParseExact(text, _dateFormat, out var selectedMonth))
         {
-            return _factory.GetExpensesState(this, d => d.Month == selectedMonth.Month && d.Year == selectedMonth.Year);
+            var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, s => s, true, sortAsc:false);
+            
+            return _factory.GetExpensesState(this, d => d.Month == selectedMonth.Month && d.Year == selectedMonth.Year, 
+                c => true, 
+                expenseAggregator, 
+                new TableOptions(){Title = selectedMonth.ToString("MMMM yyyy"), ColumnNames = new []{"Category", "Amount"}});
         }
 
         return this;

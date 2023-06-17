@@ -2,13 +2,14 @@ using System.Collections.Generic;
 using Domain;
 using Microsoft.Extensions.Configuration;
 
-namespace TelegramBot.Controllers;
-
-public class CategoryOptions
+namespace TelegramBot.Controllers
 {
-    public List<Category> Categories { get; private set; }
-    public CategoryOptions(IConfiguration configuration)
+    public class CategoryOptions
     {
-        Categories = configuration.GetSection("Categories").Get<List<Category>>();
+        public List<Category> Categories { get; private set; }
+        public CategoryOptions(IConfiguration configuration)
+        {
+            Categories = configuration.GetSection("Categories").Get<List<Category>>();
+        }
     }
 }
