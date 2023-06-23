@@ -135,7 +135,13 @@ namespace TelegramBot
                 return true;
             }
 
-            return DateOnly.TryParse(s, _cultureInfo, DateTimeStyles.None, out date);
+            if (DateOnly.TryParse(s, _cultureInfo, DateTimeStyles.None, out date))
+                return true;
+
+            if (DateOnly.TryParse(s, new CultureInfo("ru-RU"), DateTimeStyles.None, out date))
+                return true;
+
+            return false;
         }
     }
 
