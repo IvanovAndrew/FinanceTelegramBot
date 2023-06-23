@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Domain;
 using GoogleSheetWriter;
@@ -75,8 +76,24 @@ namespace TelegramBot
 
                 return instance;
             });
-            services.AddSingleton<GoogleSheetWrapper>(s => ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<SheetOptions>(), _configuration["SpreadsheetOptions:ApplicationName"], _configuration["SpreadsheetOptions:SpreadsheetID"]));
+            
+            services.AddSingleton<CategoryToListMappingOptions>(s =>
+            {
+                var instance = ActivatorUtilities.CreateInstance<CategoryToListMappingOptions>(s);
+                instance.DefaultCategory = _configuration["CategoryToList:DefaultList"];
+                instance.CategoryToList = new Dictionary<string, string>();
+                foreach (var child in _configuration.GetSection("CategoryToList:CustomMapping").GetChildren())
+                {
+                    instance.CategoryToList[child["Category"]] = child["List"];
+                }
 
+                return instance;
+            });
+            
+            services.AddSingleton<GoogleSheetWrapper>(s => ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), _configuration["SpreadsheetOptions:ApplicationName"], _configuration["SpreadsheetOptions:SpreadsheetID"]));
+
+            
+            
             services.AddSwaggerGen(c =>
                 c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Warrior's finance bot", Version = "v1" }));
         }

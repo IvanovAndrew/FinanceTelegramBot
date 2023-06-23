@@ -17,15 +17,18 @@ namespace GoogleSheetWriter
     public class GoogleSheetWrapper
     {
         private SheetOptions _options;
+        private CategoryToListMappingOptions _categoryMapping;
         private string _applicationName;
         private string _spreadsheetId;
         private GoogleCredential _credential;
         private CultureInfo _cultureInfo = new("ru-RU");
         private const int BatchSize = 500;
+        private char FirstExcelColumn = 'A';
 
-        public GoogleSheetWrapper(SheetOptions options, string applicationName, string spreadsheetId)
+        public GoogleSheetWrapper(SheetOptions options, CategoryToListMappingOptions mappingOptions, string applicationName, string spreadsheetId)
         {
             _options = options;
+            _categoryMapping = mappingOptions;
             _applicationName = applicationName;
             _spreadsheetId = spreadsheetId;
         }
@@ -34,33 +37,39 @@ namespace GoogleSheetWriter
         {
             var service = await InitializeService(cancellationToken);
 
-            var listInfo = _options.UsualExpenses;
+            if (!_categoryMapping.CategoryToList.TryGetValue(expense.Category, out string listName))
+            {
+                listName = _categoryMapping.DefaultCategory;
+            }
 
+            ListInfo listInfo = _options.UsualExpenses;
+            if (listName == _options.FlatInfo.ListName)
+            {
+                listInfo = _options.FlatInfo;
+            }
+            else if (listName == _options.BigDealInfo.ListName)
+            {
+                listInfo = _options.BigDealInfo;
+            }
+            
             int row = await GetNumberFilledRows(service, listInfo.ListName, cancellationToken) + 1;
             cancellationToken.ThrowIfCancellationRequested();
 
             // Define request parameters.
             var money = expense.Amount;
-
+            
             // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
             string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountAmdColumn}{row}";
+
+            var excelRowValues = FillExcelRows(expense, listInfo, row, money);
+
             var valueRange = new ValueRange
             {
                 Range = range,
                 MajorDimension = "ROWS",
                 Values = new List<IList<object>>
                 {
-                    new List<object>
-                    {
-                        $"=YEAR({listInfo.DateColumn}{row})",
-                        $"=MONTH({listInfo.DateColumn}{row})",
-                        expense.Date.ToString("dd.MM.yyyy"),
-                        expense.Category,
-                        expense.SubCategory,
-                        expense.Description,
-                        money.Currency == Currency.Rur ? money.Amount : "",
-                        money.Currency == Currency.Amd ? money.Amount : ""
-                    },
+                    excelRowValues
                 },
             };
 
@@ -70,6 +79,64 @@ namespace GoogleSheetWriter
                 SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
 
             await request.ExecuteAsync(cancellationToken);
+        }
+
+        private List<object> FillExcelRows(IExpense expense, ListInfo listInfo, int row, Money money)
+        {
+            var excelRowValues = new List<object>();
+            for (int i = 0; i < 10; i++)
+            {
+                excelRowValues.Add(null);
+            }
+
+            if (listInfo.YearColumn != "")
+            {
+                excelRowValues[listInfo.YearColumn[0] - FirstExcelColumn] = $"=YEAR({listInfo.DateColumn}{row})";
+            }
+
+            if (listInfo.MonthColumn != "")
+            {
+                excelRowValues[listInfo.MonthColumn[0] - FirstExcelColumn] = $"=MONTH({listInfo.DateColumn}{row})";
+            }
+
+            if (listInfo.DateColumn != "")
+            {
+                excelRowValues[listInfo.DateColumn[0] - FirstExcelColumn] = expense.Date.ToString("dd.MM.yyyy");
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.CategoryColumn))
+            {
+                excelRowValues[listInfo.CategoryColumn[0] - FirstExcelColumn] = expense.Category;
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.SubCategoryColumn))
+            {
+                excelRowValues[listInfo.SubCategoryColumn[0] - FirstExcelColumn] = expense.SubCategory;
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.DescriptionColumn))
+            {
+                excelRowValues[listInfo.DescriptionColumn[0] - FirstExcelColumn] = expense.Description;
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.AmountRurColumn))
+            {
+                excelRowValues[listInfo.AmountRurColumn[0] - FirstExcelColumn] =
+                    money.Currency == Currency.Rur ? money.Amount : "";
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.AmountAmdColumn))
+            {
+                excelRowValues[listInfo.AmountAmdColumn[0] - FirstExcelColumn] =
+                    money.Currency == Currency.Amd ? money.Amount : "";
+            }
+
+            while (excelRowValues[^1] == null)
+            {
+                excelRowValues.RemoveAt(excelRowValues.Count - 1);
+            }
+
+            return excelRowValues;
         }
 
         private async Task<SheetsService> InitializeService(CancellationToken cancellationToken)
