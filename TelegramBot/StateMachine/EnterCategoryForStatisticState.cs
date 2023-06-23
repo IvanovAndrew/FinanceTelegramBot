@@ -106,7 +106,7 @@ namespace TelegramBot
                     new TableOptions()
                     {
                         Title = $"Category: {_category}. Expenses from {firstDayOfMonth.ToString("dd MMMM yyyy")}",
-                        ColumnNames = new []{"Subcategory", "Amount"}
+                        ColumnNames = new []{"Subcategory", "AMD", "RUR"}
                     });
             }
 
@@ -120,7 +120,7 @@ namespace TelegramBot
                     new TableOptions()
                     {
                         Title = $"Category: {_category}",
-                        ColumnNames = new []{"Month", "Amount"}
+                        ColumnNames = new []{"Month", "AMD", "RUR"}
                     });
             }
 

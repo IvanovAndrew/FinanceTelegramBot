@@ -61,7 +61,7 @@ internal class EnterTheMonthState : IExpenseInfoState
             return _factory.GetExpensesState(this, d => d.Month == selectedMonth.Month && d.Year == selectedMonth.Year, 
                 c => true, 
                 expenseAggregator, 
-                new TableOptions(){Title = selectedMonth.ToString("MMMM yyyy"), ColumnNames = new []{"Category", "Amount"}});
+                new TableOptions(){Title = selectedMonth.ToString("MMMM yyyy"), ColumnNames = new []{"Category", "AMD", "RUR"}});
         }
 
         return this;

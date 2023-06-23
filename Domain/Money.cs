@@ -29,7 +29,8 @@ namespace Domain
             return false;
         }
     
-        public override string ToString() => $"{Amount} {Currency}";
+        public override string ToString() => $"{Currency}{Amount}";
+        public string ToString(string format) => $"{Currency}{Amount.ToString(format)}";
 
         public int CompareTo(Money? other)
         {

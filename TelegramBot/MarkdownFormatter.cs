@@ -31,14 +31,21 @@ namespace TelegramBot
         
             for (int i = 0; i < tableOptions.ColumnNames.Length; i++)
             {
-                builder.Append($@"|{tableOptions.ColumnNames[i].PadLeft(columnWidth[i])}");
+                if (i != 0)
+                {
+                    builder.Append("|");
+                }
+                builder.Append($@"{tableOptions.ColumnNames[i].PadLeft(columnWidth[i])}");
             }
-            builder.Append(@"|");
             builder.AppendLine();
         
             for (int i = 0; i < tableOptions.ColumnNames.Length; i++)
             {
-                builder.Append(@$"|{new string('-', columnWidth[i])}");
+                if (i != 0)
+                {
+                    builder.Append("|");
+                }
+                builder.Append(@$"{new string('-', columnWidth[i])}");
             }
 
             builder.AppendLine();
@@ -46,11 +53,13 @@ namespace TelegramBot
             int rowsCount = rows.GetLength(0);
             for (int i = 0; i < rowsCount; i++)
             {
-                builder.Append(@"|");
                 for(int j = 0; j < rows.GetLength(1); j++)
                 {
                     builder.Append($"{rows[i, j]}".PadLeft(columnWidth[j]));
-                    builder.Append(@"|");
+                    if (j != rows.GetLength(1) - 1)
+                    {
+                        builder.Append(@"|");
+                    }
                 }
 
                 builder.AppendLine();
@@ -61,7 +70,7 @@ namespace TelegramBot
 
         private static int[] CalculateColumnWidth(string[] titles, string[,] rows)
         {
-            int[] widths = new int[titles.Length];
+            int[] widths = new int[rows.GetLength(1)];
 
             for (int i = 0; i < widths.Length; i++)
             {
@@ -70,7 +79,10 @@ namespace TelegramBot
                 int valuesMaxWidth = 0;
                 for (int j = 0; j < rows.GetLength(0); j++)
                 {
-                    if (valuesMaxWidth < rows[j, i].Length) valuesMaxWidth = rows[j, i].Length; 
+                    if (valuesMaxWidth < rows[j, i].Length)
+                    {
+                        valuesMaxWidth = rows[j, i].Length;
+                    } 
                 }
 
                 widths[i] = titleWidth > valuesMaxWidth ? titleWidth : valuesMaxWidth;

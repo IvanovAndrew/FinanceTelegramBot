@@ -3,15 +3,17 @@
     public class Currency
     {
         private readonly string Name;
+        private readonly string Symbol;
 
-        public static Currency Rur = new Currency("RUR");
-        public static Currency Amd = new Currency("AMD");
+        public static Currency Rur = new("RUR", "₽");
+        public static Currency Amd = new("AMD", "֏");
     
-        private Currency(string s)
+        private Currency(string s, string symbol)
         {
             Name = s;
+            Symbol = symbol;
         }
 
-        public override string ToString() => Name;
+        public override string ToString() => Symbol;
     }
 }

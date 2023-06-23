@@ -57,7 +57,7 @@ namespace TelegramBot.StateMachine
                     new TableOptions()
                     {
                         Title = selectedDay.ToString("dd MMMM yyyy"),
-                        ColumnNames = new []{"Category", "Amount"}
+                        ColumnNames = new []{"Category", "AMD", "RUR"}
                     });
             }
 

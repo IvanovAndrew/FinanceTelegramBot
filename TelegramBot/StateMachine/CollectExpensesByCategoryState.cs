@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,35 +52,72 @@ namespace TelegramBot.StateMachine
             _logger.LogInformation($"Found {rows.Count} row(s).");
 
             string text = "There is no any expenses for this period";
-            Message lastMessage = default;
-            foreach (var currency in new[] {Currency.Amd, Currency.Rur})
+            var (amdCategories, amdTotal) = _expensesAggregator.Aggregate(rows, Currency.Amd);
+            var (rurCategories, rurTotal) = _expensesAggregator.Aggregate(rows, Currency.Rur);
+            
+            var uniqueCategories1 = new HashSet<string>(amdCategories.Select(c => c.Item1));
+            var uniqueCategories2 = new HashSet<string>(rurCategories.Select(c => c.Item1));
+            
+            uniqueCategories1.UnionWith(uniqueCategories2);
+            string[,] telegramTable = new string[uniqueCategories1.Count + 2, 3];
+            int i = 0;
+            foreach ((string category, Money sum) in amdCategories)
             {
-                var (categories, total) = _expensesAggregator.Aggregate(rows, currency);
-                string[,] telegramTable = new string[categories.Count + 2, 2];
-                int i = 0;
-                foreach ((string category, Money sum) in categories)
-                {
-                    telegramTable[i, 0] = category;
-                    telegramTable[i, 1] = sum.ToString();
-                    i++;
-                }
+                telegramTable[i, 0] = ShortNameOfCategory(category);
+                telegramTable[i, 1] = sum.ToString("N0");
 
-                telegramTable[categories.Count, 0] = "";
-                telegramTable[categories.Count, 1] = "";
+                var rur = rurCategories.FirstOrDefault(c => c.Item1 == category);
+                
+                telegramTable[i, 2] = rur.Item1 == category? rur.Item2.ToString() : "";
+                uniqueCategories2.Remove(category);
+                i++;
+            }
 
-                telegramTable[categories.Count + 1, 0] = "Всего";
-                telegramTable[categories.Count + 1, 1] = total.ToString();
+            foreach ((string category, Money sum) in rurCategories)
+            {
+                if (!uniqueCategories2.Contains(category)) continue;
+                
+                telegramTable[i, 0] = ShortNameOfCategory(category);
+                telegramTable[i, 1] = "";
 
-                var table = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
+                telegramTable[i, 2] = sum.ToString("N0");
+                i++;
+            }
 
-                if (total.Amount > 0)
-                {
-                    text = $"```{TelegramEscaper.EscapeString(table)}```";
-                }
+            telegramTable[i, 0] = "";
+            telegramTable[i, 1] = "";
+            telegramTable[i, 2] = "";
+
+            telegramTable[i + 1, 0] = "Total";
+            telegramTable[i + 1, 1] = amdTotal.ToString("N0");
+            telegramTable[i + 1, 2] = rurTotal.ToString("N0");
+
+            var table = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
+
+            if (amdTotal.Amount > 0 || rurTotal.Amount > 0)
+            {
+                text = $"```{TelegramEscaper.EscapeString(table)}```";
             }
 
             await botClient.DeleteMessageAsync(chatId, message.MessageId, cancellationToken);
             return await botClient.SendTextMessageAsync(chatId: chatId, text, cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);;
+        }
+        
+        private static string ShortNameOfCategory(string name)
+        {
+            if (name == "Домашние животные")
+                return "Коты";
+
+            if (name == "Здоровье, гигиена")
+                return "Здоровье";
+
+            if (name == "Культурная жизнь")
+                return "Развлечения";
+
+            if (name == "Онлайн-сервисы")
+                return "Сервисы";
+
+            return name;
         }
 
         public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
