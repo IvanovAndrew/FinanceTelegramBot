@@ -55,9 +55,11 @@ namespace TelegramBot
                 instance.FlatInfo = new ListInfo
                 {
                     ListName = _configuration["SpreadsheetOptions:Lists:Home:Name"],
+                    Category = _configuration["SpreadsheetOptions:Lists:Home:Name"],
                     YearColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Year"],
                     MonthColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Month"],
                     DateColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Date"],
+                    SubCategoryColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:SubCategory"],
                     DescriptionColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Description"],
                     AmountRurColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:AmountRUR"],
                     AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:AmountAMD"],
@@ -66,9 +68,11 @@ namespace TelegramBot
                 instance.BigDealInfo = new ListInfo()
                 {
                     ListName = _configuration["SpreadsheetOptions:Lists:BigDeal:Name"],
+                    Category = _configuration["SpreadsheetOptions:Lists:BigDeal:Name"],
                     YearColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:Year"],
                     MonthColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:Month"],
                     DateColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:Date"],
+                    SubCategoryColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:SubCategory"],
                     DescriptionColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:Description"],
                     AmountRurColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:AmountRUR"],
                     AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:AmountAMD"],

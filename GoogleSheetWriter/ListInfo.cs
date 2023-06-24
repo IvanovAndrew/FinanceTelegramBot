@@ -3,6 +3,8 @@
     public class ListInfo
     {
         public string ListName;
+        public string? Category;
+        
 
         public string YearColumn;
         public string MonthColumn;

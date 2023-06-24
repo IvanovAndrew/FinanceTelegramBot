@@ -4,10 +4,10 @@ namespace Domain
 {
     public interface IExpense
     {
-        DateOnly Date { get; init; }
-        string Category { get; init; }
-        string? SubCategory { get; init; }
-        string? Description { get; init; }
-        Money Amount { get; init;}
+        DateOnly Date { get; }
+        string Category { get; }
+        string? SubCategory { get; }
+        string? Description { get; }
+        Money Amount { get; }
     }
 }

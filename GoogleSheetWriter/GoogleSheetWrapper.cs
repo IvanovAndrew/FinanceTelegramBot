@@ -16,16 +16,17 @@ namespace GoogleSheetWriter
 {
     public class GoogleSheetWrapper
     {
-        private SheetOptions _options;
-        private CategoryToListMappingOptions _categoryMapping;
-        private string _applicationName;
-        private string _spreadsheetId;
+        private readonly SheetOptions _options;
+        private readonly CategoryToListMappingOptions _categoryMapping;
+        private readonly string _applicationName;
+        private readonly string _spreadsheetId;
         private GoogleCredential _credential;
-        private CultureInfo _cultureInfo = new("ru-RU");
+        private readonly CultureInfo _cultureInfo = new("ru-RU");
         private const int BatchSize = 500;
         private char FirstExcelColumn = 'A';
 
-        public GoogleSheetWrapper(SheetOptions options, CategoryToListMappingOptions mappingOptions, string applicationName, string spreadsheetId)
+        public GoogleSheetWrapper(SheetOptions options, CategoryToListMappingOptions mappingOptions,
+            string applicationName, string spreadsheetId)
         {
             _options = options;
             _categoryMapping = mappingOptions;
@@ -51,13 +52,13 @@ namespace GoogleSheetWriter
             {
                 listInfo = _options.BigDealInfo;
             }
-            
+
             int row = await GetNumberFilledRows(service, listInfo.ListName, cancellationToken) + 1;
             cancellationToken.ThrowIfCancellationRequested();
 
             // Define request parameters.
             var money = expense.Amount;
-            
+
             // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
             string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountAmdColumn}{row}";
 
@@ -199,31 +200,23 @@ namespace GoogleSheetWriter
         {
             var service = await InitializeService(cancellationToken);
 
-            var usualExpenses =
-                await GetRows(service, _options.UsualExpenses, "", dateFilter, logger, cancellationToken);
-            var flatExpenses = await GetRows(service, _options.FlatInfo, "Квартира", dateFilter, logger,
-                cancellationToken);
-            var bigExpenses = await GetRows(service, _options.BigDealInfo, "Крупные", dateFilter, logger,
-                cancellationToken);
+            var result = new List<Expense>();
+            foreach (var list in new []{_options.UsualExpenses, _options.FlatInfo, _options.BigDealInfo})
+            {
+                result.AddRange(
+                    await GetRows(service, list, dateFilter, logger, cancellationToken)
+                    );
+            }
 
-            return usualExpenses.Union(flatExpenses).Union(bigExpenses).OrderBy(e => e.Date).ToList();
+            return result;
         }
 
-        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, string category,
+        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info,
             Predicate<DateOnly> filter, ILogger logger, CancellationToken cancellationToken)
         {
-            var dateIndex = 0;
-            int? categoryIndex = string.IsNullOrEmpty(category) ? info.CategoryColumn[0] - info.DateColumn[0] : null;
-            int? subCategoryIndex = !string.IsNullOrEmpty(info.SubCategoryColumn)
-                ? info.SubCategoryColumn[0] - info.DateColumn[0]
-                : null;
-            int? descriptionIndex = !string.IsNullOrEmpty(info.DescriptionColumn)
-                ? info.DescriptionColumn[0] - info.DateColumn[0]
-                : null;
-            int rurAmountIndex = info.AmountRurColumn[0] - info.DateColumn[0];
-            int amdAmountIndex = info.AmountAmdColumn[0] - info.DateColumn[0];
-
             List<Expense> expenses = new();
+
+            var factory = SheetRowFactory.FromListInfo(info, _cultureInfo);
 
             int fromRangeRow = 1;
             int toRangeRow = BatchSize;
@@ -232,7 +225,8 @@ namespace GoogleSheetWriter
 
             while (fromRangeRow < lastFilledRow)
             {
-                logger.LogInformation($"{info.ListName}. Range is {fromRangeRow}:{toRangeRow}. Last filled row is {lastFilledRow}");
+                logger.LogInformation(
+                    $"{info.ListName}. Range is {fromRangeRow}:{toRangeRow}. Last filled row is {lastFilledRow}");
                 var request = service.Spreadsheets.Get(_spreadsheetId);
                 request.IncludeGridData = true;
                 request.Ranges = $"{info.ListName}!{info.DateColumn}{fromRangeRow}:{info.AmountAmdColumn}{toRangeRow}";
@@ -242,34 +236,25 @@ namespace GoogleSheetWriter
                 int i = 0;
                 foreach (var data in sheet.Data)
                 {
-                    foreach (var rowData in data.RowData)
+                    foreach (var cellData in data.RowData)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        if (rowData.Values == null) continue;
+                        if (cellData.Values == null) continue;
+                        if (new[] {"Дата", "Год", "", null}.Contains(cellData.Values[0].FormattedValue)) continue;
 
-                        bool filled = false;
-                        if (DateTime.TryParse(rowData.Values[dateIndex].FormattedValue, _cultureInfo,
-                            DateTimeStyles.None,
-                            out var date) && filter(DateOnly.FromDateTime(date)))
+                        var expenseInfo = factory.CreateExpense(cellData.Values);
+
+                        if (filter(expenseInfo.Date))
                         {
                             expenses.Add(
                                 new Expense
                                 {
-                                    Date = DateOnly.FromDateTime(date),
-                                    Category = categoryIndex != null
-                                        ? rowData.Values[categoryIndex.Value].FormattedValue
-                                        : category,
-                                    SubCategory = subCategoryIndex != null
-                                        ? rowData.Values[subCategoryIndex.Value].FormattedValue
-                                        : null,
-                                    Description = descriptionIndex != null
-                                        ? rowData.Values[descriptionIndex.Value].FormattedValue
-                                        : null,
-                                    Amount = ParseMoney(rowData.Values[rurAmountIndex].FormattedValue,
-                                        rowData.Values.Count > amdAmountIndex
-                                            ? rowData.Values[amdAmountIndex].FormattedValue
-                                            : null),
+                                    Date = expenseInfo.Date,
+                                    Category = expenseInfo.Category,
+                                    SubCategory = expenseInfo.SubCategory,
+                                    Description = expenseInfo.Description,
+                                    Amount = expenseInfo.Amount
                                 });
                         }
 
@@ -283,24 +268,6 @@ namespace GoogleSheetWriter
             }
 
             return expenses;
-        }
-
-        private Money ParseMoney(string rurValue, string amdValue)
-        {
-            if (string.IsNullOrEmpty(rurValue) && string.IsNullOrEmpty(amdValue))
-                return new Money() {Currency = Currency.Amd, Amount = 0m};
-
-            if (Money.TryParse(rurValue, Currency.Rur, _cultureInfo, out var money))
-            {
-                return money;
-            }
-
-            else if (Money.TryParse(amdValue, Currency.Amd, _cultureInfo, out money))
-            {
-                return money;
-            }
-
-            throw new ArgumentOutOfRangeException($"Couldn't parse money from {rurValue} and {amdValue}");
         }
     }
 }
