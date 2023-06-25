@@ -1,5 +1,4 @@
-using System.Linq;
-using System.Threading.Tasks;
+using Infrastructure;
 using Telegram.Bot;
 
 namespace TelegramBot.Services
@@ -8,6 +7,7 @@ namespace TelegramBot.Services
     {
         internal const string Route = "api/message/update";
         private TelegramBotClient? _botClient;
+        private ITelegramBot _wrappedBot;
         private readonly string _token;
         private readonly string _url;
 
@@ -17,9 +17,9 @@ namespace TelegramBot.Services
             _token = token;
         }
 
-        public async Task<TelegramBotClient> GetBot()
+        public async Task<ITelegramBot> GetBot()
         {
-            if (_botClient != null) return _botClient;
+            if (_botClient != null) return _wrappedBot;
 
             _botClient = new TelegramBotClient(_token);
 
@@ -27,7 +27,9 @@ namespace TelegramBot.Services
 
             await _botClient.SetWebhookAsync(hook);
 
-            return _botClient;
+            _wrappedBot = new TelegramBotClientImpl(_botClient); 
+
+            return _wrappedBot;
         }
     }
 }

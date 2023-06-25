@@ -16,6 +16,24 @@
     <ItemGroup>
       <ProjectReference Include="..\Domain\Domain.csproj" />
       <ProjectReference Include="..\GoogleSheetWriter\GoogleSheetWriter.csproj" />
+      <ProjectReference Include="..\StateMachine\StateMachine.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="StateMachine\**" />
+      <Compile Remove="Options.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="StateMachine\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Remove="StateMachine\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="StateMachine\**" />
     </ItemGroup>
 
 </Project>

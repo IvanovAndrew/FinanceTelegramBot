@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Domain;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
@@ -14,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GoogleSheetWriter
 {
-    public class GoogleSheetWrapper
+    public class GoogleSheetWrapper : IExpenseRepository
     {
         private readonly SheetOptions _options;
         private readonly CategoryToListMappingOptions _categoryMapping;
@@ -34,7 +28,7 @@ namespace GoogleSheetWriter
             _spreadsheetId = spreadsheetId;
         }
 
-        public async Task Write(IExpense expense, CancellationToken cancellationToken)
+        public async Task Save(IExpense expense, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
@@ -195,12 +189,12 @@ namespace GoogleSheetWriter
             return i;
         }
 
-        public async Task<List<Expense>> GetRows(Predicate<DateOnly> dateFilter, ILogger logger,
+        public async Task<List<IExpense>> Read(Predicate<DateOnly> dateFilter, ILogger logger,
             CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
-            var result = new List<Expense>();
+            var result = new List<IExpense>();
             foreach (var list in new []{_options.UsualExpenses, _options.FlatInfo, _options.BigDealInfo})
             {
                 result.AddRange(

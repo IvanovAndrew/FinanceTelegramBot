@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Domain;
+﻿using Domain;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
-    internal class ExpensesAggregator<T>
+    public class ExpensesAggregator<T>
     {
         private readonly Func<IExpense, T> _sumBy;
         private readonly Func<T, string> _firstColumnName;

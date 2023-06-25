@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Domain;
-using GoogleSheetWriter;
+﻿using Domain;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     internal class CollectExpensesByCategoryState<T> : IExpenseInfoState
     {
@@ -19,7 +12,7 @@ namespace TelegramBot.StateMachine
         private readonly Predicate<string> _categoryFilter;
         private readonly ExpensesAggregator<T> _expensesAggregator;
         private readonly TableOptions _tableOptions;
-        private readonly GoogleSheetWrapper _spreadsheetWrapper;
+        private readonly IExpenseRepository _expenseRepository;
         private readonly ILogger _logger;
 
         public IExpenseInfoState PreviousState { get; private set; }
@@ -27,26 +20,26 @@ namespace TelegramBot.StateMachine
         public CollectExpensesByCategoryState(StateFactory stateFactory, IExpenseInfoState previousState,
             Predicate<DateOnly> dateFilter, Predicate<string> categoryFilter, ExpensesAggregator<T> expensesAggregator,
             TableOptions tableOptions,
-            GoogleSheetWrapper spreadsheetWrapper, ILogger logger)
+            IExpenseRepository expenseRepository, ILogger logger)
         {
             _factory = stateFactory;
             _dateFilter = dateFilter;
             _categoryFilter = categoryFilter;
             _expensesAggregator = expensesAggregator;
             _tableOptions = tableOptions;
-            _spreadsheetWrapper = spreadsheetWrapper;
+            _expenseRepository = expenseRepository;
             _logger = logger;
             PreviousState = previousState;
         }
 
         public bool UserAnswerIsRequired => false;
 
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Collecting expenses... It can take some time.");
-            var message = await botClient.SendTextMessageAsync(chatId: chatId, "Collecting expenses... It can take some time.");
+            var message = await botClient.SendTextMessageAsync(chatId, "Collecting expenses... It can take some time.");
 
-            var rows = await _spreadsheetWrapper.GetRows(_dateFilter, _logger, cancellationToken);
+            var rows = await _expenseRepository.Read(_dateFilter, _logger, cancellationToken);
             rows = rows.Where(expense => _categoryFilter(expense.Category)).ToList();
 
             _logger.LogInformation($"Found {rows.Count} row(s).");
@@ -94,13 +87,8 @@ namespace TelegramBot.StateMachine
 
             var table = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
 
-            if (amdTotal.Amount > 0 || rurTotal.Amount > 0)
-            {
-                text = $"```{TelegramEscaper.EscapeString(table)}```";
-            }
-
-            await botClient.DeleteMessageAsync(chatId, message.MessageId, cancellationToken);
-            return await botClient.SendTextMessageAsync(chatId: chatId, text, cancellationToken: cancellationToken, parseMode: ParseMode.MarkdownV2);;
+            await botClient.DeleteMessageAsync(chatId, message.Id, cancellationToken);
+            return await botClient.SendTextMessageAsync(chatId: chatId, table, useMarkdown:true, cancellationToken: cancellationToken);;
         }
         
         private static string ShortNameOfCategory(string name)

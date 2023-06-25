@@ -1,20 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     internal class EnterTheExpenseDayState : IExpenseInfoState
     {
-        private static readonly string[] MonthNames = {
-            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
-            "December"
-        };
         public bool UserAnswerIsRequired => true;
         private readonly StateFactory _factory;
         private readonly DateOnly _today;
@@ -31,19 +22,19 @@ namespace TelegramBot.StateMachine
             PreviousState = previousState;
         }
     
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             var info = "Enter the day";
-            var buttons = Enumerable.Range(0, 6).Reverse().Select(c => _today.AddDays(-c)).Chunk(3)
-                .Select(row => row.Select(date => InlineKeyboardButton.WithCallbackData(text: $"{date.ToString("dd MMMM yyyy")}", callbackData: date.ToString(_dateFormat))))
-                .ToList();
-        
-            InlineKeyboardMarkup inlineKeyboard = new(buttons);
+            
+            var keyboard = 
+                TelegramKeyboard.FromButtons(
+                    Enumerable.Range(0, 6).Reverse().Select(c => _today.AddDays(-c))
+                .Select(date => new TelegramButton() {Text = $"{date.ToString("dd MMMM yyyy")}", CallbackData = date.ToString(_dateFormat)}), 3);
         
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: info,
-                replyMarkup: inlineKeyboard,
+                keyboard: keyboard,
                 cancellationToken: cancellationToken);
         }
 

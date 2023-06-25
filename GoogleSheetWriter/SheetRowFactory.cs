@@ -27,7 +27,7 @@ namespace GoogleSheetWriter
                 categoryIndex = listInfo.CategoryColumn[0] - listInfo.DateColumn[0];
             }
 
-            else if (!string.IsNullOrEmpty(listInfo.SubCategoryColumn))
+            if (!string.IsNullOrEmpty(listInfo.SubCategoryColumn))
             {
                 subCategoryIndex = listInfo.SubCategoryColumn[0] - listInfo.DateColumn[0];
             }

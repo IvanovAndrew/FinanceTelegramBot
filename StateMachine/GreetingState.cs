@@ -1,15 +1,12 @@
-using System.Threading;
-using System.Threading.Tasks;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     class GreetingState : IExpenseInfoState
     {
-        private StateFactory _factory;
+        private readonly StateFactory _factory;
         private readonly ILogger _logger;
     
         public IExpenseInfoState PreviousState { get; private set; }
@@ -23,20 +20,19 @@ namespace TelegramBot.StateMachine
 
         public bool UserAnswerIsRequired => true;
 
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-                new[]
+            var keyboard = 
+                TelegramKeyboard.FromButtons(new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "Outcome", callbackData: "startExpense"),
-                    InlineKeyboardButton.WithCallbackData(text: "Statistics", callbackData: "showExpenses"),
-                }
-            );
+                    new TelegramButton() { Text = "Outcome", CallbackData = "startExpense" },
+                    new TelegramButton() { Text = "Statistics", CallbackData = "showExpenses" },
+                });
 
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: "What would you like to do?",
-                replyMarkup: inlineKeyboard,
+                keyboard: keyboard,
                 cancellationToken: cancellationToken);
         }
 

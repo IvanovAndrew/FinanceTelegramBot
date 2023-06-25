@@ -1,14 +1,9 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Domain;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     class EnterTheCategoryState : IExpenseInfoState
     {
@@ -31,21 +26,18 @@ namespace TelegramBot.StateMachine
 
         public bool UserAnswerIsRequired => true;
 
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             string infoMessage = "Enter the category";
 
-            var rows = _categories.Chunk(4);
-        
-            InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-                // keyboard
-                rows.Select(row => row.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name))).ToArray()
-            );
+            // keyboard
+            var keyboard = TelegramKeyboard.FromButtons(_categories.Select(c => new TelegramButton()
+                { Text = c.Name, CallbackData = c.Name })); 
         
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: infoMessage,
-                replyMarkup: inlineKeyboard,
+                keyboard: keyboard,
                 cancellationToken: cancellationToken);
         }
 

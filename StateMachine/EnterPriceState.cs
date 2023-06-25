@@ -1,11 +1,9 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Domain;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     class EnterPriceState : IExpenseInfoState
     {
@@ -27,7 +25,7 @@ namespace TelegramBot.StateMachine
 
         public bool UserAnswerIsRequired => true;
 
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             return await botClient.SendTextMessageAsync(chatId, "Enter the price", cancellationToken: cancellationToken);
         }

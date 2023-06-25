@@ -1,13 +1,9 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Domain;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     class ConfirmExpenseState : IExpenseInfoState
     {
@@ -27,7 +23,7 @@ namespace TelegramBot.StateMachine
 
     
 
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             string infoMessage = string.Join($"{Environment.NewLine}", 
                 $"Date: {_expense.Date:dd.MM.yyyy}", 
@@ -39,23 +35,17 @@ namespace TelegramBot.StateMachine
                 "Would you like to save it?"
             );
 
-            InlineKeyboardMarkup inlineKeyboard = new(
-                // keyboard
+            var keyboard = TelegramKeyboard.FromButtons(
                 new[]
                 {
-                    // first row
-                    new[]
-                    {
-                        // first button in row
-                        InlineKeyboardButton.WithCallbackData(text: "Save", callbackData: "Save"),
-                        InlineKeyboardButton.WithCallbackData(text: "Cancel", callbackData: "Cancel"),
-                    }
+                    new TelegramButton() { Text = "Save", CallbackData = "Save" },
+                    new TelegramButton() { Text = "Cancel", CallbackData = "Cancel" },
                 });
 
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: $"{infoMessage}",
-                replyMarkup: inlineKeyboard,
+                keyboard: keyboard,
                 cancellationToken: cancellationToken);
         }
 

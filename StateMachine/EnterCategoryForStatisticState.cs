@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Domain;
+﻿using Domain;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
-using TelegramBot.StateMachine;
+using TelegramBot;
 
-namespace TelegramBot
+namespace StateMachine
 {
     internal class EnterCategoryForStatisticState : IExpenseInfoState
     {
@@ -28,21 +21,18 @@ namespace TelegramBot
 
         public bool UserAnswerIsRequired { get; } = true;
         public IExpenseInfoState PreviousState { get; }
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             string infoMessage = "Enter the category";
 
-            var rows = _categories.Chunk(4);
-        
-            InlineKeyboardMarkup inlineKeyboard = new(
-                // keyboard
-                rows.Select(row => row.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name))).ToArray()
+            var  keyboard = TelegramKeyboard.FromButtons(
+                _categories.Select(c => new TelegramButton(){Text = c.Name, CallbackData = c.Name})
             );
         
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: infoMessage,
-                replyMarkup: inlineKeyboard,
+                keyboard: keyboard,
                 cancellationToken: cancellationToken);
         }
 
@@ -74,20 +64,22 @@ namespace TelegramBot
             _logger = logger;
         }
         
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            var buttons = new[]
+            var keyboard = TelegramKeyboard.FromButtons(new[]
             {
-                InlineKeyboardButton.WithCallbackData(text: $"Subcategory", callbackData: "subcategory"),
-                InlineKeyboardButton.WithCallbackData(text: $"For last six month", callbackData: "lastsixmonth"), 
-            };
-        
-            InlineKeyboardMarkup inlineKeyboard = new(buttons);
+                new TelegramButton()
+                {
+                    Text = "Subcategory", 
+                    CallbackData = "subcategory"
+                },
+                new TelegramButton(){Text = "For last year", CallbackData = "lastyear"}, 
+            });
         
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: "Choose",
-                replyMarkup: inlineKeyboard,
+                keyboard: keyboard,
                 cancellationToken: cancellationToken);
         }
 
@@ -110,12 +102,12 @@ namespace TelegramBot
                     });
             }
 
-            if (text == "lastsixmonth")
+            if (text == "lastyear")
             {
                 var expenseAggregator = new ExpensesAggregator<DateOnly>(
                     e => e.Date.LastDayOfMonth(), d => d.ToString("yyyy MMM"), false, sortAsc:true);
                 return _factory.GetExpensesState(this, 
-                    d => d >= DateOnly.FromDateTime(DateTime.Today.AddMonths(-5)).FirstDayOfMonth(), 
+                    d => d >= DateOnly.FromDateTime(DateTime.Today.AddYears(-1)).FirstDayOfMonth(), 
                     c => string.Equals(c, _category), expenseAggregator,
                     new TableOptions()
                     {

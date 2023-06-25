@@ -1,16 +1,12 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Types;
+﻿using Infrastructure;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     class CancelExpenseState : IExpenseInfoState
     {
         public IExpenseInfoState PreviousState { get; private set; }
         
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             return await botClient.SendTextMessageAsync(chatId, "Operation is canceled", cancellationToken: cancellationToken);
         }

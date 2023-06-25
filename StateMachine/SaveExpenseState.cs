@@ -1,28 +1,24 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Domain;
-using GoogleSheetWriter;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     internal class SaveExpenseState : IExpenseInfoState
     {
         private readonly StateFactory _factory;
         private readonly IExpense _expense;
-        private readonly GoogleSheetWrapper _spreadsheetWrapper;
+        private readonly IExpenseRepository _expenseRepository;
         private readonly ILogger _logger;
     
         public IExpenseInfoState PreviousState { get; private set; }
     
-        internal SaveExpenseState(StateFactory factory, IExpenseInfoState previousState, IExpense expense, GoogleSheetWrapper spreadsheetWrapper, ILogger logger)
+        internal SaveExpenseState(StateFactory factory, IExpenseInfoState previousState, IExpense expense, IExpenseRepository expenseRepository, ILogger logger)
         {
             _factory = factory;
             _expense = expense;
-            _spreadsheetWrapper = spreadsheetWrapper;
+            _expenseRepository = expenseRepository;
             _logger = logger;
 
             PreviousState = previousState;
@@ -30,11 +26,11 @@ namespace TelegramBot.StateMachine
 
         public bool UserAnswerIsRequired => false;
 
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Saving... It can take some time.");
-            var message = await botClient.SendTextMessageAsync(chatId: chatId, "Saving... It can take some time.");
-            await _spreadsheetWrapper.Write(_expense, cancellationToken);
+            var message = await botClient.SendTextMessageAsync(chatId, "Saving... It can take some time.");
+            await _expenseRepository.Save(_expense, cancellationToken);
 
             string infoMessage = string.Join($"{Environment.NewLine}", 
                 $"Date: {_expense.Date:dd.MM.yyyy}", 
@@ -48,8 +44,8 @@ namespace TelegramBot.StateMachine
             
             _logger.LogInformation(infoMessage);
 
-            await botClient.DeleteMessageAsync(chatId, message.MessageId, cancellationToken);
-            return await botClient.SendTextMessageAsync(chatId: chatId, infoMessage);
+            await botClient.DeleteMessageAsync(chatId, message.Id, cancellationToken);
+            return await botClient.SendTextMessageAsync(chatId, infoMessage);
         }
 
         public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)

@@ -1,13 +1,9 @@
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Domain;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     class EnterSubcategoryState : IExpenseInfoState
     {
@@ -29,28 +25,15 @@ namespace TelegramBot.StateMachine
 
         public bool UserAnswerIsRequired => true;
 
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            var firstRow = _subCategories.Take(4);
-            var secondRow = Enumerable.Empty<SubCategory>();
-            if (_subCategories.Length > 4)
-            {
-                secondRow = _subCategories.Skip(4).Take(4);
-            }    
-        
-            InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-                // keyboard
-                new[]
-                {
-                    // first row
-                    firstRow.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name)).ToArray(),
-                    secondRow.Select(c => InlineKeyboardButton.WithCallbackData(text:c.Name, callbackData:c.Name)).ToArray(),
-                });
+            var keyboard = TelegramKeyboard.FromButtons(_subCategories.Select(c => new TelegramButton()
+                { Text = c.Name, CallbackData = c.Name }));
 
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: "Choose the subcategory",
-                replyMarkup: inlineKeyboard,
+                keyboard: keyboard,
                 cancellationToken: cancellationToken);
         }
 

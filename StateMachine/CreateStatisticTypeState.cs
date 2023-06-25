@@ -1,12 +1,8 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     internal class CreateStatisticTypeState : IExpenseInfoState
     {
@@ -23,23 +19,22 @@ namespace TelegramBot.StateMachine
             PreviousState = previousState;
         }
     
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             var info = "Choose kind of statistic";
 
-            var buttons = new[]
-            {
-                InlineKeyboardButton.WithCallbackData(text: $"For a day", callbackData: "statisticByDay"),
-                InlineKeyboardButton.WithCallbackData(text: $"For a month", callbackData: "statisticByMonth"), 
-                InlineKeyboardButton.WithCallbackData(text: $"For a category", callbackData: "statisticByCategory") 
-            };
-        
-            InlineKeyboardMarkup inlineKeyboard = new(buttons);
+            var keyboard = 
+                TelegramKeyboard.FromButtons(new []
+                {
+                    new TelegramButton{ Text = "For a day", CallbackData = "statisticByDay"},
+                    new TelegramButton{Text = "For a month", CallbackData = "statisticByMonth"}, 
+                    new TelegramButton {Text = "For a category", CallbackData = "statisticByCategory"} 
+                });
         
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: info,
-                replyMarkup: inlineKeyboard,
+                keyboard: keyboard,
                 cancellationToken: cancellationToken);
         }
 

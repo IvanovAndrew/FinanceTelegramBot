@@ -1,18 +1,13 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Domain;
 using GoogleSheetWriter;
+using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using StateMachine;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using TelegramBot.Services;
-using TelegramBot.StateMachine;
 
 namespace TelegramBot.Controllers
 {
@@ -21,7 +16,7 @@ namespace TelegramBot.Controllers
     public class BotController : ControllerBase
     {
         private static ConcurrentDictionary<long, IExpenseInfoState> _answers = new();
-        private static ConcurrentDictionary<IExpenseInfoState, Message> _sentMessage = new();
+        private static ConcurrentDictionary<IExpenseInfoState, IMessage> _sentMessage = new();
 
         private readonly ILogger _logger;
         private readonly TelegramBotService _bot;
@@ -65,13 +60,15 @@ namespace TelegramBot.Controllers
             }
         
             var cancellationTokenSource = GetCancellationTokenSource(chatId);
-        
-            await botClient.SetMyCommandsAsync(new List<BotCommand>()
-            {
-                new() { Command = "/start", Description = "Start"},
-                new() { Command = "/back", Description = "Back"},
-                new() { Command = "/cancel", Description = "Cancel"},
-            }, scope: BotCommandScope.Default(), cancellationToken:cancellationTokenSource.Token);
+
+            await botClient.SetMyCommandsAsync(
+                new[]
+                {
+                    new TelegramButton() { Text = "Start", CallbackData = "/start" },
+                    new TelegramButton() { Text = "Back", CallbackData = "/back" },
+                    new TelegramButton() { Text = "Cancel", CallbackData = "/cancel" },
+                }, cancellationTokenSource.Token);
+            
 
             _logger.LogInformation($"{userText} was received");
 
@@ -125,7 +122,7 @@ namespace TelegramBot.Controllers
             return Ok();
         }
 
-        private async Task RemovePreviousMessage(IExpenseInfoState state, TelegramBotClient botClient, long chatId,
+        private async Task RemovePreviousMessage(IExpenseInfoState state, ITelegramBot botClient, long chatId,
             CancellationTokenSource cancellationTokenSource)
         {
             if (_sentMessage.TryRemove(state, out var previousMessage))
@@ -134,19 +131,19 @@ namespace TelegramBot.Controllers
                 if (diff.Hours > 24)
                 {
                     _logger.LogWarning(
-                        $"Couldn't delete message {previousMessage.MessageId} {previousMessage.Text} because it was sent less than 24 hours ago");
+                        $"Couldn't delete message {previousMessage.Id} {previousMessage.Text} because it was sent less than 24 hours ago");
                 }
                 else
                 {
-                    _logger.LogInformation($"Removing message {previousMessage.MessageId} \"{previousMessage.Text}\"");
+                    _logger.LogInformation($"Removing message {previousMessage.Id} \"{previousMessage.Text}\"");
                     try
                     {
-                        await botClient.DeleteMessageAsync(chatId, previousMessage.MessageId, cancellationTokenSource.Token);
-                        _logger.LogInformation($"Message {previousMessage.MessageId} \"{previousMessage.Text}\" is removed");
+                        await botClient.DeleteMessageAsync(chatId, previousMessage.Id, cancellationTokenSource.Token);
+                        _logger.LogInformation($"Message {previousMessage.Id} \"{previousMessage.Text}\" is removed");
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError($"Couldn't delete message {previousMessage.MessageId} {previousMessage.Text}.", e);
+                        _logger.LogError($"Couldn't delete message {previousMessage.Id} {previousMessage.Text}.", e);
                     }
                 }
             }

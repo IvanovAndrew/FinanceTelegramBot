@@ -1,11 +1,8 @@
-using System.Threading;
-using System.Threading.Tasks;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     class EnterTheDateState : IExpenseInfoState
     {
@@ -27,7 +24,7 @@ namespace TelegramBot.StateMachine
         }
     
 
-        public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             var info = "Enter the date";
 
@@ -36,20 +33,18 @@ namespace TelegramBot.StateMachine
                 return await botClient.SendTextMessageAsync(chatId, $"{info}", cancellationToken: cancellationToken);
             }
         
-            InlineKeyboardMarkup inlineKeyboard = new(
-                // keyboard
-                new[]
+            var keyboard = TelegramKeyboard.FromButtons(new[]
                 {
                     // first row
-                    InlineKeyboardButton.WithCallbackData(text:"Today", callbackData:"today"),
-                    InlineKeyboardButton.WithCallbackData(text:"Yesterday", callbackData:"yesterday"),
-                    InlineKeyboardButton.WithCallbackData(text:"Other", callbackData:"Other"),
+                    new TelegramButton{Text = "Today", CallbackData = "today"},
+                    new TelegramButton{Text = "Yesterday", CallbackData = "yesterday"},
+                    new TelegramButton{Text = "Other", CallbackData = "Other"},
                 });
         
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: info,
-                replyMarkup: inlineKeyboard,
+                keyboard: keyboard,
                 cancellationToken: cancellationToken);
         }
 

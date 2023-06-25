@@ -2,31 +2,30 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Domain;
-using GoogleSheetWriter;
 using Microsoft.Extensions.Logging;
-using TelegramBot.StateMachine;
+using StateMachine;
 
 namespace TelegramBot
 {
-    internal class StateFactory
+    public class StateFactory
     {
         private readonly IDateParser _dateParser;
         private readonly IMoneyParser _moneyParser;
         private readonly IEnumerable<Category> _categories;
-        private readonly GoogleSheetWrapper _spreadsheetWrapper;
+        private readonly IExpenseRepository _expenseRepository;
         private readonly ILogger _logger;
     
         public StateFactory(IDateParser dateParser, IEnumerable<Category> categories, IMoneyParser moneyParser,
-            GoogleSheetWrapper spreadsheetWrapper, ILogger logger)
+            IExpenseRepository expenseRepository, ILogger logger)
         {
             _dateParser = dateParser;
             _categories = categories;
-            _spreadsheetWrapper = spreadsheetWrapper;
+            _expenseRepository = expenseRepository;
             _moneyParser = moneyParser;
             _logger = logger;
         }
 
-        internal IExpenseInfoState CreateGreetingState()
+        public IExpenseInfoState CreateGreetingState()
         {
             return new GreetingState(this, _logger);
         }
@@ -83,7 +82,7 @@ namespace TelegramBot
 
         public IExpenseInfoState CreateSaveState(IExpenseInfoState previousState, IExpense expense)
         {
-            return new SaveExpenseState(this, previousState, expense, _spreadsheetWrapper, _logger);
+            return new SaveExpenseState(this, previousState, expense, _expenseRepository, _logger);
         }
 
         public IExpenseInfoState CreateErrorWithRetryState(string warning, IExpenseInfoState previousState)
@@ -98,7 +97,7 @@ namespace TelegramBot
 
         public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, Predicate<DateOnly> dateFilter, Predicate<string> categoryFilter, ExpensesAggregator<T> expensesAggregator, TableOptions tableOptions)
         {
-            return new CollectExpensesByCategoryState<T>(this, previousState, dateFilter, categoryFilter, expensesAggregator, tableOptions, _spreadsheetWrapper, _logger);
+            return new CollectExpensesByCategoryState<T>(this, previousState, dateFilter, categoryFilter, expensesAggregator, tableOptions, _expenseRepository, _logger);
         }
 
         public IExpenseInfoState GetEnterTypeOfCategoryStatistic(IExpenseInfoState previousState, Category category)
@@ -112,7 +111,7 @@ namespace TelegramBot
         bool TryParse(string s, out DateOnly date);
     }
 
-    class DateParser : IDateParser
+    public class DateParser : IDateParser
     {
         private readonly CultureInfo _cultureInfo;
         public DateParser(CultureInfo cultureInfo)

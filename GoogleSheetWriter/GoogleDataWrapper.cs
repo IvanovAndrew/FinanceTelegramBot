@@ -40,15 +40,17 @@ namespace GoogleSheetWriter
 
         private Money ParseMoney(string? rurValue, string? amdValue)
         {
-            if (string.IsNullOrEmpty(rurValue) && string.IsNullOrEmpty(amdValue))
+            string rur = (rurValue ?? String.Empty).Trim();
+            string amd = (amdValue ?? String.Empty).Trim();
+            if (string.IsNullOrEmpty(rur) && string.IsNullOrEmpty(amd))
                 return new Money() {Currency = Currency.Amd, Amount = 0m};
 
-            if (Money.TryParse(rurValue, Currency.Rur, _culture, out var money))
+            if (Money.TryParse(rur, Currency.Rur, _culture, out var money))
             {
                 return money;
             }
 
-            else if (Money.TryParse(amdValue, Currency.Amd, _culture, out money))
+            else if (Money.TryParse(amd, Currency.Amd, _culture, out money))
             {
                 return money;
             }

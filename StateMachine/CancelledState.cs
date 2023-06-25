@@ -1,11 +1,8 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
+using TelegramBot;
 
-namespace TelegramBot.StateMachine
+namespace StateMachine
 {
     class CancelledState : IExpenseInfoState
     {
@@ -26,7 +23,7 @@ namespace TelegramBot.StateMachine
         }
     
         public bool UserAnswerIsRequired => false;
-        public Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+        public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             return botClient.SendTextMessageAsync(chatId, "Canceled");
         }

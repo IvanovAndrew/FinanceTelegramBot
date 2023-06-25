@@ -1,20 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBot;
-using TelegramBot.StateMachine;
+
+namespace StateMachine;
 
 internal class EnterTheMonthState : IExpenseInfoState
 {
-    private static readonly string[] MonthNames = {
-        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
-        "December"
-    };
     public bool UserAnswerIsRequired => true;
     private readonly StateFactory _factory;
     private readonly DateOnly _today;
@@ -31,24 +22,22 @@ internal class EnterTheMonthState : IExpenseInfoState
         PreviousState = previousState;
     }
     
-    public async Task<Message> Request(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+    public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
     {
         var info = "Enter the month";
 
-        var buttons = new[]
-            {
-                _today.AddMonths(-5), _today.AddMonths(-4), _today.AddMonths(-3),
-                _today.AddMonths(-2), _today.AddMonths(-1), _today 
-            }.Chunk(3)
-            .Select(row => row.Select(date => InlineKeyboardButton.WithCallbackData(text: $"{date.ToString("MMMM yyyy")}", callbackData: date.ToString(_dateFormat))))
-            .ToList();
+        var keyboard = TelegramKeyboard.FromButtons(new[]
+        {
+            _today.AddMonths(-5), _today.AddMonths(-4), _today.AddMonths(-3),
+            _today.AddMonths(-2), _today.AddMonths(-1), _today
+        }.Select(date => new TelegramButton
+            { Text = $"{date.ToString("MMMM yyyy")}", CallbackData = date.ToString(_dateFormat) }), chunkSize: 3);
         
-        InlineKeyboardMarkup inlineKeyboard = new(buttons);
         
         return await botClient.SendTextMessageAsync(
             chatId: chatId,
             text: info,
-            replyMarkup: inlineKeyboard,
+            keyboard: keyboard,
             cancellationToken: cancellationToken);
     }
 
