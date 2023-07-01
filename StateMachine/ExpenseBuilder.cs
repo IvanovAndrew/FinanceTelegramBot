@@ -1,7 +1,6 @@
-using System;
 using Domain;
 
-namespace TelegramBot
+namespace StateMachine
 {
     internal class ExpenseBuilder
     {

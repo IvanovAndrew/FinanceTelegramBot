@@ -1,24 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using Domain;
+﻿using Domain;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using StateMachine;
 
-namespace TelegramBot
+namespace StateMachine
 {
     public class StateFactory
     {
-        private readonly IDateParser _dateParser;
+        private readonly IDateTimeService _dateTimeService;
         private readonly IMoneyParser _moneyParser;
         private readonly IEnumerable<Category> _categories;
         private readonly IExpenseRepository _expenseRepository;
-        private readonly ILogger _logger;
+        private readonly ILogger<StateFactory> _logger;
     
-        public StateFactory(IDateParser dateParser, IEnumerable<Category> categories, IMoneyParser moneyParser,
-            IExpenseRepository expenseRepository, ILogger logger)
+        public StateFactory(IDateTimeService dateTimeService, IMoneyParser moneyParser, IEnumerable<Category> categories, 
+            IExpenseRepository expenseRepository, ILogger<StateFactory> logger)
         {
-            _dateParser = dateParser;
+            _dateTimeService = dateTimeService;
             _categories = categories;
             _expenseRepository = expenseRepository;
             _moneyParser = moneyParser;
@@ -32,7 +29,7 @@ namespace TelegramBot
     
         internal IExpenseInfoState CreateEnterTheDateState(IExpenseInfoState previousState, bool askCustomDate = false)
         {
-            return new EnterTheDateState(this, previousState, _dateParser, _logger, askCustomDate);
+            return new EnterTheDateState(this, previousState, _dateTimeService, _logger, askCustomDate);
         }
     
         internal IExpenseInfoState CreateChooseStatisticState(IExpenseInfoState previousState)
@@ -103,59 +100,6 @@ namespace TelegramBot
         public IExpenseInfoState GetEnterTypeOfCategoryStatistic(IExpenseInfoState previousState, Category category)
         {
             return new EnterTypeOfCategoryStatisticState(this, previousState, category.Name, _logger);
-        }
-    }
-
-    public interface IDateParser
-    {
-        bool TryParse(string s, out DateOnly date);
-    }
-
-    public class DateParser : IDateParser
-    {
-        private readonly CultureInfo _cultureInfo;
-        public DateParser(CultureInfo cultureInfo)
-        {
-            _cultureInfo = cultureInfo;
-        }
-    
-        public bool TryParse(string s, out DateOnly date)
-        {
-            if (string.IsNullOrEmpty(s))
-                return false;
-            else if (string.Equals(s, "today", StringComparison.InvariantCultureIgnoreCase))
-            {
-                date = DateOnly.FromDateTime(DateTime.Today);
-                return true;
-            }
-            else if (string.Equals(s, "yesterday", StringComparison.InvariantCultureIgnoreCase))
-            {
-                date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
-                return true;
-            }
-
-            if (DateOnly.TryParse(s, _cultureInfo, DateTimeStyles.None, out date))
-                return true;
-
-            if (DateOnly.TryParse(s, new CultureInfo("ru-RU"), DateTimeStyles.None, out date))
-                return true;
-
-            return false;
-        }
-    }
-
-    static class DateOnlyExtension
-    {
-        internal static DateOnly LastDayOfMonth(this DateOnly date)
-        {
-            var lastDayOfMonth = new [] {0, 31, date.Year % 4 == 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-            return new DateOnly(date.Year, date.Month, lastDayOfMonth[date.Month]);
-        }
-        
-        internal static DateOnly FirstDayOfMonth(this DateOnly date)
-        {
-            return new DateOnly(date.Year, date.Month, 1);
         }
     }
 }

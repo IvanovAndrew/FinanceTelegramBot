@@ -1,10 +1,9 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Domain
 {
-    public class Money : IComparable<Money>
+    public class Money : IComparable<Money>, IEquatable<Money>
     {
         public Currency Currency { get; init; }
         public decimal Amount { get; init; }
@@ -37,6 +36,26 @@ namespace Domain
             if (ReferenceEquals(this, other)) return 0;
             if (ReferenceEquals(null, other)) return 1;
             return Amount.CompareTo(other.Amount);
+        }
+
+        public bool Equals(Money? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Currency.Equals(other.Currency) && Amount == other.Amount;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Money)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Currency, Amount);
         }
     }
 }

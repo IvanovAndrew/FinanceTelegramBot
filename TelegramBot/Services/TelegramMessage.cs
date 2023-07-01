@@ -10,6 +10,7 @@ public class TelegramMessage : IMessage
     public long ChatId { get; }
     public DateTime Date { get; }
     public string Text { get; }
+    public bool Edited { get; private init; }
 
     public TelegramMessage(Message message, string? text = null)
     {
@@ -25,10 +26,15 @@ public class TelegramMessage : IMessage
         {
             return new TelegramMessage(update.Message!);
         }
-        if (update.Type == UpdateType.CallbackQuery)
+        else if (update.Type == UpdateType.CallbackQuery)
         {
             return new TelegramMessage(update.CallbackQuery!.Message!, update.CallbackQuery.Data);
         }
+        else if (update.Type == UpdateType.EditedMessage)
+        {
+            return new TelegramMessage(update.EditedMessage!) { Edited = true };
+        }
+        
 
         throw new ArgumentOutOfRangeException(
             $"Unexpected type of Update. Expected {UpdateType.Message} or {UpdateType.CallbackQuery} but {update.Type} was received");

@@ -1,16 +1,16 @@
 using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
-using TelegramBot;
 
 namespace StateMachine
 {
-    internal class SaveExpenseState : IExpenseInfoState
+    internal class SaveExpenseState : IExpenseInfoState, ILongTermOperation
     {
         private readonly StateFactory _factory;
         private readonly IExpense _expense;
         private readonly IExpenseRepository _expenseRepository;
         private readonly ILogger _logger;
+        private CancellationTokenSource? _cancellationTokenSource;
     
         public IExpenseInfoState PreviousState { get; private set; }
     
@@ -28,9 +28,14 @@ namespace StateMachine
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Saving... It can take some time.");
             var message = await botClient.SendTextMessageAsync(chatId, "Saving... It can take some time.");
-            await _expenseRepository.Save(_expense, cancellationToken);
+
+            using (_cancellationTokenSource = new CancellationTokenSource())
+            {
+                await _expenseRepository.Save(_expense, cancellationToken);
+            }
+
+            _cancellationTokenSource = null;
 
             string infoMessage = string.Join($"{Environment.NewLine}", 
                 $"Date: {_expense.Date:dd.MM.yyyy}", 
@@ -51,6 +56,13 @@ namespace StateMachine
         public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
         {
             throw new InvalidOperationException();
+        }
+
+        public void Cancel()
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
         }
     }
 }

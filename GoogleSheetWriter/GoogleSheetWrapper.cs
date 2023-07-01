@@ -16,16 +16,18 @@ namespace GoogleSheetWriter
         private readonly string _spreadsheetId;
         private GoogleCredential _credential;
         private readonly CultureInfo _cultureInfo = new("ru-RU");
+        private readonly ILogger _logger;
         private const int BatchSize = 500;
         private char FirstExcelColumn = 'A';
 
         public GoogleSheetWrapper(SheetOptions options, CategoryToListMappingOptions mappingOptions,
-            string applicationName, string spreadsheetId)
+            string applicationName, string spreadsheetId, ILogger<GoogleSheetWrapper> logger)
         {
             _options = options;
             _categoryMapping = mappingOptions;
             _applicationName = applicationName;
             _spreadsheetId = spreadsheetId;
+            _logger = logger;
         }
 
         public async Task Save(IExpense expense, CancellationToken cancellationToken)
@@ -167,10 +169,9 @@ namespace GoogleSheetWriter
             int i = 0;
             foreach (var data in sheet.Data)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 foreach (var rowData in data.RowData)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     bool filled = false;
                     foreach (var cellValue in rowData.Values)
                     {
@@ -189,8 +190,7 @@ namespace GoogleSheetWriter
             return i;
         }
 
-        public async Task<List<IExpense>> Read(Predicate<DateOnly> dateFilter, ILogger logger,
-            CancellationToken cancellationToken)
+        public async Task<List<IExpense>> Read(Predicate<DateOnly> dateFilter, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
@@ -198,7 +198,7 @@ namespace GoogleSheetWriter
             foreach (var list in new []{_options.UsualExpenses, _options.FlatInfo, _options.BigDealInfo})
             {
                 result.AddRange(
-                    await GetRows(service, list, dateFilter, logger, cancellationToken)
+                    await GetRows(service, list, dateFilter, _logger, cancellationToken)
                     );
             }
 
@@ -214,7 +214,7 @@ namespace GoogleSheetWriter
 
             int fromRangeRow = 1;
             int toRangeRow = BatchSize;
-
+            
             int lastFilledRow = await GetNumberFilledRows(service, info.ListName, cancellationToken);
 
             while (fromRangeRow < lastFilledRow)
@@ -230,10 +230,10 @@ namespace GoogleSheetWriter
                 int i = 0;
                 foreach (var data in sheet.Data)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    
                     foreach (var cellData in data.RowData)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
                         if (cellData.Values == null) continue;
                         if (new[] {"Дата", "Год", "", null}.Contains(cellData.Values[0].FormattedValue)) continue;
 

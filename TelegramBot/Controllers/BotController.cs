@@ -1,12 +1,7 @@
 using System.Collections.Concurrent;
-using Domain;
-using GoogleSheetWriter;
-using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using StateMachine;
-using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using TelegramBot.Services;
 
 namespace TelegramBot.Controllers
@@ -15,149 +10,29 @@ namespace TelegramBot.Controllers
     [Route(TelegramBotService.Route)]
     public class BotController : ControllerBase
     {
-        private static ConcurrentDictionary<long, IExpenseInfoState> _answers = new();
-        private static ConcurrentDictionary<IExpenseInfoState, IMessage> _sentMessage = new();
-
         private readonly ILogger _logger;
         private readonly TelegramBotService _bot;
-        private readonly IDateParser _dateParser;
-        private readonly List<Category> _categories;
-        private readonly IMoneyParser _moneyParser;
-        private readonly GoogleSheetWrapper _spreadsheetWrapper;
-        private readonly ConcurrentDictionary<long, CancellationTokenSource> _cancellationTokenSources;
+        private readonly StateFactory _stateFactory;
 
-        public BotController(ILogger<BotController> logger, TelegramBotService bot, CategoryOptions categoryOptions,
-            IDateParser dateParser,
-            IMoneyParser moneyParser, GoogleSheetWrapper spreadsheetWrapper)
+        public BotController(ILogger<BotController> logger, StateFactory stateFactory, TelegramBotService bot)
         {
             _logger = logger;
+            _stateFactory = stateFactory;
             _bot = bot;
-            _dateParser = dateParser;
-            _categories = categoryOptions.Categories;
-            _moneyParser = moneyParser;
-            _spreadsheetWrapper = spreadsheetWrapper;
-            _cancellationTokenSources = new ConcurrentDictionary<long, CancellationTokenSource>();
         }
-
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Update update)
         {
             var botClient = await _bot.GetBot();
+
+            var message = TelegramMessage.FromUpdate(update);
         
-            long chatId = default;
-            string? userText = null;
-
-            if (update.Type == UpdateType.Message)
-            {
-                chatId = update.Message.Chat.Id;
-                userText = update.Message.Text;
-            }
-            else if (update.Type == UpdateType.CallbackQuery)
-            {
-                chatId = update.CallbackQuery!.Message!.Chat.Id;
-                userText = update.CallbackQuery.Data;
-            }
-        
-            var cancellationTokenSource = GetCancellationTokenSource(chatId);
-
-            await botClient.SetMyCommandsAsync(
-                new[]
-                {
-                    new TelegramButton() { Text = "Start", CallbackData = "/start" },
-                    new TelegramButton() { Text = "Back", CallbackData = "/back" },
-                    new TelegramButton() { Text = "Cancel", CallbackData = "/cancel" },
-                }, cancellationTokenSource.Token);
+            var botEngine = new BotEngine(_stateFactory, _logger);
             
-
-            _logger.LogInformation($"{userText} was received");
-
-            var text = userText!;
-
-            if (text.ToLowerInvariant() == "/cancel" || text.ToLowerInvariant() == "отмена")
-            {
-                cancellationTokenSource.Cancel();
-                _answers.Remove(chatId, out _);
-                await botClient.SendTextMessageAsync(chatId, $"All operations are canceled");
-                return Ok();
-            }
-        
-            var factory = new StateFactory(_dateParser, _categories, _moneyParser,
-                _spreadsheetWrapper, _logger);
-
-            if (!_answers.TryGetValue(chatId, out IExpenseInfoState state) || string.Equals(text, "/start"))
-            {
-                state = factory.CreateGreetingState();
-                _answers[chatId] = state;
-                var message = await state.Request(botClient, chatId, cancellationTokenSource.Token);
-                _sentMessage[state] = message;
-            }
-            else
-            {
-                await RemovePreviousMessage(state, botClient, chatId, cancellationTokenSource);
-
-                IExpenseInfoState newState;
-                if (string.Equals(text, "/back"))
-                {
-                    newState = state.PreviousState;
-                }
-                else
-                {
-                    newState = state.Handle(text, cancellationTokenSource.Token);
-                }
-
-                _answers[chatId] = newState;
+            await botEngine.Proceed(message, botClient);
             
-                var message = await newState.Request(botClient, chatId, cancellationTokenSource.Token);
-                _sentMessage[newState] = message;
-            
-                if (!newState.UserAnswerIsRequired)
-                {
-                    _answers[chatId] = newState = factory.CreateGreetingState();
-                    message = await newState.Request(botClient, chatId, cancellationTokenSource.Token);
-                    _sentMessage[newState] = message;
-                }
-            }
-
             return Ok();
-        }
-
-        private async Task RemovePreviousMessage(IExpenseInfoState state, ITelegramBot botClient, long chatId,
-            CancellationTokenSource cancellationTokenSource)
-        {
-            if (_sentMessage.TryRemove(state, out var previousMessage))
-            {
-                var diff = DateTime.Now.Subtract(previousMessage.Date);
-                if (diff.Hours > 24)
-                {
-                    _logger.LogWarning(
-                        $"Couldn't delete message {previousMessage.Id} {previousMessage.Text} because it was sent less than 24 hours ago");
-                }
-                else
-                {
-                    _logger.LogInformation($"Removing message {previousMessage.Id} \"{previousMessage.Text}\"");
-                    try
-                    {
-                        await botClient.DeleteMessageAsync(chatId, previousMessage.Id, cancellationTokenSource.Token);
-                        _logger.LogInformation($"Message {previousMessage.Id} \"{previousMessage.Text}\" is removed");
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError($"Couldn't delete message {previousMessage.Id} {previousMessage.Text}.", e);
-                    }
-                }
-            }
-        }
-
-        private CancellationTokenSource GetCancellationTokenSource(long chatId)
-        {
-            if (!_cancellationTokenSources.TryGetValue(chatId, out var cancellationTokenSource))
-            {
-                cancellationTokenSource = new CancellationTokenSource();
-                _cancellationTokenSources[chatId] = cancellationTokenSource;
-            }
-
-            return cancellationTokenSource;
         }
     }
 }

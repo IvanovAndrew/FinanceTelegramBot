@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using Domain;
 using GoogleSheetWriter;
+using Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using StateMachine;
 using TelegramBot.Controllers;
 using TelegramBot.Services;
 
@@ -28,8 +30,7 @@ namespace TelegramBot
             var builder = services.AddControllers().AddNewtonsoftJson();
 
             services.AddLogging();
-            services.AddSingleton<IDateParser, DateParser>(s =>
-                ActivatorUtilities.CreateInstance<DateParser>(s, new CultureInfo("en-US")));
+            services.AddSingleton<IDateTimeService, DateTimeService>();
             services.AddSingleton<TelegramBotService>(s => ActivatorUtilities.CreateInstance<TelegramBotService>(s, _configuration.GetSection("Telegram")["Url"], _configuration.GetSection("Telegram")["Token"]));
             services.AddSingleton<CategoryOptions>();
         
@@ -94,8 +95,12 @@ namespace TelegramBot
                 return instance;
             });
             
-            services.AddSingleton<GoogleSheetWrapper>(s => ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), _configuration["SpreadsheetOptions:ApplicationName"], _configuration["SpreadsheetOptions:SpreadsheetID"]));
-
+            services.AddSingleton<IExpenseRepository>(s => ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), _configuration["SpreadsheetOptions:ApplicationName"], _configuration["SpreadsheetOptions:SpreadsheetID"]));
+            services.AddScoped<StateFactory>(s => ActivatorUtilities.CreateInstance<StateFactory>(s,
+                s.GetRequiredService<IDateTimeService>(),
+                s.GetRequiredService<IMoneyParser>(),
+                s.GetRequiredService<CategoryOptions>().Categories,
+                s.GetRequiredService<IExpenseRepository>()));
             
             
             services.AddSwaggerGen(c =>

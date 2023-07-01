@@ -1,7 +1,6 @@
 using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
-using TelegramBot;
 
 namespace StateMachine
 {
@@ -43,7 +42,7 @@ namespace StateMachine
 
         public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
         {
-            var categoryDomain = _categories.FirstOrDefault(c => c.Name == text);
+            var categoryDomain = _categories.FirstOrDefault(c => string.Equals(c.Name, text, StringComparison.InvariantCultureIgnoreCase));
             if (categoryDomain != null)
             {
                 _expenseBuilder.Category = categoryDomain;

@@ -1,6 +1,6 @@
-﻿using Infrastructure;
+﻿using Domain;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using TelegramBot;
 
 namespace StateMachine
 {

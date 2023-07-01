@@ -1,11 +1,10 @@
 ﻿using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
-using TelegramBot;
 
 namespace StateMachine
 {
-    internal class CollectExpensesByCategoryState<T> : IExpenseInfoState
+    internal class CollectExpensesByCategoryState<T> : IExpenseInfoState, ILongTermOperation
     {
         private readonly StateFactory _factory;
         private readonly Predicate<DateOnly> _dateFilter;
@@ -14,6 +13,7 @@ namespace StateMachine
         private readonly TableOptions _tableOptions;
         private readonly IExpenseRepository _expenseRepository;
         private readonly ILogger _logger;
+        private CancellationTokenSource? _cancellationTokenSource;
 
         public IExpenseInfoState PreviousState { get; private set; }
 
@@ -39,7 +39,14 @@ namespace StateMachine
             _logger.LogInformation("Collecting expenses... It can take some time.");
             var message = await botClient.SendTextMessageAsync(chatId, "Collecting expenses... It can take some time.");
 
-            var rows = await _expenseRepository.Read(_dateFilter, _logger, cancellationToken);
+            List<IExpense> rows;
+            using (_cancellationTokenSource = new CancellationTokenSource())
+            {
+                rows = await _expenseRepository.Read(_dateFilter, _cancellationTokenSource.Token);
+            }
+
+            _cancellationTokenSource = null;
+            
             rows = rows.Where(expense => _categoryFilter(expense.Category)).ToList();
 
             _logger.LogInformation($"Found {rows.Count} row(s).");
@@ -53,6 +60,7 @@ namespace StateMachine
             
             uniqueCategories1.UnionWith(uniqueCategories2);
             string[,] telegramTable = new string[uniqueCategories1.Count + 2, 3];
+            var zeroRur = new Money() { Amount = 0, Currency = Currency.Rur }.ToString("N0");
             int i = 0;
             foreach ((string category, Money sum) in amdCategories)
             {
@@ -61,17 +69,18 @@ namespace StateMachine
 
                 var rur = rurCategories.FirstOrDefault(c => c.Item1 == category);
                 
-                telegramTable[i, 2] = rur.Item1 == category? rur.Item2.ToString() : "";
+                telegramTable[i, 2] = rur.Item1 == category? rur.Item2.ToString() : zeroRur;
                 uniqueCategories2.Remove(category);
                 i++;
             }
 
+            var zeroAmd = new Money() { Amount = 0, Currency = Currency.Amd }.ToString("N0");
             foreach ((string category, Money sum) in rurCategories)
             {
                 if (!uniqueCategories2.Contains(category)) continue;
                 
                 telegramTable[i, 0] = ShortNameOfCategory(category);
-                telegramTable[i, 1] = "";
+                telegramTable[i, 1] = zeroAmd;
 
                 telegramTable[i, 2] = sum.ToString("N0");
                 i++;
@@ -111,6 +120,13 @@ namespace StateMachine
         public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
         {
             return _factory.CreateGreetingState();
+        }
+
+        public void Cancel()
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
         }
     }
 }

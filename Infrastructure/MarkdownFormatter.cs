@@ -1,14 +1,7 @@
-using System;
 using System.Text;
 
-namespace TelegramBot
+namespace Infrastructure
 {
-    public class TableOptions
-    {
-        public string Title { get; init; }
-        public string[] ColumnNames { get; init; }
-    }
-    
     public static class MarkdownFormatter
     {
         public static string FormatTable(TableOptions tableOptions, string[,] rows)

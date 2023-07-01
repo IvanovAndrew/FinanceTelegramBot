@@ -1,6 +1,5 @@
 using Infrastructure;
 using Microsoft.Extensions.Logging;
-using TelegramBot;
 
 namespace StateMachine
 {
@@ -38,9 +37,10 @@ namespace StateMachine
 
         public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
         {
-            return text == "showExpenses" ? 
-                _factory.CreateChooseStatisticState(this) : 
-                _factory.CreateEnterTheDateState(this);
+            if (text == "showExpenses") return _factory.CreateChooseStatisticState(this); 
+            if (text == "startExpense") return _factory.CreateEnterTheDateState(this);
+
+            throw new ArgumentOutOfRangeException($"Expected 'showExpenses' or 'startExpense', but {text} was");
         }
     }
 }

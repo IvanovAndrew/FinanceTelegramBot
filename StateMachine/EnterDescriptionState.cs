@@ -1,6 +1,5 @@
 using Infrastructure;
 using Microsoft.Extensions.Logging;
-using TelegramBot;
 
 namespace StateMachine
 {
@@ -25,7 +24,7 @@ namespace StateMachine
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            return await botClient.SendTextMessageAsync(chatId, "Write description", cancellationToken: cancellationToken);
+            return await botClient.SendTextMessageAsync(chatId, "Write a description", cancellationToken: cancellationToken);
         }
 
         public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)

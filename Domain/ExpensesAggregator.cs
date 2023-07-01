@@ -1,6 +1,4 @@
-﻿using Domain;
-
-namespace StateMachine
+﻿namespace Domain
 {
     public class ExpensesAggregator<T>
     {
@@ -8,8 +6,9 @@ namespace StateMachine
         private readonly Func<T, string> _firstColumnName;
         private readonly bool _orderByMoney;
         private readonly bool _sortAsc;
-        
-        internal ExpensesAggregator(Func<IExpense, T> sumBy, Func<T, string> firstColumnName, bool orderByMoney = true, bool sortAsc = true)
+
+        public ExpensesAggregator(Func<IExpense, T> sumBy, Func<T, string> firstColumnName, bool orderByMoney = true,
+            bool sortAsc = true)
         {
             _sumBy = sumBy;
             _firstColumnName = firstColumnName;
@@ -17,10 +16,10 @@ namespace StateMachine
             _sortAsc = sortAsc;
         }
 
-        internal (List<(string, Money)>, Money) Aggregate(IEnumerable<IExpense> expenses, Currency currency)
+        public (List<(string, Money)>, Money) Aggregate(IEnumerable<IExpense> expenses, Currency currency)
         {
             var categoriesSum = new Dictionary<T, Money>();
-            Money total = new() {Currency = currency, Amount = 0m};
+            Money total = new() { Currency = currency, Amount = 0m };
 
             foreach (var row in expenses)
             {
