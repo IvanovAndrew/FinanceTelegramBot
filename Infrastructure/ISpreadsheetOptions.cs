@@ -1,4 +1,4 @@
-namespace Domain
+namespace Infrastructure
 {
     public interface ISpreadsheetOptions
     {

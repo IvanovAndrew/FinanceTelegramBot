@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
+using Domain;
 
-namespace Domain
+namespace Infrastructure
 {
     public class MoneyParser : IMoneyParser
     {

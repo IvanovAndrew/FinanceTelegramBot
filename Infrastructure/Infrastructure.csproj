@@ -16,7 +16,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Domain\Domain.csproj" />
-      <ProjectReference Include="..\GoogleSheetWriter\GoogleSheetWriter.csproj" />
     </ItemGroup>
 
 </Project>

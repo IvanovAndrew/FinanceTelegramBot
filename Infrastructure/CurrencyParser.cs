@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Domain;
 
-namespace Domain
+namespace Infrastructure
 {
     public class CurrencyParser : ICurrencyParser
     {
