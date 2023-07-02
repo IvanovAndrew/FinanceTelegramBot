@@ -64,8 +64,7 @@ namespace StateMachine
             if (!newState.UserAnswerIsRequired)
             {
                 _answers[message.ChatId] = newState = _stateFactory.CreateGreetingState();
-                var requestedMessage =
-                    await newState.Request(botClient, message.ChatId);
+                var requestedMessage = await newState.Request(botClient, message.ChatId);
                 _sentMessage[newState] = requestedMessage;
                 
                 return requestedMessage;

@@ -17,7 +17,7 @@ public class TelegramMessage : IMessage
         Id = message.MessageId;
         ChatId = message.Chat.Id;
         Date = message.Date;
-        Text = text?? message.Text;
+        Text = text?? message.Text?? string.Empty;
     }
 
     public static TelegramMessage FromUpdate(Update update)
