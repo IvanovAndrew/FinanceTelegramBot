@@ -48,13 +48,17 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
 
             var expenseAggregator = new ExpensesAggregator<string>(
                 e => e.SubCategory ?? string.Empty, s => s, true, sortAsc: false);
-            return _factory.GetExpensesState(this,
-                d => d >= firstDayOfMonth,
-                c => string.Equals(c, _category),
+
+            var specification = new MultipleSpecification(
+                new ExpenseLaterThanSpecification(firstDayOfMonth),
+                new ExpenseFromCategorySpecification(_category));
+            
+            return _factory.GetExpensesState(this, specification,
                 expenseAggregator,
                 new TableOptions()
                 {
-                    Title = $"Category: {_category}. Expenses from {firstDayOfMonth.ToString("dd MMMM yyyy")}",
+                    Title = $"Category: {_category}. {Environment.NewLine}" +
+                            $"Expenses from {firstDayOfMonth.ToString("dd MMMM yyyy")}",
                     ColumnNames = new[] { "Subcategory", "AMD", "RUR" }
                 });
         }
@@ -63,9 +67,15 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
         {
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
                 e => e.Date.LastDayOfMonth(), d => d.ToString("yyyy MMM"), false, sortAsc: true);
-            return _factory.GetExpensesState(this,
-                d => d >= DateOnly.FromDateTime(DateTime.Today.AddYears(-1)).FirstDayOfMonth(),
-                c => string.Equals(c, _category), expenseAggregator,
+
+            var specification =
+                new MultipleSpecification(
+                    new ExpenseLaterThanSpecification(DateOnly.FromDateTime(DateTime.Today.AddYears(-1)).FirstDayOfMonth()),
+                    new ExpenseFromCategorySpecification(_category)
+                );
+                 
+                
+            return _factory.GetExpensesState(this, specification, expenseAggregator,
                 new TableOptions()
                 {
                     Title = $"Category: {_category}",

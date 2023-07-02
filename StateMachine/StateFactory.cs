@@ -92,9 +92,9 @@ namespace StateMachine
             return new CancelledState(this, _logger);
         }
 
-        public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, Predicate<DateOnly> dateFilter, Predicate<string> categoryFilter, ExpensesAggregator<T> expensesAggregator, TableOptions tableOptions)
+        public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, ISpecification<IExpense> specification, ExpensesAggregator<T> expensesAggregator, TableOptions tableOptions)
         {
-            return new CollectExpensesByCategoryState<T>(this, previousState, dateFilter, categoryFilter, expensesAggregator, tableOptions, _expenseRepository, _logger);
+            return new CollectExpensesByCategoryState<T>(this, previousState, specification, expensesAggregator, tableOptions, _expenseRepository, _logger);
         }
 
         public IExpenseInfoState GetEnterTypeOfCategoryStatistic(IExpenseInfoState previousState, Category category)

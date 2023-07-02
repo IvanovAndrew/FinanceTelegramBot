@@ -43,7 +43,8 @@ namespace StateMachine
             if (DateOnly.TryParseExact(text, _dateFormat, out var selectedDay))
             {
                 var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, s => s, true, sortAsc:false);
-                return _factory.GetExpensesState(this, d => d == selectedDay, c => true, 
+                var specification = new ExpenseForTheDateSpecification(selectedDay);
+                return _factory.GetExpensesState(this, specification,
                     expenseAggregator, 
                     new TableOptions()
                     {

@@ -7,8 +7,7 @@ namespace StateMachine
     internal class CollectExpensesByCategoryState<T> : IExpenseInfoState, ILongTermOperation
     {
         private readonly StateFactory _factory;
-        private readonly Predicate<DateOnly> _dateFilter;
-        private readonly Predicate<string> _categoryFilter;
+        private readonly ISpecification<IExpense> _specification;
         private readonly ExpensesAggregator<T> _expensesAggregator;
         private readonly TableOptions _tableOptions;
         private readonly IExpenseRepository _expenseRepository;
@@ -18,13 +17,12 @@ namespace StateMachine
         public IExpenseInfoState PreviousState { get; private set; }
 
         public CollectExpensesByCategoryState(StateFactory stateFactory, IExpenseInfoState previousState,
-            Predicate<DateOnly> dateFilter, Predicate<string> categoryFilter, ExpensesAggregator<T> expensesAggregator,
+            ISpecification<IExpense> specification, ExpensesAggregator<T> expensesAggregator,
             TableOptions tableOptions,
             IExpenseRepository expenseRepository, ILogger logger)
         {
             _factory = stateFactory;
-            _dateFilter = dateFilter;
-            _categoryFilter = categoryFilter;
+            _specification = specification;
             _expensesAggregator = expensesAggregator;
             _tableOptions = tableOptions;
             _expenseRepository = expenseRepository;
@@ -42,14 +40,14 @@ namespace StateMachine
             List<IExpense> rows;
             using (_cancellationTokenSource = new CancellationTokenSource())
             {
-                rows = await _expenseRepository.Read(_dateFilter, _cancellationTokenSource.Token);
+                rows = await _expenseRepository.Read(_cancellationTokenSource.Token);
             }
 
             _cancellationTokenSource = null;
             
-            rows = rows.Where(expense => _categoryFilter(expense.Category)).ToList();
+            rows = rows.Where(expense => _specification.IsSatisfied(expense)).ToList();
 
-            _logger.LogInformation($"Found {rows.Count} row(s).");
+            _logger.LogInformation($"{rows.Count} expenses satisfy the requirements");
 
             string text = "There is no any expenses for this period";
             var (amdCategories, amdTotal) = _expensesAggregator.Aggregate(rows, Currency.Amd);
@@ -69,7 +67,7 @@ namespace StateMachine
 
                 var rur = rurCategories.FirstOrDefault(c => c.Item1 == category);
                 
-                telegramTable[i, 2] = rur.Item1 == category? rur.Item2.ToString() : zeroRur;
+                telegramTable[i, 2] = rur.Item1 == category? rur.Item2.ToString("N0") : zeroRur;
                 uniqueCategories2.Remove(category);
                 i++;
             }

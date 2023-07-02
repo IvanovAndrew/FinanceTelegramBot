@@ -12,8 +12,8 @@ public class ExpenseRepositoryStub : IExpenseRepository
         return Task.Run(() => _savedExpenses.Add(expense));
     }
 
-    public Task<List<IExpense>> Read(Predicate<DateOnly> dateFilter, CancellationToken cancellationToken)
+    public Task<List<IExpense>> Read(CancellationToken cancellationToken)
     {
-        return Task.Run(() => _savedExpenses.Where(c => dateFilter(c.Date)).ToList());
+        return Task.Run(() => _savedExpenses);
     }
 }

@@ -46,10 +46,11 @@ internal class EnterTheMonthState : IExpenseInfoState
         if (DateOnly.TryParseExact(text, _dateFormat, out var selectedMonth))
         {
             var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, s => s, true, sortAsc:false);
+
+            var specification =
+                new ExpenseFromDateRangeSpecification(selectedMonth.FirstDayOfMonth(), selectedMonth.LastDayOfMonth());
             
-            return _factory.GetExpensesState(this, d => d.Month == selectedMonth.Month && d.Year == selectedMonth.Year, 
-                c => true, 
-                expenseAggregator, 
+            return _factory.GetExpensesState(this, specification, expenseAggregator, 
                 new TableOptions(){Title = selectedMonth.ToString("MMMM yyyy"), ColumnNames = new []{"Category", "AMD", "RUR"}});
         }
 

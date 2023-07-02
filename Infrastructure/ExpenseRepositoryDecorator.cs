@@ -10,13 +10,12 @@ public static class CacheKeys
     public const string AllExpenses = "1";
 }
     
-
 public class ExpenseRepositoryDecorator : IExpenseRepository
 {
     private readonly IExpenseRepository _repository;
     private readonly ILogger _logger;
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
-    private ConcurrentDictionary<object, SemaphoreSlim> _locks = new();
+    private readonly ConcurrentDictionary<object, SemaphoreSlim> _locks = new();
     
     public ExpenseRepositoryDecorator(IExpenseRepository repository, ILogger<ExpenseRepositoryDecorator> logger)
     {
@@ -32,7 +31,7 @@ public class ExpenseRepositoryDecorator : IExpenseRepository
         _cache.Remove(CacheKeys.AllExpenses);
     }
 
-    public async Task<List<IExpense>> Read(Predicate<DateOnly> dateFilter, CancellationToken cancellationToken)
+    public async Task<List<IExpense>> Read(CancellationToken cancellationToken)
     {
         if (!_cache.TryGetValue(CacheKeys.AllExpenses, out List<IExpense> items))
         {
@@ -43,16 +42,17 @@ public class ExpenseRepositoryDecorator : IExpenseRepository
                 if (!_cache.TryGetValue(CacheKeys.AllExpenses, out List<IExpense> cachedItems))
                 {
                     _logger.LogInformation("Loading expenses from the repository");
-                    cachedItems = await _repository.Read(dateFilter, cancellationToken);
+                    cachedItems = await _repository.Read(cancellationToken);
             
                     var cacheEntryOptions = new MemoryCacheEntryOptions()
                         .SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
 
                     _cache.Set(CacheKeys.AllExpenses, cachedItems, cacheEntryOptions);
+                    _logger.LogInformation($"{cachedItems.Count} saved to the cache");
                 }
                 else
                 {
-                    _logger.LogInformation("Expenses are taken from the cache");
+                    _logger.LogInformation($"{items.Count} expenses are taken from the cache");
                 }
                 items = cachedItems;
             }
@@ -63,7 +63,7 @@ public class ExpenseRepositoryDecorator : IExpenseRepository
         }
         else
         {
-            _logger.LogInformation("Expenses are taken from the cache");
+            _logger.LogInformation($"{items.Count} expenses are taken from the cache");
         }
 
         return items;

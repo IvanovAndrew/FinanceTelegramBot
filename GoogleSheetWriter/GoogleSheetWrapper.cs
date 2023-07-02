@@ -191,7 +191,7 @@ namespace GoogleSheetWriter
             return i;
         }
 
-        public async Task<List<IExpense>> Read(Predicate<DateOnly> dateFilter, CancellationToken cancellationToken)
+        public async Task<List<IExpense>> Read(CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
@@ -199,15 +199,14 @@ namespace GoogleSheetWriter
             foreach (var list in new []{_options.UsualExpenses, _options.FlatInfo, _options.BigDealInfo})
             {
                 result.AddRange(
-                    await GetRows(service, list, dateFilter, _logger, cancellationToken)
+                    await GetRows(service, list, _logger, cancellationToken)
                     );
             }
 
             return result;
         }
 
-        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info,
-            Predicate<DateOnly> filter, ILogger logger, CancellationToken cancellationToken)
+        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, ILogger logger, CancellationToken cancellationToken)
         {
             List<Expense> expenses = new();
 
@@ -240,18 +239,15 @@ namespace GoogleSheetWriter
 
                         var expenseInfo = factory.CreateExpense(cellData.Values);
 
-                        if (filter(expenseInfo.Date))
-                        {
-                            expenses.Add(
-                                new Expense
-                                {
-                                    Date = expenseInfo.Date,
-                                    Category = expenseInfo.Category,
-                                    SubCategory = expenseInfo.SubCategory,
-                                    Description = expenseInfo.Description,
-                                    Amount = expenseInfo.Amount
-                                });
-                        }
+                        expenses.Add(
+                            new Expense
+                            {
+                                Date = expenseInfo.Date,
+                                Category = expenseInfo.Category,
+                                SubCategory = expenseInfo.SubCategory,
+                                Description = expenseInfo.Description,
+                                Amount = expenseInfo.Amount
+                            });
 
                         i++;
                     }

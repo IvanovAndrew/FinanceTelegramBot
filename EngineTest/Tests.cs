@@ -235,7 +235,7 @@ public class Tests
         lastMessage = await botEngine.Proceed(new MessageStub() {Text = "20000 amd"}, telegramBot) as MessageStub;
         lastMessage = await botEngine.Proceed(new MessageStub() {Text = "Save"}, telegramBot) as MessageStub;
 
-        var savedExpenses = await expenseRepository.Read((e) => true, default);
+        var savedExpenses = await expenseRepository.Read(default);
         var savedExpense = savedExpenses.FirstOrDefault();
         
         // Assert
