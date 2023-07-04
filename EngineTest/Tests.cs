@@ -36,6 +36,36 @@ public class Tests
         CollectionAssert.AreEquivalent(new []{"Outcome", "Statistics"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
     }
     
+    [TestCase("showExpenses")]
+    [TestCase("startExpense")]
+    public async Task AfterPressingOnAnyButtonInGreetingState_TheGreetingMessageIsDeleted(string pressedButton)
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        var expenseRepository = new ExpenseRepositoryStub();
+        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        
+        // Act
+        var greetingMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
+        await botEngine.Proceed(new MessageStub() { Text = pressedButton }, telegramBot);
+
+        // Assert
+        CollectionAssert.DoesNotContain(telegramBot.SentMessages, greetingMessage);
+    }
+    
     [Test]
     public async Task ThereAreThreeDaysForOutcome()
     {
@@ -87,7 +117,7 @@ public class Tests
         
         var expenseRepository = new ExpenseRepositoryStub();
         var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
-        
+
         // Act
         var lastMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
         lastMessage = await botEngine.Proceed(new MessageStub() {Text = "startExpense"}, telegramBot) as MessageStub;

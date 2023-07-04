@@ -99,7 +99,7 @@ namespace StateMachine
             return false;
         }
 
-        private async Task RemovePreviousMessage(IExpenseInfoState state, ITelegramBot botClient, long chatId, CancellationTokenSource cancellationTokenSource = default)
+        private async Task RemovePreviousMessage(IExpenseInfoState state, ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
         {
             if (_sentMessage.TryRemove(state, out var previousMessage))
             {
@@ -114,7 +114,7 @@ namespace StateMachine
                     _logger.LogInformation($"Removing message {previousMessage.Id} \"{previousMessage.Text}\"");
                     try
                     {
-                        await botClient.DeleteMessageAsync(chatId, previousMessage.Id, cancellationTokenSource.Token);
+                        await botClient.DeleteMessageAsync(chatId, previousMessage.Id, cancellationToken);
                         _logger.LogInformation($"Message {previousMessage.Id} \"{previousMessage.Text}\" is removed");
                     }
                     catch (Exception e)
