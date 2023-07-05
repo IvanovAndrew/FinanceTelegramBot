@@ -27,17 +27,17 @@ public class Tests
             }
         };
         var expenseRepository = new ExpenseRepositoryStub();
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
-        var lastMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
+        var lastMessage = await botEngine.Proceed("/start");
         
         // Assert
         CollectionAssert.AreEquivalent(new []{"Outcome", "Statistics"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
     }
     
-    [TestCase("showExpenses")]
-    [TestCase("startExpense")]
+    [TestCase("Outcome")]
+    [TestCase("Statistics")]
     public async Task AfterPressingOnAnyButtonInGreetingState_TheGreetingMessageIsDeleted(string pressedButton)
     {
         // Arrange
@@ -56,11 +56,11 @@ public class Tests
             }
         };
         var expenseRepository = new ExpenseRepositoryStub();
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
-        var greetingMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
-        await botEngine.Proceed(new MessageStub() { Text = pressedButton }, telegramBot);
+        var greetingMessage = await botEngine.Proceed("/start");
+        var message = await botEngine.Proceed(pressedButton);
 
         // Assert
         CollectionAssert.DoesNotContain(telegramBot.SentMessages, greetingMessage);
@@ -85,11 +85,12 @@ public class Tests
             }
         };
         var expenseRepository = new ExpenseRepositoryStub();
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+
         
         // Act
-        var lastMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "startExpense"}, telegramBot) as MessageStub;
+        var lastMessage = await botEngine.Proceed("/start");
+        lastMessage = await botEngine.Proceed("outcome");
         
         // Assert
         CollectionAssert.AreEquivalent(new []{"Today", "Yesterday", "Other"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
@@ -116,12 +117,12 @@ public class Tests
         };
         
         var expenseRepository = new ExpenseRepositoryStub();
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
 
         // Act
-        var lastMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "startExpense"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = answer}, telegramBot) as MessageStub;
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("outcome");
+        var lastMessage = await botEngine.Proceed(answer);
         
         // Assert
         Assert.That(lastMessage.Text, Is.EqualTo("Enter the category"));
@@ -148,13 +149,13 @@ public class Tests
         };
         
         var expenseRepository = new ExpenseRepositoryStub();
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
-        var lastMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "startExpense"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "today"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "cats"}, telegramBot) as MessageStub;
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("outcome");
+        await botEngine.Proceed("today");
+        var lastMessage = await botEngine.Proceed("cats");
         
         // Assert
         Assert.That(lastMessage.Text, Is.EqualTo("Write a description"));
@@ -180,14 +181,14 @@ public class Tests
         };
         
         var expenseRepository = new ExpenseRepositoryStub();
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
-        var lastMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "startExpense"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "today"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "cats"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "royal canin"}, telegramBot) as MessageStub;
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("outcome");
+        await botEngine.Proceed("today");
+        await botEngine.Proceed("cats");
+        var lastMessage = await botEngine.Proceed("royal canin");
         
         // Assert
         Assert.That(lastMessage.Text, Is.EqualTo("Enter the price"));
@@ -218,15 +219,15 @@ public class Tests
         };
         
         var expenseRepository = new ExpenseRepositoryStub();
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
-        var lastMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "startExpense"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "today"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "cats"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "royal canin"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = price}, telegramBot) as MessageStub;
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("outcome");
+        await botEngine.Proceed("today");
+        await botEngine.Proceed("cats");
+        await botEngine.Proceed("royal canin");
+        var lastMessage = await botEngine.Proceed(price);
         
         // Assert
         StringAssert.EndsWith("save it?", lastMessage.Text);
@@ -254,16 +255,16 @@ public class Tests
         };
         
         var expenseRepository = new ExpenseRepositoryStub();
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
-        var lastMessage = await botEngine.Proceed(new MessageStub() {Text = "/start"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "startExpense"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "today"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "cats"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "royal canin"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "20000 amd"}, telegramBot) as MessageStub;
-        lastMessage = await botEngine.Proceed(new MessageStub() {Text = "Save"}, telegramBot) as MessageStub;
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("outcome");
+        await botEngine.Proceed("today");
+        await botEngine.Proceed("cats");
+        await botEngine.Proceed("royal canin");
+        await botEngine.Proceed("20000 amd");
+        var lastMessage = await botEngine.Proceed("Save");
 
         var savedExpenses = await expenseRepository.Read(default);
         var savedExpense = savedExpenses.FirstOrDefault();
@@ -296,11 +297,11 @@ public class Tests
         };
         
         var expenseRepository = new ExpenseRepositoryStub();
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
-        await botEngine.Proceed(new MessageStub(){Text = "/start"}, telegramBot);
-        var lastMessage = await botEngine.Proceed(new MessageStub(){Text = "showExpenses"}, telegramBot) as MessageStub;
+        await botEngine.Proceed("/start");
+        var lastMessage = await botEngine.Proceed("statistics");
 
         // Assert
         CollectionAssert.AreEquivalent(new []{"For a day", "For a month", "For a category"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
@@ -317,5 +318,11 @@ public class Tests
         var stateFactory = CreateStateFactory(categories, expenseRepository, dateTimeService, logger);
 
         return new BotEngine(stateFactory, logger);
+    }
+
+    private BotEngineWrapper CreateBotEngineWrapper(Category[] categories, IExpenseRepository expenseRepository, IDateTimeService dateTimeService, TelegramBotMock telegramBot)
+    {
+        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        return new BotEngineWrapper(botEngine, telegramBot);
     }
 }
