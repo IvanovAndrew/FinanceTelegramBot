@@ -1,6 +1,6 @@
 ﻿using StateMachine;
 
-namespace EngineTest;
+namespace UnitTest;
 
 internal class BotEngineWrapper
 {

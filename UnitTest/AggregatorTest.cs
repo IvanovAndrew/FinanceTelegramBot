@@ -1,7 +1,7 @@
 ﻿using Domain;
 using NUnit.Framework;
 
-namespace EngineTest;
+namespace UnitTest;
 
 public class AggregatorTest
 {

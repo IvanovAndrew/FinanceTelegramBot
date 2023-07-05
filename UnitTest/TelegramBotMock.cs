@@ -1,6 +1,6 @@
 ﻿using Infrastructure;
 
-namespace EngineTest;
+namespace UnitTest;
 
 public class TelegramBotMock : ITelegramBot
 {

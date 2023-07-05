@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace EngineTest;
+namespace UnitTest;
 
 public class LoggerStub<T> : ILogger<T>
 {

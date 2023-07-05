@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using StateMachine;
 
-namespace EngineTest;
+namespace UnitTest;
 
 public class StateTest
 {

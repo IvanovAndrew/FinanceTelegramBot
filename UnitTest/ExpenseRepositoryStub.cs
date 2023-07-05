@@ -1,8 +1,7 @@
 ﻿using Domain;
 using Infrastructure;
-using Microsoft.Extensions.Logging;
 
-namespace EngineTest;
+namespace UnitTest;
 
 public class ExpenseRepositoryStub : IExpenseRepository
 {
