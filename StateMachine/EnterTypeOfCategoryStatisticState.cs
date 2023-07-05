@@ -47,7 +47,7 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
             var firstDayOfMonth = DateOnly.FromDateTime(DateTime.Today).FirstDayOfMonth();
 
             var expenseAggregator = new ExpensesAggregator<string>(
-                e => e.SubCategory ?? string.Empty, s => s, true, sortAsc: false);
+                e => e.SubCategory ?? string.Empty, true, sortAsc: false);
 
             var specification = new MultipleSpecification(
                 new ExpenseLaterThanSpecification(firstDayOfMonth),
@@ -55,6 +55,7 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
             
             return _factory.GetExpensesState(this, specification,
                 expenseAggregator,
+                s => s,
                 new TableOptions()
                 {
                     Title = $"Category: {_category}. {Environment.NewLine}" +
@@ -66,16 +67,17 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
         if (text == "lastyear")
         {
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
-                e => e.Date.LastDayOfMonth(), d => d.ToString("yyyy MMM"), false, sortAsc: true);
+                e => e.Date.LastDayOfMonth(), false, sortAsc: true);
 
             var specification =
                 new MultipleSpecification(
                     new ExpenseLaterThanSpecification(DateOnly.FromDateTime(DateTime.Today.AddYears(-1)).FirstDayOfMonth()),
                     new ExpenseFromCategorySpecification(_category)
                 );
-                 
-                
+
+
             return _factory.GetExpensesState(this, specification, expenseAggregator,
+                s => s.ToString("MMM yyyy"),
                 new TableOptions()
                 {
                     Title = $"Category: {_category}",

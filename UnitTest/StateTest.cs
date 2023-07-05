@@ -6,7 +6,7 @@ using StateMachine;
 
 namespace EngineTest;
 
-public class Tests
+public class StateTest
 {
     [Test]
     public async Task ThereAreTwoOptionsInGreetingState()

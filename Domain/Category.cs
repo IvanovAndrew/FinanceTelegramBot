@@ -3,7 +3,8 @@ namespace Domain
     public class Category
     {
         public string Name { get; init; }
-        public SubCategory[] SubCategories { get; set; } = System.Array.Empty<SubCategory>();
+        public string? ShortName { get; init; }
+        public SubCategory[] SubCategories { get; set; } = Array.Empty<SubCategory>();
 
         public Category()
         {
@@ -14,5 +15,6 @@ namespace Domain
     public class SubCategory
     {
         public string Name { get; init; }
+        public string? ShortName { get; init; }
     }
 }

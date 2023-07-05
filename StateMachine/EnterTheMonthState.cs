@@ -33,7 +33,6 @@ internal class EnterTheMonthState : IExpenseInfoState
         }.Select(date => new TelegramButton
             { Text = $"{date.ToString("MMMM yyyy")}", CallbackData = date.ToString(_dateFormat) }), chunkSize: 3);
         
-        
         return await botClient.SendTextMessageAsync(
             chatId: chatId,
             text: info,
@@ -45,12 +44,12 @@ internal class EnterTheMonthState : IExpenseInfoState
     {
         if (DateOnly.TryParseExact(text, _dateFormat, out var selectedMonth))
         {
-            var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, s => s, true, sortAsc:false);
+            var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc:false);
 
             var specification =
                 new ExpenseFromDateRangeSpecification(selectedMonth.FirstDayOfMonth(), selectedMonth.LastDayOfMonth());
             
-            return _factory.GetExpensesState(this, specification, expenseAggregator, 
+            return _factory.GetExpensesState(this, specification, expenseAggregator, s => s,
                 new TableOptions(){Title = selectedMonth.ToString("MMMM yyyy"), ColumnNames = new []{"Category", "AMD", "RUR"}});
         }
 

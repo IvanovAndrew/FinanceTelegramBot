@@ -11,6 +11,7 @@ namespace StateMachine
         private readonly ExpensesAggregator<T> _expensesAggregator;
         private readonly TableOptions _tableOptions;
         private readonly IExpenseRepository _expenseRepository;
+        private readonly Func<T, string> _firstColumnName;
         private readonly ILogger _logger;
         private CancellationTokenSource? _cancellationTokenSource;
 
@@ -18,12 +19,14 @@ namespace StateMachine
 
         public CollectExpensesByCategoryState(StateFactory stateFactory, IExpenseInfoState previousState,
             ISpecification<IExpense> specification, ExpensesAggregator<T> expensesAggregator,
+            Func<T, string> firstColumnName,
             TableOptions tableOptions,
             IExpenseRepository expenseRepository, ILogger logger)
         {
             _factory = stateFactory;
             _specification = specification;
             _expensesAggregator = expensesAggregator;
+            _firstColumnName = firstColumnName;
             _tableOptions = tableOptions;
             _expenseRepository = expenseRepository;
             _logger = logger;
@@ -50,37 +53,21 @@ namespace StateMachine
             _logger.LogInformation($"{rows.Count} expenses satisfy the requirements");
 
             string text = "There is no any expenses for this period";
-            var (amdCategories, amdTotal) = _expensesAggregator.Aggregate(rows, Currency.Amd);
-            var (rurCategories, rurTotal) = _expensesAggregator.Aggregate(rows, Currency.Rur);
+            var currencies = new[] { Currency.Amd, Currency.Rur };
+            var statistic = _expensesAggregator.Aggregate(rows, currencies);
             
-            var uniqueCategories1 = new HashSet<string>(amdCategories.Select(c => c.Item1));
-            var uniqueCategories2 = new HashSet<string>(rurCategories.Select(c => c.Item1));
-            
-            uniqueCategories1.UnionWith(uniqueCategories2);
-            string[,] telegramTable = new string[uniqueCategories1.Count + 2, 3];
-            var zeroRur = new Money() { Amount = 0, Currency = Currency.Rur }.ToString("N0");
+            string[,] telegramTable = new string[statistic.Rows.Count + 2, 3];
             int i = 0;
-            foreach ((string category, Money sum) in amdCategories)
+            int column = 1;
+            foreach (var expenseInfo in statistic.Rows)
             {
-                telegramTable[i, 0] = ShortNameOfCategory(category);
-                telegramTable[i, 1] = sum.ToString("N0");
-
-                var rur = rurCategories.FirstOrDefault(c => c.Item1 == category);
+                telegramTable[i, 0] = ShortNameOfCategory(_firstColumnName(expenseInfo.Row));
+                column = 1;
+                foreach (var currency in currencies)
+                {
+                    telegramTable[i, column++] = expenseInfo[currency].ToString("N0");
+                }
                 
-                telegramTable[i, 2] = rur.Item1 == category? rur.Item2.ToString("N0") : zeroRur;
-                uniqueCategories2.Remove(category);
-                i++;
-            }
-
-            var zeroAmd = new Money() { Amount = 0, Currency = Currency.Amd }.ToString("N0");
-            foreach ((string category, Money sum) in rurCategories)
-            {
-                if (!uniqueCategories2.Contains(category)) continue;
-                
-                telegramTable[i, 0] = ShortNameOfCategory(category);
-                telegramTable[i, 1] = zeroAmd;
-
-                telegramTable[i, 2] = sum.ToString("N0");
                 i++;
             }
 
@@ -89,8 +76,11 @@ namespace StateMachine
             telegramTable[i, 2] = "";
 
             telegramTable[i + 1, 0] = "Total";
-            telegramTable[i + 1, 1] = amdTotal.ToString("N0");
-            telegramTable[i + 1, 2] = rurTotal.ToString("N0");
+            column = 1;
+            foreach (var currency in currencies)
+            {
+                telegramTable[i, column++] = statistic.Total[currency].ToString("N0");
+            }
 
             var table = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
 

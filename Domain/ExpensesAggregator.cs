@@ -3,67 +3,152 @@
     public class ExpensesAggregator<T>
     {
         private readonly Func<IExpense, T> _sumBy;
-        private readonly Func<T, string> _firstColumnName;
-        private readonly bool _orderByMoney;
+        private readonly bool _sortByMoney;
         private readonly bool _sortAsc;
 
-        public ExpensesAggregator(Func<IExpense, T> sumBy, Func<T, string> firstColumnName, bool orderByMoney = true,
-            bool sortAsc = true)
+        public ExpensesAggregator(Func<IExpense, T> sumBy, bool sortByMoney, bool sortAsc = false)
         {
             _sumBy = sumBy;
-            _firstColumnName = firstColumnName;
-            _orderByMoney = orderByMoney;
+            _sortByMoney = sortByMoney;
             _sortAsc = sortAsc;
         }
 
-        public (List<(string, Money)>, Money) Aggregate(IEnumerable<IExpense> expenses, Currency currency)
+        public Statistic<T> Aggregate(IEnumerable<IExpense> expenses, IEnumerable<Currency> currencies)
         {
-            var categoriesSum = new Dictionary<T, Money>();
-            Money total = new() { Currency = currency, Amount = 0m };
+            var statistic = new Statistic<T>(currencies, _sumBy);
 
-            foreach (var row in expenses)
+            foreach (var expense in expenses)
             {
-                if (row.Amount.Currency != currency) continue;
+                statistic.ProcessExpense(expense);
+            }
+            
+            statistic.Sort(_sortByMoney, _sortAsc);
 
-                var key = _sumBy(row);
-                if (categoriesSum.TryGetValue(key, out var sum))
-                {
-                    categoriesSum[key] = sum + row.Amount;
-                }
-                else
-                {
-                    categoriesSum[key] = row.Amount;
-                }
+            return statistic;
+        }
+    }
+    
+    
 
-                total += row.Amount;
+    public class Statistic<T>
+    {
+        private readonly Dictionary<Currency, int> _currencyToIndex = new();
+        private readonly Dictionary<T, ExpenseInfo<T>> _rowsDict = new();
+        private readonly Func<IExpense, T> _sumBy;
+        private List<ExpenseInfo<T>> _rows = new();
+
+        public Statistic(IEnumerable<Currency> currencies, Func<IExpense, T> sumBy)
+        {
+            int i = 0;
+            foreach (var currency in currencies)
+            {
+                _currencyToIndex[currency] = i++;
             }
 
-            IOrderedEnumerable<KeyValuePair<T, Money>> result;
+            _sumBy = sumBy;
+        }
 
-            if (_orderByMoney)
+        public List<ExpenseInfo<T>> Rows => _rows;
+
+        private TotalExpenseInfo<T> _total; 
+        public TotalExpenseInfo<T> Total
+        {
+            get
             {
-                if (_sortAsc)
+                if (_total == null)
                 {
-                    result = categoriesSum.OrderBy(kvp => kvp.Value);
+                    _total = new TotalExpenseInfo<T>(default, _currencyToIndex);
+                    _total.Aggregate(Rows);
+                }
+                
+                return _total;
+            }
+        }
+        
+
+        internal void ProcessExpense(IExpense expense)
+        {
+            if (!_currencyToIndex.TryGetValue(expense.Amount.Currency, out var index)) return;
+
+            var rowName = _sumBy(expense);
+            if (!_rowsDict.TryGetValue(rowName, out var row))
+            {
+                _rowsDict[rowName] = row = new ExpenseInfo<T>(rowName, _currencyToIndex);
+                _rows.Add(row);
+            }
+            
+            row.Add(expense.Amount);
+        }
+
+        internal void Sort(bool sortByMoney, bool sortAsc)
+        {
+            if (sortByMoney)
+            {
+                var firstCurrency = _currencyToIndex.MinBy(c => c.Value).Key;
+                if (sortAsc)
+                {
+                    _rows = _rowsDict.Values.OrderBy(e => e[firstCurrency]).ToList();
                 }
                 else
                 {
-                    result = categoriesSum.OrderByDescending(kvp => kvp.Value);
+                    _rows = _rowsDict.Values.OrderByDescending(e => e[firstCurrency]).ToList();
                 }
             }
             else
             {
-                if (_sortAsc)
+                if (sortAsc)
                 {
-                    result = categoriesSum.OrderBy(kvp => kvp.Key);
+                    _rows = _rowsDict.Values.OrderBy(e => e.Row).ToList();
                 }
                 else
                 {
-                    result = categoriesSum.OrderByDescending(kvp => kvp.Key);
+                    _rows = _rowsDict.Values.OrderByDescending(e => e.Row).ToList();
                 }
             }
-
-            return (result.Select(kvp => (_firstColumnName(kvp.Key), kvp.Value)).ToList(), total);
         }
     }
-}
+
+    public class ExpenseInfo<T>
+    {
+        protected readonly Dictionary<Currency, int> Currencies;
+        internal Money[] Money { get; }
+        public T Row { get; init; }
+
+        public ExpenseInfo(T row, Dictionary<Currency, int> currencies)
+        {
+            Row = row;
+            Currencies = currencies;
+            Money = new Money[currencies.Count];
+            foreach (var currency in currencies)
+            {
+                Money[currency.Value] = new Money() { Amount = 0, Currency = currency.Key };
+            }
+        }
+
+        public Money this[Currency currency] => Money[Currencies[currency]];
+
+        public void Add(Money money)
+        {
+            var index = Currencies[money.Currency];
+            Money[index] += money;
+        }
+    }
+
+    public class TotalExpenseInfo<T> : ExpenseInfo<T>
+    {
+        public TotalExpenseInfo(T row, Dictionary<Currency, int> currencies) : base(row, currencies)
+        {
+        }
+
+        public void Aggregate(List<ExpenseInfo<T>> rows)
+        {
+            foreach (var row in rows)
+            {
+                foreach (var value in Currencies.Values)
+                {
+                    this.Money[value] += row.Money[value];
+                }
+            }
+        }
+    }
+} 
