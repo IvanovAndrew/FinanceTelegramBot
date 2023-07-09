@@ -45,6 +45,11 @@ namespace GoogleSheetWriter
             if (string.IsNullOrEmpty(rur) && string.IsNullOrEmpty(amd))
                 return new Money() {Currency = Currency.Amd, Amount = 0m};
 
+            if (rur.Contains("Загрузка", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return new Money() {Currency = Currency.Rur, Amount = 0m};
+            }
+
             if (Money.TryParse(rur, Currency.Rur, _culture, out var money))
             {
                 return money;

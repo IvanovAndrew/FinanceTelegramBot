@@ -79,7 +79,7 @@ namespace StateMachine
             column = 1;
             foreach (var currency in currencies)
             {
-                telegramTable[i, column++] = statistic.Total[currency].ToString("N0");
+                telegramTable[i+1, column++] = statistic.Total[currency].ToString("N0");
             }
 
             var table = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
