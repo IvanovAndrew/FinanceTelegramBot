@@ -36,8 +36,11 @@ namespace TelegramBot.Controllers
             catch (Exception e)
             {
                 _logger.LogError($"Unhandled exception: {e}");
-                await botClient.SendTextMessageAsync(message.ChatId, "Something went wrong. I've already informed Andrew about it.");
-                await botClient.SendTextMessageAsync(_bot.SupportChatId, $"Your wife is angry because of {e}");
+                if (message.ChatId != _bot.SupportChatId)
+                {
+                    await botClient.SendTextMessageAsync(message.ChatId, "Something went wrong. I've already informed Andrew about it.");
+                    await botClient.SendTextMessageAsync(_bot.SupportChatId, $"Your wife is angry because of {e}");
+                }
             }
             
             return Ok();
