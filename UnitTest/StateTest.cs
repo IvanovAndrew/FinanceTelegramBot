@@ -274,7 +274,7 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("Save");
 
         var savedExpenses = await expenseRepository.Read(default);
-        var savedExpense = savedExpenses.FirstOrDefault();
+        var savedExpense = savedExpenses.First();
         
         // Assert
         Assert.That(() => new DateOnly(2023, 6, 29) == savedExpense.Date);

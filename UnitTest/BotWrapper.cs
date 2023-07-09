@@ -26,7 +26,7 @@ internal class BotEngineWrapper
         
         var lastMessage = await _botEngine.Proceed(new MessageStub() { Text = messageText }, _telegramBot) as MessageStub;
             
-        return lastMessage;
+        return lastMessage!;
     }
     
     internal async Task<MessageStub> ProceedFile(FileInfoStub fileInfo)
@@ -38,6 +38,6 @@ internal class BotEngineWrapper
 
         var lastMessage = await _botEngine.Proceed(message, _telegramBot) as MessageStub;
             
-        return lastMessage;
+        return lastMessage!;
     }
 }

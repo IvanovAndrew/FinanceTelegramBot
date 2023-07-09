@@ -4,5 +4,5 @@ namespace UnitTest;
 
 public class FileStub : IFile
 {
-    public string Text { get; init; }
+    public string Text { get; init; } = "";
 }

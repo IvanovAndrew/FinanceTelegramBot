@@ -9,7 +9,6 @@ namespace StateMachine
     public class BotEngine
     {
         private readonly StateFactory _stateFactory;
-        private readonly IDateTimeService _dateTimeService;
         private static ConcurrentDictionary<long, IExpenseInfoState> _answers = new();
         private static ConcurrentDictionary<IExpenseInfoState, IMessage> _sentMessage = new();
         private readonly ILogger _logger;

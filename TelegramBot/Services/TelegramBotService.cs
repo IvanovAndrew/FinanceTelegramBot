@@ -7,7 +7,7 @@ namespace TelegramBot.Services
     {
         internal const string Route = "api/message/update";
         private TelegramBotClient? _botClient;
-        private ITelegramBot _wrappedBot;
+        private ITelegramBot? _wrappedBot;
         private readonly string _token;
         private readonly string _url;
         private readonly long _supportChatId;
@@ -23,7 +23,7 @@ namespace TelegramBot.Services
 
         public async Task<ITelegramBot> GetBot()
         {
-            if (_botClient != null) return _wrappedBot;
+            if (_botClient != null) return _wrappedBot!;
 
             _botClient = new TelegramBotClient(_token);
 

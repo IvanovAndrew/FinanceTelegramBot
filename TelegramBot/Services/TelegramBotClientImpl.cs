@@ -58,14 +58,14 @@ public class TelegramBotClientImpl : ITelegramBot
         await _client.DeleteMessageAsync(chatId, messageId, cancellationToken);
     }
 
-    public async Task<IFile?> GetFileAsync(string fileId, string mimeType, CancellationToken cancellationToken)
+    public async Task<IFile?> GetFileAsync(string fileId, string? mimeType, CancellationToken cancellationToken)
     {
         if (mimeType != MediaTypeNames.Application.Json)
             return null;
         
         var file = await _client.GetFileAsync(fileId, cancellationToken);
 
-        if (file == null) return null;
+        if (file?.FilePath == null) return null;
         
         string text;
         using (var memoryStream = new MemoryStream())

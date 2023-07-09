@@ -55,7 +55,7 @@ public class ExpenseJsonParserTest
         var parser = new ExpenseJsonParser();
         var expenses = parser.Parse(text, "Еда", Currency.Rur).ToList();
 
-        Assert.AreEqual(4, expenses.Count);
+        Assert.That(expenses.Count, Is.EqualTo(4));
         CollectionAssert.AreEquivalent(
             new []
             {
@@ -261,7 +261,7 @@ public class ExpenseJsonParserTest
         var parser = new ExpenseJsonParser();
         var expenses = parser.Parse(text, "Еда", Currency.Rur).ToList();
 
-        Assert.AreEqual(11, expenses.Count);
+        Assert.That(expenses.Count, Is.EqualTo(11));
         CollectionAssert.AreEquivalent(
             new []
             {

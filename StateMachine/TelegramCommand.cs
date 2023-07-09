@@ -4,8 +4,8 @@ namespace StateMachine;
 
 public class CommandAttribute : Attribute
 {
-    public string Text { get; init; }
-    public string Command { get; init; }
+    public string Text { get; init; } = "";
+    public string Command { get; init; } = "";
 }
 
 public abstract class TelegramCommand
