@@ -174,6 +174,8 @@ namespace GoogleSheetWriter
                 foreach (var rowData in data.RowData)
                 {
                     bool filled = false;
+                    if (rowData.Values == null) break;
+                    
                     foreach (var cellValue in rowData.Values)
                     {
                         if (cellValue.EffectiveValue != null)
