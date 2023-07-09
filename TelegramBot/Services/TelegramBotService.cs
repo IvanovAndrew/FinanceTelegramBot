@@ -10,11 +10,15 @@ namespace TelegramBot.Services
         private ITelegramBot _wrappedBot;
         private readonly string _token;
         private readonly string _url;
+        private readonly long _supportChatId;
 
-        public TelegramBotService(string url, string token)
+        internal long SupportChatId => _supportChatId;
+
+        public TelegramBotService(string url, string token, long supportChatId)
         {
             _url = url.Last() == '/' ? url : url + "/";
             _token = token;
+            _supportChatId = supportChatId;
         }
 
         public async Task<ITelegramBot> GetBot()
