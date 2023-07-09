@@ -35,12 +35,12 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
-            if (text == "showExpenses") return _factory.CreateChooseStatisticState(this); 
-            if (text == "startExpense") return _factory.CreateEnterTheDateState(this);
+            if (message.Text == "showExpenses") return _factory.CreateChooseStatisticState(this); 
+            if (message.Text == "startExpense") return _factory.WayOfEnteringExpenseState(this);
 
-            throw new ArgumentOutOfRangeException($"Expected 'showExpenses' or 'startExpense', but {text} was");
+            throw new ArgumentOutOfRangeException($"Expected 'showExpenses' or 'startExpense', but {message} was");
         }
     }
 }

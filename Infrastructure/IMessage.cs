@@ -7,4 +7,5 @@ public interface IMessage
     DateTime Date { get; }
     string Text { get; }
     bool Edited { get; }
+    ITelegramFileInfo? FileInfo { get; }
 }

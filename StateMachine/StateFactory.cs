@@ -26,6 +26,16 @@ namespace StateMachine
         {
             return new GreetingState(this, _logger);
         }
+        
+        internal IExpenseInfoState WayOfEnteringExpenseState(IExpenseInfoState previousState)
+        {
+            return new EnterTheWayState(this, previousState, _logger);
+        }
+        
+        internal IExpenseInfoState CreateRequestPasteJsonState(IExpenseInfoState previousState)
+        {
+            return new RequestJsonState(this, previousState, _logger);
+        }
     
         internal IExpenseInfoState CreateEnterTheDateState(IExpenseInfoState previousState, bool askCustomDate = false)
         {
@@ -81,6 +91,16 @@ namespace StateMachine
         {
             return new SaveExpenseState(this, previousState, expense, _expenseRepository, _logger);
         }
+        
+        public IExpenseInfoState CreateSaveExpensesFromJsonState(IExpenseInfoState previousState, List<IExpense> expenses)
+        {
+            return new SaveExpensesFromJsonState(this, previousState, expenses, _expenseRepository, _logger);
+        }
+        
+        public IExpenseInfoState CreateHandleJsonFileState(IExpenseInfoState previousState, ITelegramFileInfo fileInfo)
+        {
+            return new HandleJsonState(this, previousState, fileInfo, _logger);
+        }
 
         public IExpenseInfoState CreateErrorWithRetryState(string warning, IExpenseInfoState previousState)
         {
@@ -100,6 +120,11 @@ namespace StateMachine
         public IExpenseInfoState GetEnterTypeOfCategoryStatistic(IExpenseInfoState previousState, Category category)
         {
             return new EnterTypeOfCategoryStatisticState(this, previousState, category.Name, _logger);
+        }
+
+        public IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses, IExpenseInfoState previousState)
+        {
+            return new SaveAllExpensesState(this, previousState, expenses, _expenseRepository, _logger);
         }
     }
 }

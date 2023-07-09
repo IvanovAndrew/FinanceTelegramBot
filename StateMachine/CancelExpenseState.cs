@@ -12,7 +12,7 @@ namespace StateMachine
         }
 
         public bool UserAnswerIsRequired => false;
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         { 
             throw new InvalidOperationException();
         }

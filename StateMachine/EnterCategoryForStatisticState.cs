@@ -37,9 +37,9 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
-            var categoryDomain = _categories.FirstOrDefault(c => c.Name == text);
+            var categoryDomain = _categories.FirstOrDefault(c => c.Name == message.Text);
             if (categoryDomain != null)
             {
                 return _factory.GetEnterTypeOfCategoryStatistic(this, categoryDomain);

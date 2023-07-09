@@ -105,7 +105,7 @@ namespace StateMachine
             return name;
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
             return _factory.CreateGreetingState();
         }

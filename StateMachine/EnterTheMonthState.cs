@@ -40,9 +40,9 @@ internal class EnterTheMonthState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+    public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
     {
-        if (DateOnly.TryParseExact(text, _dateFormat, out var selectedMonth))
+        if (DateOnly.TryParseExact(message.Text, _dateFormat, out var selectedMonth))
         {
             var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc:false);
 

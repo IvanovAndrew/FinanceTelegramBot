@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -91,6 +92,7 @@ public class StateTest
         // Act
         var lastMessage = await botEngine.Proceed("/start");
         lastMessage = await botEngine.Proceed("outcome");
+        lastMessage = await botEngine.Proceed("By myself");
         
         // Assert
         CollectionAssert.AreEquivalent(new []{"Today", "Yesterday", "Other"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
@@ -122,6 +124,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("outcome");
+        await botEngine.Proceed("By myself");
         var lastMessage = await botEngine.Proceed(answer);
         
         // Assert
@@ -154,6 +157,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("outcome");
+        await botEngine.Proceed("By myself");
         await botEngine.Proceed("today");
         var lastMessage = await botEngine.Proceed("cats");
         
@@ -186,6 +190,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("outcome");
+        await botEngine.Proceed("By myself");
         await botEngine.Proceed("today");
         await botEngine.Proceed("cats");
         var lastMessage = await botEngine.Proceed("royal canin");
@@ -224,6 +229,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("outcome");
+        await botEngine.Proceed("By myself");
         await botEngine.Proceed("today");
         await botEngine.Proceed("cats");
         await botEngine.Proceed("royal canin");
@@ -260,6 +266,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("outcome");
+        await botEngine.Proceed("By myself");
         await botEngine.Proceed("today");
         await botEngine.Proceed("cats");
         await botEngine.Proceed("royal canin");
@@ -305,6 +312,108 @@ public class StateTest
 
         // Assert
         CollectionAssert.AreEquivalent(new []{"For a day", "For a month", "For a category"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
+    }
+    
+    [Test]
+    public async Task AfterClickingOnOutcomesFromJsonTheFileIsRequired()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        var expenseRepository = new ExpenseRepositoryStub();
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+
+        
+        // Act
+        var lastMessage = await botEngine.Proceed("/start");
+        lastMessage = await botEngine.Proceed("outcome");
+        lastMessage = await botEngine.Proceed("From json");
+        
+        // Assert
+        CollectionAssert.AreEquivalent("Paste json file", lastMessage.Text);
+    }
+    
+    [TestCase(MediaTypeNames.Application.Pdf)]
+    [TestCase(MediaTypeNames.Application.Xml)]
+    [TestCase(MediaTypeNames.Text.Plain)]
+    public async Task PastedFileShouldHaveJsonFormat(string mimeType)
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        var expenseRepository = new ExpenseRepositoryStub();
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+
+        var telegramFile = new FileInfoStub() { FileId = "1", FileName = "test.json", MimeType = mimeType };
+        telegramBot.SavedFiles["1"] = new FileStub(){Text = "{\"dateTime\": \"2023-06-29T20:00:00\", \"items\":[{\"sum\": 100000,\"name\":\"Молоко\"}, {\"sum\": 78000, \"name\":\"Макароны\"}]}"};
+        
+        // Act
+        var lastMessage = await botEngine.Proceed("/start");
+        lastMessage = await botEngine.Proceed("outcome");
+        lastMessage = await botEngine.Proceed("From json");
+        lastMessage = await botEngine.ProceedFile(telegramFile);
+        
+        // Assert
+        CollectionAssert.AreEquivalent("Paste json file", lastMessage.Text);
+    }
+    
+
+    [Test]
+    public async Task PastedFileShouldHaveJsonFormat()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        var expenseRepository = new ExpenseRepositoryStub();
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+
+        var telegramFile = new FileInfoStub() { FileId = "1", FileName = "test.json", MimeType = MediaTypeNames.Application.Json };
+        telegramBot.SavedFiles["1"] = new FileStub(){Text = "{\"dateTime\": \"2023-06-29T20:00:00\", \"items\":[{\"sum\": 100000,\"name\":\"Молоко\"}, {\"sum\": 78000, \"name\":\"Макароны\"}]}"};
+        
+        // Act
+        var lastMessage = await botEngine.Proceed("/start");
+        lastMessage = await botEngine.Proceed("outcome");
+        lastMessage = await botEngine.Proceed("From json");
+        lastMessage = await botEngine.ProceedFile(telegramFile);
+        
+        // Assert
+        Assert.That(telegramBot.SentMessages.Any(c => c.Text.Contains("All expenses are saved", StringComparison.InvariantCultureIgnoreCase)));
     }
 
     private StateFactory CreateStateFactory(Category[] categories, IExpenseRepository expenseRepository, IDateTimeService dateTimeService, ILogger<StateFactory> logger)

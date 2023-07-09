@@ -1,4 +1,4 @@
-﻿using Domain;
+using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -38,9 +38,9 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
-            if (DateOnly.TryParseExact(text, _dateFormat, out var selectedDay))
+            if (DateOnly.TryParseExact(message.Text, _dateFormat, out var selectedDay))
             {
                 var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc:false);
                 var specification = new ExpenseForTheDateSpecification(selectedDay);

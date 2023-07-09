@@ -40,9 +40,9 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+    public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
     {
-        if (text == "subcategory")
+        if (message.Text == "subcategory")
         {
             var firstDayOfMonth = DateOnly.FromDateTime(DateTime.Today).FirstDayOfMonth();
 
@@ -64,7 +64,7 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
                 });
         }
 
-        if (text == "lastyear")
+        if (message.Text == "lastyear")
         {
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
                 e => e.Date.LastDayOfMonth(), false, sortAsc: true);
@@ -85,6 +85,6 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
                 });
         }
 
-        throw new ArgumentOutOfRangeException(text);
+        throw new ArgumentOutOfRangeException(message.Text);
     }
 }

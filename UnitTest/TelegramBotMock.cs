@@ -7,6 +7,7 @@ public class TelegramBotMock : ITelegramBot
     private int _messageId = 0;
     private readonly List<IMessage> _messages = new();
     public IReadOnlyList<IMessage> SentMessages => _messages.AsReadOnly();
+    public Dictionary<string, FileStub> SavedFiles = new();
 
     public Task<IMessage> SendTextMessageAsync(long chatId, string text)
     {
@@ -40,5 +41,10 @@ public class TelegramBotMock : ITelegramBot
         var messageToRemove = _messages.FirstOrDefault(m => m.Id == messageId);
         _messages.Remove(messageToRemove);
         return Task.Run(() => {});
+    }
+
+    public Task<IFile> GetFileAsync(string fileId, string mimeType, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(SavedFiles[fileId] as IFile);
     }
 }

@@ -1,5 +1,6 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Mime;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -54,25 +55,21 @@ namespace StateMachine
                 state = state.PreviousState;
             }
 
-            newState = state.Handle(message.Text, default);
+            newState = state.Handle(message, default);
 
             _answers[message.ChatId] = newState;
 
             _sentMessage[newState] =
                 await newState.Request(botClient, message.ChatId);
             
-            if (!newState.UserAnswerIsRequired)
+            while (!newState.UserAnswerIsRequired)
             {
-                _answers[message.ChatId] = newState = _stateFactory.CreateGreetingState();
+                _answers[message.ChatId] = newState = newState.Handle(message, default);
                 var requestedMessage = await newState.Request(botClient, message.ChatId);
                 _sentMessage[newState] = requestedMessage;
-                
-                return requestedMessage;
             }
-            else
-            {
-                return _sentMessage[newState];
-            }
+            
+            return _sentMessage[newState];
         }
 
         private bool TryGetCommand(string text, ITelegramBot telegramBot, StateFactory stateFactory, long chatId, [NotNullWhen(true)] out TelegramCommand? command)
@@ -123,6 +120,18 @@ namespace StateMachine
                     }
                 }
             }
+        }
+
+        private async Task<IFile?> DownloadFile(ITelegramBot telegramBot, IMessage message, CancellationToken cancellationToken = default)
+        {
+            if (message.FileInfo.MimeType != MediaTypeNames.Application.Json)
+            {
+                await telegramBot.SendTextMessageAsync(message.ChatId, "Only json files are supported");
+                return null;
+            }
+
+            var file = await telegramBot.GetFileAsync(message.FileInfo.FileId, message.FileInfo.MimeType, cancellationToken);
+            return file;
         }
     }
 }

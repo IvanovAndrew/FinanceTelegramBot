@@ -48,19 +48,19 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
-            if (string.Equals(text, "Save", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(message.Text, "Save", StringComparison.InvariantCultureIgnoreCase))
             {
                 return _factory.CreateSaveState(this, _expense);
             }
             
-            if (string.Equals(text, "Cancel", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(message.Text, "Cancel", StringComparison.InvariantCultureIgnoreCase))
             {
                 return _factory.CreateCancelState();
             }
 
-            throw new ArgumentOutOfRangeException(nameof(text), $@"Expected values are ""Save"" or ""Cancel"". {text} was received.");
+            throw new ArgumentOutOfRangeException(nameof(message), $@"Expected values are ""Save"" or ""Cancel"". {message} was received.");
         }
     }
 }

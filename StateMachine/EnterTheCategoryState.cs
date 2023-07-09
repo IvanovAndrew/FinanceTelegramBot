@@ -40,9 +40,9 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
-            var categoryDomain = _categories.FirstOrDefault(c => string.Equals(c.Name, text, StringComparison.InvariantCultureIgnoreCase));
+            var categoryDomain = _categories.FirstOrDefault(c => string.Equals(c.Name, message.Text, StringComparison.InvariantCultureIgnoreCase));
             if (categoryDomain != null)
             {
                 _expenseBuilder.Category = categoryDomain;

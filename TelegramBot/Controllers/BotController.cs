@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Mvc;
 using StateMachine;
 using Telegram.Bot.Types;
@@ -29,8 +28,16 @@ namespace TelegramBot.Controllers
             var message = TelegramMessage.FromUpdate(update);
         
             var botEngine = new BotEngine(_stateFactory, _logger);
+
+            try
+            {
+                await botEngine.Proceed(message, botClient);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unhandled exception: {e}");
+            }
             
-            await botEngine.Proceed(message, botClient);
             
             return Ok();
         }

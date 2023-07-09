@@ -29,11 +29,11 @@ namespace StateMachine
             return await botClient.SendTextMessageAsync(chatId, "Enter the price", cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
-            if (!_moneyParser.TryParse(text, out var money))
+            if (!_moneyParser.TryParse(message.Text, out var money))
             {
-                string warning = $"{text} wasn't recognized as money.";
+                string warning = $"{message.Text} wasn't recognized as money.";
                 _logger.LogDebug(warning);
             
                 return _factory.CreateErrorWithRetryState(warning, this);

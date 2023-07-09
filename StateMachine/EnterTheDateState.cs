@@ -46,19 +46,19 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
             var expenseBuilder = new ExpenseBuilder();
 
-            if (text.ToLowerInvariant() == "other")
+            if (message.Text.ToLowerInvariant() == "other")
             {
                 return _factory.CreateEnterTheDateState(this, true);
             }
         
-            if (!_dateTimeService.TryParse(text, out var date))
+            if (!_dateTimeService.TryParse(message.Text, out var date))
             {
-                _logger.LogDebug($"{text} isn't a date");
-                return _factory.CreateErrorWithRetryState($"{text} isn't a date.", this);
+                _logger.LogDebug($"{message.Text} isn't a date");
+                return _factory.CreateErrorWithRetryState($"{message.Text} isn't a date.", this);
             }
 
             expenseBuilder.Date = date;

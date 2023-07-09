@@ -37,13 +37,13 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
-            if (text == "statisticByDay") return _factory.CreateEnterTheExpenseDayState(this);
-            if (text == "statisticByMonth") return _factory.CreateEnterTheMonthState(this);
-            if (text == "statisticByCategory") return _factory.CreateCategoryForStatisticState(this);
+            if (message.Text == "statisticByDay") return _factory.CreateEnterTheExpenseDayState(this);
+            if (message.Text == "statisticByMonth") return _factory.CreateEnterTheMonthState(this);
+            if (message.Text == "statisticByCategory") return _factory.CreateCategoryForStatisticState(this);
 
-            throw new ArgumentOutOfRangeException(text);
+            throw new ArgumentOutOfRangeException(message.Text);
         }
     }
 }

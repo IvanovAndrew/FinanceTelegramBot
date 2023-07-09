@@ -9,5 +9,7 @@ public class MessageStub : IMessage
     public DateTime Date { get; set; }
     public string Text { get; set; }
     public bool Edited { get; }
+    public ITelegramFileInfo? FileInfo { get; set; }
+
     public TelegramKeyboard? TelegramKeyboard { get; set; }
 }

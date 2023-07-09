@@ -36,9 +36,9 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(string text, CancellationToken cancellationToken)
+        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
         {
-            var subCategory = _subCategories.FirstOrDefault(c => c.Name == text);
+            var subCategory = _subCategories.FirstOrDefault(c => c.Name == message.Text);
             if (subCategory != null)
             {
                 _expenseBuilder.SubCategory = subCategory;

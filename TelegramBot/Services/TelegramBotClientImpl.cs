@@ -1,4 +1,5 @@
-﻿using Infrastructure;
+﻿using System.Net.Mime;
+using Infrastructure;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -55,5 +56,25 @@ public class TelegramBotClientImpl : ITelegramBot
     public async Task DeleteMessageAsync(long chatId, int messageId, CancellationToken cancellationToken)
     {
         await _client.DeleteMessageAsync(chatId, messageId, cancellationToken);
+    }
+
+    public async Task<IFile?> GetFileAsync(string fileId, string mimeType, CancellationToken cancellationToken)
+    {
+        if (mimeType != MediaTypeNames.Application.Json)
+            return null;
+        
+        var file = await _client.GetFileAsync(fileId, cancellationToken);
+
+        if (file == null) return null;
+        
+        string text;
+        using (var memoryStream = new MemoryStream())
+        {
+            await _client.DownloadFileAsync(file.FilePath, memoryStream, cancellationToken);
+            var bytes = memoryStream.ToArray();
+            text = System.Text.Encoding.Default.GetString(bytes);
+        }
+        
+        return new TelegramFile(){Text = text};
     }
 }

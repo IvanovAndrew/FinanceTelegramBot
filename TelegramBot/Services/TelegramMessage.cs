@@ -9,8 +9,10 @@ public class TelegramMessage : IMessage
     public int Id { get; }
     public long ChatId { get; }
     public DateTime Date { get; }
-    public string Text { get; }
+    public string Text { get; private set; }
     public bool Edited { get; private init; }
+    public ITelegramFileInfo? FileInfo {get; private set; }
+    
 
     public TelegramMessage(Message message, string? text = null)
     {
@@ -18,8 +20,10 @@ public class TelegramMessage : IMessage
         ChatId = message.Chat.Id;
         Date = message.Date;
         Text = text?? message.Text?? string.Empty;
+        FileInfo = message.Document != null? new TelegramFileInfo()
+            { FileId = message.Document.FileId, FileName = message.Document.FileName, MimeType = message.Document.MimeType } : null;
     }
-
+    
     public static TelegramMessage FromUpdate(Update update)
     {
         if (update.Type == UpdateType.Message)
