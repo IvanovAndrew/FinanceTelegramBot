@@ -120,17 +120,5 @@ namespace StateMachine
                 }
             }
         }
-
-        private async Task<IFile?> DownloadFile(ITelegramBot telegramBot, IMessage message, CancellationToken cancellationToken = default)
-        {
-            if (message.FileInfo.MimeType != MediaTypeNames.Application.Json)
-            {
-                await telegramBot.SendTextMessageAsync(message.ChatId, "Only json files are supported");
-                return null;
-            }
-
-            var file = await telegramBot.GetFileAsync(message.FileInfo.FileId, message.FileInfo.MimeType, cancellationToken);
-            return file;
-        }
     }
 }

@@ -20,7 +20,7 @@ public abstract class TelegramCommand
         _chatId = chatId;
     }
     
-    public abstract Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationTokenSource cancellationTokenSource = default);
+    public abstract Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationToken = default);
 }
 
 [Command(Text = "Cancel", Command = "/cancel")]
@@ -30,7 +30,7 @@ public class CancelCommand : TelegramCommand
     {
     }
     
-    public override async Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationTokenSource cancellationTokenSource = default)
+    public override async Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationToken = default)
     {
         if (state is ILongTermOperation longTermOperation)
         {
@@ -51,7 +51,7 @@ public class StartCommand : TelegramCommand
     {
     }
     
-    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationTokenSource cancellationTokenSource)
+    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationTokenSource = default)
     {
         return Task.FromResult(_stateFactory.CreateGreetingState());
     }
@@ -64,7 +64,7 @@ public class BackCommand : TelegramCommand
     {
     }
     
-    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationTokenSource cancellationTokenSource)
+    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationToken = default)
     {
         return Task.FromResult(state.PreviousState);
     }

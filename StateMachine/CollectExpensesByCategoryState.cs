@@ -49,43 +49,51 @@ namespace StateMachine
             _cancellationTokenSource = null;
             
             rows = rows.Where(expense => _specification.IsSatisfied(expense)).ToList();
+            
 
             _logger.LogInformation($"{rows.Count} expenses satisfy the requirements");
 
-            string text = "There is no any expenses for this period";
-            var currencies = new[] { Currency.Amd, Currency.Rur };
-            var statistic = _expensesAggregator.Aggregate(rows, currencies);
-            
-            string[,] telegramTable = new string[statistic.Rows.Count + 2, 3];
-            int i = 0;
-            int column = 1;
-            foreach (var expenseInfo in statistic.Rows)
+            string text;
+            if (rows.Any())
             {
-                telegramTable[i, 0] = ShortNameOfCategory(_firstColumnName(expenseInfo.Row));
+                var currencies = new[] { Currency.Amd, Currency.Rur };
+                var statistic = _expensesAggregator.Aggregate(rows, currencies);
+            
+                string[,] telegramTable = new string[statistic.Rows.Count + 2, 3];
+                int i = 0;
+                int column = 1;
+                foreach (var expenseInfo in statistic.Rows)
+                {
+                    telegramTable[i, 0] = ShortNameOfCategory(_firstColumnName(expenseInfo.Row));
+                    column = 1;
+                    foreach (var currency in currencies)
+                    {
+                        telegramTable[i, column++] = expenseInfo[currency].ToString("N0");
+                    }
+                
+                    i++;
+                }
+
+                telegramTable[i, 0] = "";
+                telegramTable[i, 1] = "";
+                telegramTable[i, 2] = "";
+
+                telegramTable[i + 1, 0] = "Total";
                 column = 1;
                 foreach (var currency in currencies)
                 {
-                    telegramTable[i, column++] = expenseInfo[currency].ToString("N0");
+                    telegramTable[i+1, column++] = statistic.Total[currency].ToString("N0");
                 }
-                
-                i++;
+
+                text = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
             }
-
-            telegramTable[i, 0] = "";
-            telegramTable[i, 1] = "";
-            telegramTable[i, 2] = "";
-
-            telegramTable[i + 1, 0] = "Total";
-            column = 1;
-            foreach (var currency in currencies)
+            else
             {
-                telegramTable[i+1, column++] = statistic.Total[currency].ToString("N0");
+                text = "There is no any expenses for this period";
             }
-
-            var table = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
 
             await botClient.DeleteMessageAsync(chatId, message.Id, cancellationToken);
-            return await botClient.SendTextMessageAsync(chatId: chatId, table, useMarkdown:true, cancellationToken: cancellationToken);;
+            return await botClient.SendTextMessageAsync(chatId: chatId, text, useMarkdown:true, cancellationToken: cancellationToken);;
         }
         
         private static string ShortNameOfCategory(string name)

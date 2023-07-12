@@ -15,8 +15,8 @@ namespace StateMachine
         {
             return new Expense
             {
-                Date = Date.Value,
-                Category = Category.Name,
+                Date = Date!.Value,
+                Category = Category!.Name,
                 SubCategory = SubCategory?.Name,
                 Description = Description,
                 Amount = Sum!,
