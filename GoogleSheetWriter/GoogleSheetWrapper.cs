@@ -86,9 +86,9 @@ namespace GoogleSheetWriter
                 var expense = expenses[i];
                 var row = firstRow + i;
 
-                for (int j = 0; j < 10; i++)
+                for (int j = 0; j < 10; j++)
                 {
-                    excelRowValues[j] =null;
+                    excelRowValues.Add(null);
                 }
 
                 if (listInfo.YearColumn != "")
