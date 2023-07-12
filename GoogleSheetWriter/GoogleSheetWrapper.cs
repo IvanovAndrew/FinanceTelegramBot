@@ -31,11 +31,11 @@ namespace GoogleSheetWriter
             _logger = logger;
         }
 
-        public async Task Save(IExpense expense, CancellationToken cancellationToken)
+        public async Task SaveAll(List<IExpense> expenses, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
-            if (!_categoryMapping.CategoryToList.TryGetValue(expense.Category, out string listName))
+            if (!_categoryMapping.CategoryToList.TryGetValue(expenses[0].Category, out string listName))
             {
                 listName = _categoryMapping.DefaultCategory;
             }
@@ -54,21 +54,18 @@ namespace GoogleSheetWriter
             cancellationToken.ThrowIfCancellationRequested();
 
             // Define request parameters.
-            var money = expense.Amount;
+            var money = expenses[0].Amount;
 
             // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
-            string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountAmdColumn}{row}";
+            string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountAmdColumn}{row+expenses.Count-1}";
 
-            var excelRowValues = FillExcelRows(expense, listInfo, row, money);
+            var excelRowValues = FillExcelRows(expenses, listInfo, row, money);
 
             var valueRange = new ValueRange
             {
                 Range = range,
                 MajorDimension = "ROWS",
-                Values = new List<IList<object>>
-                {
-                    excelRowValues
-                },
+                Values = excelRowValues
             };
 
             SpreadsheetsResource.ValuesResource.UpdateRequest request =
@@ -79,62 +76,72 @@ namespace GoogleSheetWriter
             await request.ExecuteAsync(cancellationToken);
         }
 
-        private List<object> FillExcelRows(IExpense expense, ListInfo listInfo, int row, Money money)
+        private List<IList<object>> FillExcelRows(List<IExpense> expenses, ListInfo listInfo, int firstRow, Money money)
         {
-            var excelRowValues = new List<object>();
-            for (int i = 0; i < 10; i++)
+            var result = new List<IList<object>>(expenses.Count);
+
+            for (int i = 0; i < expenses.Count; i++)
             {
-                excelRowValues.Add(null);
+                var excelRowValues = new List<object>();
+                var expense = expenses[i];
+                var row = firstRow + i;
+
+                for (int j = 0; j < 10; i++)
+                {
+                    excelRowValues[j] =null;
+                }
+
+                if (listInfo.YearColumn != "")
+                {
+                    excelRowValues[listInfo.YearColumn[0] - FirstExcelColumn] = $"=YEAR({listInfo.DateColumn}{row})";
+                }
+
+                if (listInfo.MonthColumn != "")
+                {
+                    excelRowValues[listInfo.MonthColumn[0] - FirstExcelColumn] = $"=MONTH({listInfo.DateColumn}{row})";
+                }
+
+                if (listInfo.DateColumn != "")
+                {
+                    excelRowValues[listInfo.DateColumn[0] - FirstExcelColumn] = expense.Date.ToString("dd.MM.yyyy");
+                }
+
+                if (!string.IsNullOrEmpty(listInfo.CategoryColumn))
+                {
+                    excelRowValues[listInfo.CategoryColumn[0] - FirstExcelColumn] = expense.Category;
+                }
+
+                if (!string.IsNullOrEmpty(listInfo.SubCategoryColumn))
+                {
+                    excelRowValues[listInfo.SubCategoryColumn[0] - FirstExcelColumn] = expense.SubCategory;
+                }
+
+                if (!string.IsNullOrEmpty(listInfo.DescriptionColumn))
+                {
+                    excelRowValues[listInfo.DescriptionColumn[0] - FirstExcelColumn] = expense.Description;
+                }
+
+                if (!string.IsNullOrEmpty(listInfo.AmountRurColumn))
+                {
+                    excelRowValues[listInfo.AmountRurColumn[0] - FirstExcelColumn] =
+                        money.Currency == Currency.Rur ? money.Amount : "";
+                }
+
+                if (!string.IsNullOrEmpty(listInfo.AmountAmdColumn))
+                {
+                    excelRowValues[listInfo.AmountAmdColumn[0] - FirstExcelColumn] =
+                        money.Currency == Currency.Amd ? money.Amount : "";
+                }
+
+                while (excelRowValues[^1] == null)
+                {
+                    excelRowValues.RemoveAt(excelRowValues.Count - 1);
+                }
+                
+                result.Add(excelRowValues);
             }
 
-            if (listInfo.YearColumn != "")
-            {
-                excelRowValues[listInfo.YearColumn[0] - FirstExcelColumn] = $"=YEAR({listInfo.DateColumn}{row})";
-            }
-
-            if (listInfo.MonthColumn != "")
-            {
-                excelRowValues[listInfo.MonthColumn[0] - FirstExcelColumn] = $"=MONTH({listInfo.DateColumn}{row})";
-            }
-
-            if (listInfo.DateColumn != "")
-            {
-                excelRowValues[listInfo.DateColumn[0] - FirstExcelColumn] = expense.Date.ToString("dd.MM.yyyy");
-            }
-
-            if (!string.IsNullOrEmpty(listInfo.CategoryColumn))
-            {
-                excelRowValues[listInfo.CategoryColumn[0] - FirstExcelColumn] = expense.Category;
-            }
-
-            if (!string.IsNullOrEmpty(listInfo.SubCategoryColumn))
-            {
-                excelRowValues[listInfo.SubCategoryColumn[0] - FirstExcelColumn] = expense.SubCategory;
-            }
-
-            if (!string.IsNullOrEmpty(listInfo.DescriptionColumn))
-            {
-                excelRowValues[listInfo.DescriptionColumn[0] - FirstExcelColumn] = expense.Description;
-            }
-
-            if (!string.IsNullOrEmpty(listInfo.AmountRurColumn))
-            {
-                excelRowValues[listInfo.AmountRurColumn[0] - FirstExcelColumn] =
-                    money.Currency == Currency.Rur ? money.Amount : "";
-            }
-
-            if (!string.IsNullOrEmpty(listInfo.AmountAmdColumn))
-            {
-                excelRowValues[listInfo.AmountAmdColumn[0] - FirstExcelColumn] =
-                    money.Currency == Currency.Amd ? money.Amount : "";
-            }
-
-            while (excelRowValues[^1] == null)
-            {
-                excelRowValues.RemoveAt(excelRowValues.Count - 1);
-            }
-
-            return excelRowValues;
+            return result;
         }
 
         private async Task<SheetsService> InitializeService(CancellationToken cancellationToken)

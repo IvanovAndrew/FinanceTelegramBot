@@ -22,10 +22,10 @@ public class ExpenseRepositoryDecorator : IExpenseRepository
         _repository = repository;
         _logger = logger;
     }
-    
-    public async Task Save(IExpense expense, CancellationToken cancellationToken)
+
+    public async Task SaveAll(List<IExpense> expense, CancellationToken cancellationToken)
     {
-        await _repository.Save(expense, cancellationToken);
+        await _repository.SaveAll(expense, cancellationToken);
         // TODO maybe it makes sense to add the expense to the cache
         _logger.LogInformation("Remove all cached entries");
         _cache.Remove(CacheKeys.AllExpenses);
