@@ -10,12 +10,10 @@ public class CommandAttribute : Attribute
 
 public abstract class TelegramCommand
 {
-    protected readonly ITelegramBot _telegramBot;
     protected readonly StateFactory _stateFactory;
     protected readonly long _chatId;
-    protected TelegramCommand(ITelegramBot telegramBot, StateFactory stateFactory, long chatId)
+    protected TelegramCommand(StateFactory stateFactory, long chatId)
     {
-        _telegramBot = telegramBot;
         _stateFactory = stateFactory;
         _chatId = chatId;
     }
@@ -26,7 +24,7 @@ public abstract class TelegramCommand
 [Command(Text = "Cancel", Command = "/cancel")]
 public class CancelCommand : TelegramCommand
 {
-    public CancelCommand(ITelegramBot telegramBot, StateFactory stateFactory, long chatId) : base(telegramBot, stateFactory, chatId)
+    public CancelCommand(StateFactory stateFactory, long chatId) : base(stateFactory, chatId)
     {
     }
     
@@ -36,8 +34,6 @@ public class CancelCommand : TelegramCommand
         {
             longTermOperation.Cancel();
         }
-        
-        await _telegramBot.SendTextMessageAsync(_chatId, "All operations are canceled");
 
         return _stateFactory.CreateGreetingState();
     }
@@ -47,7 +43,7 @@ public class CancelCommand : TelegramCommand
 [Command(Text = "Start", Command = "/start")]
 public class StartCommand : TelegramCommand
 {
-    public StartCommand(ITelegramBot telegramBot, StateFactory stateFactory, long chatId) : base(telegramBot, stateFactory, chatId)
+    public StartCommand(StateFactory stateFactory, long chatId) : base(stateFactory, chatId)
     {
     }
     
@@ -60,7 +56,7 @@ public class StartCommand : TelegramCommand
 [Command(Text = "Back", Command = "/back")]
 public class BackCommand : TelegramCommand
 {
-    public BackCommand(ITelegramBot telegramBot, StateFactory stateFactory, long chatId) : base(telegramBot, stateFactory, chatId)
+    public BackCommand(StateFactory stateFactory, long chatId) : base(stateFactory, chatId)
     {
     }
     

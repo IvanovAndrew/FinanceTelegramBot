@@ -40,18 +40,36 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
     public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
     {
         var savingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
+        bool saved = false;
 
-        using (_cancellationTokenSource = new CancellationTokenSource())
+        try
         {
-            await _expenseRepository.SaveAll(_expenses, cancellationToken);
+            using (_cancellationTokenSource = new CancellationTokenSource())
+            {
+                await _expenseRepository.SaveAll(_expenses, _cancellationTokenSource.Token);
+            }
+
+            saved = true;
+        }
+        catch (OperationCanceledException e)
+        {
+        }
+        finally
+        {
+            _cancellationTokenSource = null;
         }
 
-        _cancellationTokenSource = null;
-
-        _logger.LogInformation($"{_expenses.Count} expenses saved");
+        
 
         await botClient.DeleteMessageAsync(message.ChatId, message.Id, cancellationToken);
         await botClient.DeleteMessageAsync(message.ChatId, savingMessage.Id, cancellationToken);
+
+        if (!saved)
+        {
+            return await botClient.SendTextMessageAsync(message.ChatId, $"Saving is canceled");
+        }
+        
+        _logger.LogInformation($"{_expenses.Count} expenses saved");
         return await botClient.SendTextMessageAsync(message.ChatId, $"{_expenses.Count} expenses saved");
     }
 

@@ -54,7 +54,7 @@ namespace StateMachine
             }
 
             await state.Handle(message, default);
-            newState = state.ToNextState(message, default);
+            _answers[message.ChatId] = newState = state.ToNextState(message, default);
 
             if (newState is ILongTermOperation longOperation)
             {
@@ -95,19 +95,19 @@ namespace StateMachine
         {
             if (text == "/start")
             {
-                command = new StartCommand(telegramBot, stateFactory, chatId);
+                command = new StartCommand(stateFactory, chatId);
                 return true;
             }
             
             if (text == "/back")
             {
-                command = new BackCommand(telegramBot, stateFactory, chatId);
+                command = new BackCommand(stateFactory, chatId);
                 return true;
             }
             
             if (text == "/cancel")
             {
-                command = new CancelCommand(telegramBot, stateFactory, chatId);
+                command = new CancelCommand(stateFactory, chatId);
                 return true;
             }
             

@@ -46,15 +46,24 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
     {
         var savingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
 
-        using (_cancellationTokenSource = new CancellationTokenSource())
+        bool saved = false;
+        try
         {
-            foreach (var expense in _expenses)
+            using (_cancellationTokenSource = new CancellationTokenSource())
             {
-                await _expenseRepository.Save(expense, cancellationToken);
+                await _expenseRepository.SaveAll(_expenses, _cancellationTokenSource.Token);
             }
-        }
 
-        _cancellationTokenSource = null;
+            saved = true;
+        }
+        catch (OperationCanceledException e)
+        {
+            // ignore
+        }
+        finally
+        {
+            _cancellationTokenSource = null;
+        }
 
         var sum = new Money() { Amount = 0, Currency = _expenses[0].Amount.Currency };
         foreach (var expense in _expenses)
@@ -68,7 +77,7 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
                                  $"Category: {_expenses[0].Category}", 
                                  $"Total Amount: {sum}",
                                  "",
-                                 "Saved"
+                                 saved? "Saved" : "Saving is cancelled"
                              );
             
         _logger.LogInformation(infoMessage);

@@ -39,28 +39,41 @@ namespace StateMachine
         public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
         {
             var savingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
-
-            using (_cancellationTokenSource = new CancellationTokenSource())
+            bool saved = false;
+            try
             {
-                await _expenseRepository.Save(_expense, cancellationToken);
+                using (_cancellationTokenSource = new CancellationTokenSource())
+                {
+                    await _expenseRepository.Save(_expense, _cancellationTokenSource.Token);
+                }
+
+                saved = true;
+            }
+            catch (OperationCanceledException e)
+            {
+                // ignore
+            }
+            finally
+            {
+                _cancellationTokenSource = null;
             }
 
-            _cancellationTokenSource = null;
-
             string infoMessage = string.Join($"{Environment.NewLine}", 
-                $"Date: {_expense.Date:dd.MM.yyyy}", 
-                $"Category: {_expense.Category}", 
-                $"SubCategory: {_expense.SubCategory ?? string.Empty}", 
-                $"Description: {_expense.Description ?? string.Empty}",
-                $"Amount: {_expense.Amount}",
-                "",
-                "Saved"
-            );
+                    $"Date: {_expense.Date:dd.MM.yyyy}", 
+                    $"Category: {_expense.Category}", 
+                    $"SubCategory: {_expense.SubCategory ?? string.Empty}", 
+                    $"Description: {_expense.Description ?? string.Empty}",
+                    $"Amount: {_expense.Amount}",
+                    "",
+                    saved? "Saved" : "Saving is canceled"
+                );
             
-            _logger.LogInformation(infoMessage);
+            
 
             await botClient.DeleteMessageAsync(message.ChatId, message.Id, cancellationToken);
             await botClient.DeleteMessageAsync(message.ChatId, savingMessage.Id, cancellationToken);
+
+            _logger.LogInformation(infoMessage);
             return await botClient.SendTextMessageAsync(message.ChatId, infoMessage);
         }
 

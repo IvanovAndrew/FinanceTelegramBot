@@ -285,6 +285,50 @@ public class StateTest
     }
     
     [Test]
+    public async Task ClickOnCancelButtonCancelsLongTermOperation()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        
+        var expenseRepository = new ExpenseRepositoryStub() {DelayTime = TimeSpan.FromMinutes(1)};
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+        
+        // Act
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("outcome");
+        await botEngine.Proceed("By myself");
+        await botEngine.Proceed("today");
+        await botEngine.Proceed("cats");
+        await botEngine.Proceed("royal canin");
+        await botEngine.Proceed("20000 amd");
+        
+        // Act
+        var savingTask = botEngine.Proceed("Save");
+        Thread.Sleep(TimeSpan.FromSeconds(1));
+        var cancellingTask = botEngine.Proceed("/cancel");
+
+        await Task.WhenAll(savingTask, cancellingTask);
+
+        var savedExpenses = await expenseRepository.Read(default);
+        
+        // Assert
+        Assert.That(savedExpenses.Count, Is.EqualTo(0));
+    }
+    
+    [Test]
     public async Task ThereAreThreeOptionsInStatisticsState()
     {
         // Arrange
