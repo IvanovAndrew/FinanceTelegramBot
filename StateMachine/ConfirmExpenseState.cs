@@ -9,7 +9,7 @@ namespace StateMachine
         private readonly StateFactory _factory;
         private readonly IExpense _expense;
         private readonly ILogger _logger;
-        public IExpenseInfoState PreviousState { get; private set; }
+        public IExpenseInfoState PreviousState { get; }
         public bool UserAnswerIsRequired => true;
     
         public ConfirmExpenseState(StateFactory stateFactory, IExpenseInfoState previousState, IExpense expense, ILogger logger)
@@ -48,7 +48,12 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        {
+            await Task.Run(() => { });
+        }
+
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
         {
             if (string.Equals(message.Text, "Save", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -60,7 +65,7 @@ namespace StateMachine
                 return _factory.CreateCancelState();
             }
 
-            throw new ArgumentOutOfRangeException(nameof(message), $@"Expected values are ""Save"" or ""Cancel"". {message} was received.");
+            throw new BotStateException(new []{"Save", "Cancel"}, message.Text);
         }
     }
 }

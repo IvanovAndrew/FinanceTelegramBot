@@ -27,28 +27,35 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
 
     public bool UserAnswerIsRequired => false;
 
-    public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
+    public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
     {
-        var message = await botClient.SendTextMessageAsync(chatId, "Saving... It can take some time.");
+        throw new InvalidOperationException();
+    }
+
+    public Task Handle(IMessage message, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
+    {
+        var savingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
 
         using (_cancellationTokenSource = new CancellationTokenSource())
         {
-            foreach (var expense in _expenses)
-            {
-                await _expenseRepository.Save(expense, cancellationToken);
-            }
-            
+            await _expenseRepository.SaveAll(_expenses, cancellationToken);
         }
 
         _cancellationTokenSource = null;
 
         _logger.LogInformation($"{_expenses.Count} expenses saved");
 
-        await botClient.DeleteMessageAsync(chatId, message.Id, cancellationToken);
-        return await botClient.SendTextMessageAsync(chatId, $"{_expenses.Count} expenses saved");
+        await botClient.DeleteMessageAsync(message.ChatId, message.Id, cancellationToken);
+        await botClient.DeleteMessageAsync(message.ChatId, savingMessage.Id, cancellationToken);
+        return await botClient.SendTextMessageAsync(message.ChatId, $"{_expenses.Count} expenses saved");
     }
 
-    public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
     {
         throw new InvalidOperationException();
     }

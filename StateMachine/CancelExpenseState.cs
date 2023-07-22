@@ -11,8 +11,13 @@ namespace StateMachine
             return await botClient.SendTextMessageAsync(chatId, "Operation is canceled", cancellationToken: cancellationToken);
         }
 
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        {
+            await Task.Run(() => { });
+        }
+
         public bool UserAnswerIsRequired => false;
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
         { 
             throw new InvalidOperationException();
         }

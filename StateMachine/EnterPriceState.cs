@@ -29,17 +29,27 @@ namespace StateMachine
             return await botClient.SendTextMessageAsync(chatId, "Enter the price", cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
         {
-            if (!_moneyParser.TryParse(message.Text, out var money))
+            await Task.Run(() =>
+            {
+                if (_moneyParser.TryParse(message.Text, out var money))
+                {
+                    _expenseBuilder.Sum = money;
+                }
+            });
+        }
+
+        // TODO side effect
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        {
+            if (_expenseBuilder.Sum == null)
             {
                 string warning = $"{message.Text} wasn't recognized as money.";
                 _logger.LogDebug(warning);
             
                 return _factory.CreateErrorWithRetryState(warning, this);
             }
-
-            _expenseBuilder.Sum = money;
 
             return _factory.CreateConfirmState(_expenseBuilder.Build(), this);
         }

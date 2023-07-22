@@ -35,12 +35,17 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        {
+            await Task.Run(() => { });
+        }
+
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
         {
             if (message.Text == "showExpenses") return _factory.CreateChooseStatisticState(this); 
             if (message.Text == "startExpense") return _factory.WayOfEnteringExpenseState(this);
 
-            throw new ArgumentOutOfRangeException($"Expected 'showExpenses' or 'startExpense', but {message} was");
+            throw new BotStateException(new []{"showExpenses", "startExpense"}, message.Text);
         }
     }
 }

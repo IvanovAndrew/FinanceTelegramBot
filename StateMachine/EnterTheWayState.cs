@@ -32,11 +32,16 @@ class EnterTheWayState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+    public async Task Handle(IMessage message, CancellationToken cancellationToken)
+    {
+        await Task.Run(() => { });
+    }
+
+    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
     {
         if (message.Text == "json") return _factory.CreateRequestPasteJsonState(this);
         if (message.Text == "user") return _factory.CreateEnterTheDateState(this, false);
 
-        throw new ArgumentOutOfRangeException($"Unexpected answer. Expected json or user but {message} was");
+        throw new BotStateException(new []{"json", "user"}, message.Text);
     }
 }

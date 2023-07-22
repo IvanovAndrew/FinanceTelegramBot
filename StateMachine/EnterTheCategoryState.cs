@@ -40,12 +40,26 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
         {
-            var categoryDomain = _categories.FirstOrDefault(c => string.Equals(c.Name, message.Text, StringComparison.InvariantCultureIgnoreCase));
+            var action = () =>
+            {
+                var categoryDomain = _categories.FirstOrDefault(c =>
+                    string.Equals(c.Name, message.Text, StringComparison.InvariantCultureIgnoreCase));
+                if (categoryDomain != null)
+                {
+                    _expenseBuilder.Category = categoryDomain;
+                }
+            };
+
+            await Task.Run(action);
+        }
+
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        {
+            var categoryDomain = _expenseBuilder.Category;
             if (categoryDomain != null)
             {
-                _expenseBuilder.Category = categoryDomain;
                 if (categoryDomain.SubCategories.Any())
                 {
                     return _factory.CreateEnterTheSubcategoryState(_expenseBuilder, this, categoryDomain.SubCategories);

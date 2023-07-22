@@ -27,11 +27,14 @@ namespace StateMachine
             return await botClient.SendTextMessageAsync(chatId, "Write a description", cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        {
+            await Task.Run(() => _expenseBuilder.Description = message.Text);
+        }
+
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-        
-            _expenseBuilder.Description = message.Text; 
             return _factory.CreateEnterThePriceState(_expenseBuilder, this);
         }
     }

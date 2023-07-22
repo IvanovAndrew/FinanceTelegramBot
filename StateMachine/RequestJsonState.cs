@@ -27,7 +27,12 @@ class RequestJsonState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+    public async Task Handle(IMessage message, CancellationToken cancellationToken)
+    {
+        await Task.Run(() => { });
+    }
+
+    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
     {
         string info = "";
         if (message.FileInfo == null)

@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Mime;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -54,21 +53,42 @@ namespace StateMachine
                 state = state.PreviousState;
             }
 
-            newState = state.Handle(message, default);
+            await state.Handle(message, default);
+            newState = state.ToNextState(message, default);
 
-            _answers[message.ChatId] = newState;
-
-            _sentMessage[newState] =
-                await newState.Request(botClient, message.ChatId);
-            
-            while (!newState.UserAnswerIsRequired)
+            if (newState is ILongTermOperation longOperation)
             {
-                _answers[message.ChatId] = newState = newState.Handle(message, default);
-                var requestedMessage = await newState.Request(botClient, message.ChatId);
-                _sentMessage[newState] = requestedMessage;
+                _sentMessage[state] = await longOperation.Handle(botClient, message, default);
+                while (!_answers.TryRemove(message.ChatId, out _)) { }
+
+                return _sentMessage[state];
             }
+            else
+            {
+                _answers[message.ChatId] = newState;
+
+                _sentMessage[newState] =
+                    await newState.Request(botClient, message.ChatId);
+        
+                while (!newState.UserAnswerIsRequired)
+                {
+                    await newState.Handle(message, default);
+                    _answers[message.ChatId] = newState = newState.ToNextState(message, default);
+
+                    if (newState is ILongTermOperation longOperation1)
+                    {
+                        _sentMessage[state] = await longOperation1.Handle(botClient, message, default);
+                        while (!_answers.TryRemove(message.ChatId, out _)) { }
+                    }
+                    else
+                    {
+                        var requestedMessage = await newState.Request(botClient, message.ChatId);
+                        _sentMessage[newState] = requestedMessage;
+                    }
+                }
             
-            return _sentMessage[newState];
+                return _sentMessage[newState];
+            }
         }
 
         private bool TryGetCommand(string text, ITelegramBot telegramBot, StateFactory stateFactory, long chatId, [NotNullWhen(true)] out TelegramCommand? command)

@@ -6,7 +6,7 @@ namespace StateMachine
 {
     internal class EnterCategoryForStatisticState : IExpenseInfoState
     {
-        private StateFactory _factory;
+        private readonly StateFactory _factory;
         private readonly IEnumerable<Category> _categories;
         private ILogger _logger;
 
@@ -37,7 +37,12 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        {
+            await Task.Run(() => { });
+        }
+
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
         {
             var categoryDomain = _categories.FirstOrDefault(c => c.Name == message.Text);
             if (categoryDomain != null)

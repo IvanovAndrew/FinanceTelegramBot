@@ -40,7 +40,12 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+    public async Task Handle(IMessage message, CancellationToken cancellationToken)
+    {
+        await Task.Run(() => { });
+    }
+
+    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
     {
         if (message.Text == "subcategory")
         {
@@ -85,6 +90,6 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
                 });
         }
 
-        throw new ArgumentOutOfRangeException(message.Text);
+        throw new BotStateException(new []{"subcategory", "lastyear"}, message.Text);
     }
 }

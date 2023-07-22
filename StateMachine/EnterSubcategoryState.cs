@@ -36,18 +36,28 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public Task Handle(IMessage message, CancellationToken cancellationToken)
         {
-            var subCategory = _subCategories.FirstOrDefault(c => c.Name == message.Text);
-            if (subCategory != null)
+            var handle = () =>
             {
-                _expenseBuilder.SubCategory = subCategory;
+                var subCategory = _subCategories.FirstOrDefault(c => c.Name == message.Text);
+                if (subCategory != null)
+                {
+                    _expenseBuilder.SubCategory = subCategory;
+                }
+            };
+                
+            return Task.Run(handle);
+        }
+
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        {
+            if (_expenseBuilder.SubCategory != null)
+            {
                 return _factory.CreateEnterDescriptionState(_expenseBuilder, this);
             }
 
             return this;
         }
-
-        public bool AnswerIsRequired => true;
     }
 }

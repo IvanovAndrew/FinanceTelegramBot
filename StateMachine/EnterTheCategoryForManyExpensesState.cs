@@ -8,10 +8,11 @@ class EnterTheCategoryForManyExpensesState : IExpenseInfoState
 {
     private readonly StateFactory _factory;
     private readonly List<IExpense> _expenses;
+    private List<IExpense> _expensesFromJson;
     public bool UserAnswerIsRequired => true;
     public IExpenseInfoState PreviousState { get; }
     private readonly ILogger _logger;
-        
+
     internal EnterTheCategoryForManyExpensesState(StateFactory factory, IExpenseInfoState previousState, List<IExpense> expenses, ILogger logger)
     {
         _factory = factory;
@@ -28,19 +29,22 @@ class EnterTheCategoryForManyExpensesState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+    public async Task Handle(IMessage message, CancellationToken cancellationToken)
     {
-        var expensesFromJson = new ExpenseJsonParser().Parse(message.Text, "Еда", Currency.Rur);
-        
+        await Task.Run(() => _expensesFromJson = new ExpenseJsonParser().Parse(message.Text, "Еда", Currency.Rur));
+    }
+
+    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    {
         // ask about category and subcategory of all expenses
-        if (expensesFromJson.Count == 0)
+        if (_expensesFromJson.Count == 0)
         {
             _logger.LogInformation("json doesn't contain any info about expenses");
             return _factory.CreateGreetingState();
         }
         else
         {
-            return _factory.CreateEnterTheCategoryForManyExpenses(expensesFromJson, this);
+            return _factory.CreateEnterTheCategoryForManyExpenses(_expensesFromJson, this);
         }
 
     }

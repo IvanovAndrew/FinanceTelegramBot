@@ -24,9 +24,14 @@ namespace StateMachine
             return await _state.Request(botClient, chatId, cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
         {
-            return _state.Handle(message, cancellationToken);
+            await Task.Run(() => { });
+        }
+
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        {
+            return _state.ToNextState(message, cancellationToken);
         }
     }
 }

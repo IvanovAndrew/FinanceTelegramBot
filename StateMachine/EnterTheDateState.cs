@@ -9,6 +9,7 @@ namespace StateMachine
         private readonly IDateTimeService _dateTimeService;
         private readonly ILogger _logger;
         private readonly bool _askCustomDate;
+        private readonly ExpenseBuilder _expenseBuilder = new();
     
         public IExpenseInfoState PreviousState { get; private set; }
         public bool UserAnswerIsRequired => true;
@@ -46,23 +47,31 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
         {
-            var expenseBuilder = new ExpenseBuilder();
+            await Task.Run(() =>
+            {
+                if (_dateTimeService.TryParse(message.Text, out var date))
+                {
+                    _expenseBuilder.Date = date;
+                }
+            });
+        }
 
-            if (message.Text.ToLowerInvariant() == "other")
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        {
+            if (_expenseBuilder.Date == null && message.Text.ToLowerInvariant() == "other")
             {
                 return _factory.CreateEnterTheDateState(this, true);
             }
         
-            if (!_dateTimeService.TryParse(message.Text, out var date))
+            if (_expenseBuilder.Date == null)
             {
                 _logger.LogDebug($"{message.Text} isn't a date");
                 return _factory.CreateErrorWithRetryState($"{message.Text} isn't a date.", this);
             }
 
-            expenseBuilder.Date = date;
-            return _factory.CreateEnterTheCategoryState(expenseBuilder, this);
+            return _factory.CreateEnterTheCategoryState(_expenseBuilder, this);
         }
     }
 }

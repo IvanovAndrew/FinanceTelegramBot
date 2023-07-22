@@ -37,8 +37,41 @@ namespace StateMachine
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
+            throw new InvalidCastException();
+        }
+
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        {
+            // TODO move logic to here
+            await Task.Run(() => { });
+        }
+
+        private static string ShortNameOfCategory(string name)
+        {
+            if (name == "Домашние животные")
+                return "Коты";
+
+            if (name == "Здоровье, гигиена")
+                return "Здоровье";
+
+            if (name == "Культурная жизнь")
+                return "Развлечения";
+
+            if (name == "Онлайн-сервисы")
+                return "Сервисы";
+
+            return name;
+        }
+
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        {
+            return _factory.CreateGreetingState();
+        }
+
+        public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
+        {
             _logger.LogInformation("Collecting expenses... It can take some time.");
-            var message = await botClient.SendTextMessageAsync(chatId, "Collecting expenses... It can take some time.");
+            var collectingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Collecting expenses... It can take some time.");
 
             List<IExpense> rows;
             using (_cancellationTokenSource = new CancellationTokenSource())
@@ -92,30 +125,8 @@ namespace StateMachine
                 text = "There is no any expenses for this period";
             }
 
-            await botClient.DeleteMessageAsync(chatId, message.Id, cancellationToken);
-            return await botClient.SendTextMessageAsync(chatId: chatId, text, useMarkdown:true, cancellationToken: cancellationToken);;
-        }
-        
-        private static string ShortNameOfCategory(string name)
-        {
-            if (name == "Домашние животные")
-                return "Коты";
-
-            if (name == "Здоровье, гигиена")
-                return "Здоровье";
-
-            if (name == "Культурная жизнь")
-                return "Развлечения";
-
-            if (name == "Онлайн-сервисы")
-                return "Сервисы";
-
-            return name;
-        }
-
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
-        {
-            return _factory.CreateGreetingState();
+            await botClient.DeleteMessageAsync(message.ChatId, collectingMessage.Id, cancellationToken);
+            return await botClient.SendTextMessageAsync(chatId: message.ChatId, text, useMarkdown:true, cancellationToken: cancellationToken);;
         }
 
         public void Cancel()

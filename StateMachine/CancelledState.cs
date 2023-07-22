@@ -10,11 +10,6 @@ namespace StateMachine
     
         public IExpenseInfoState PreviousState { get; private set; }
 
-        IExpenseInfoState IExpenseInfoState.Handle(IMessage message, CancellationToken cancellationToken)
-        {
-            return Handle(message, cancellationToken);
-        }
-
         public CancelledState(StateFactory factory, ILogger logger)
         {
             _factory = factory;
@@ -27,7 +22,12 @@ namespace StateMachine
             return botClient.SendTextMessageAsync(chatId, "Canceled");
         }
 
-        public IExpenseInfoState Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        {
+            await Task.Run(() => { });
+        }
+
+        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
