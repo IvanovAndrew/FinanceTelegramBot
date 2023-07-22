@@ -38,11 +38,8 @@ public class TelegramBotMock : ITelegramBot
 
     public Task DeleteMessageAsync(long chatId, int messageId, CancellationToken cancellationToken)
     {
-        var messageToRemove = _messages.FirstOrDefault(m => m.Id == messageId);
-        if (messageToRemove != null)
-        {
-            _messages.Remove(messageToRemove);
-        }
+        var messageToRemove = _messages.First(m => m.Id == messageId);
+        _messages.Remove(messageToRemove);
         return Task.Run(() => {});
     }
 

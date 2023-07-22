@@ -67,10 +67,7 @@ namespace StateMachine
                     "",
                     saved? "Saved" : "Saving is canceled"
                 );
-            
-            
 
-            await botClient.DeleteMessageAsync(message.ChatId, message.Id, cancellationToken);
             await botClient.DeleteMessageAsync(message.ChatId, savingMessage.Id, cancellationToken);
 
             _logger.LogInformation(infoMessage);
