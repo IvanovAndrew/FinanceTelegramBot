@@ -7,7 +7,7 @@ namespace StateMachine
     {
         private readonly StateFactory _factory;
         private readonly ILogger _logger;
-    
+
         public IExpenseInfoState PreviousState { get; private set; }
 
         public CancelledState(StateFactory factory, ILogger logger)
@@ -15,8 +15,9 @@ namespace StateMachine
             _factory = factory;
             _logger = logger;
         }
-    
+
         public bool UserAnswerIsRequired => false;
+
         public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             return botClient.SendTextMessageAsync(chatId, "Canceled");

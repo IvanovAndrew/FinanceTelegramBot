@@ -61,7 +61,7 @@ namespace StateMachine
             string infoMessage = string.Join($"{Environment.NewLine}", 
                     $"Date: {_expense.Date:dd.MM.yyyy}", 
                     $"Category: {_expense.Category}", 
-                    $"SubCategory: {_expense.SubCategory ?? string.Empty}", 
+                    $"Subcategory: {_expense.SubCategory ?? string.Empty}", 
                     $"Description: {_expense.Description ?? string.Empty}",
                     $"Amount: {_expense.Amount}",
                     "",
