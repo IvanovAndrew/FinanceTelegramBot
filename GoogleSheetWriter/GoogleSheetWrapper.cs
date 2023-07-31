@@ -53,13 +53,10 @@ namespace GoogleSheetWriter
             int row = await GetNumberFilledRows(service, listInfo.ListName, cancellationToken) + 1;
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Define request parameters.
-            var money = expenses[0].Amount;
-
             // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
             string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountAmdColumn}{row+expenses.Count-1}";
 
-            var excelRowValues = FillExcelRows(expenses, listInfo, row, money);
+            var excelRowValues = FillExcelRows(expenses, listInfo, row);
 
             var valueRange = new ValueRange
             {
@@ -76,7 +73,7 @@ namespace GoogleSheetWriter
             await request.ExecuteAsync(cancellationToken);
         }
 
-        private List<IList<object>> FillExcelRows(List<IExpense> expenses, ListInfo listInfo, int firstRow, Money money)
+        private List<IList<object>> FillExcelRows(List<IExpense> expenses, ListInfo listInfo, int firstRow)
         {
             var result = new List<IList<object>>(expenses.Count);
 
@@ -90,6 +87,8 @@ namespace GoogleSheetWriter
                 {
                     excelRowValues.Add(null);
                 }
+
+                var money = expense.Amount;
 
                 if (listInfo.YearColumn != "")
                 {
