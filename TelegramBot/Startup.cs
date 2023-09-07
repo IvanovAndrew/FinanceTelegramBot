@@ -44,7 +44,8 @@ namespace TelegramBot
                     SubCategoryColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:SubCategory"],
                     DescriptionColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:Description"],
                     AmountRurColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountRUR"],
-                    AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountAMD"] 
+                    AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountAMD"], 
+                    AmountGelColumn = _configuration["SpreadsheetOptions:Lists:Usual:Columns:AmountGEL"] 
                 };
 
                 instance.FlatInfo = new ListInfo
@@ -58,6 +59,7 @@ namespace TelegramBot
                     DescriptionColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:Description"],
                     AmountRurColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:AmountRUR"],
                     AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:AmountAMD"],
+                    AmountGelColumn = _configuration["SpreadsheetOptions:Lists:Home:Columns:AmountGEL"],
                 };
 
                 instance.BigDealInfo = new ListInfo()
@@ -71,6 +73,7 @@ namespace TelegramBot
                     DescriptionColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:Description"],
                     AmountRurColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:AmountRUR"],
                     AmountAmdColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:AmountAMD"],
+                    AmountGelColumn = _configuration["SpreadsheetOptions:Lists:BigDeal:Columns:AmountGEL"],
                 };
 
                 return instance;

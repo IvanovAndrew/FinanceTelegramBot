@@ -54,7 +54,7 @@ namespace GoogleSheetWriter
             cancellationToken.ThrowIfCancellationRequested();
 
             // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
-            string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountAmdColumn}{row+expenses.Count-1}";
+            string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountGelColumn}{row + expenses.Count - 1}";
 
             var excelRowValues = FillExcelRows(expenses, listInfo, row);
 
@@ -130,6 +130,12 @@ namespace GoogleSheetWriter
                 {
                     excelRowValues[listInfo.AmountAmdColumn[0] - FirstExcelColumn] =
                         money.Currency == Currency.Amd ? money.Amount : "";
+                }
+                
+                if (!string.IsNullOrEmpty(listInfo.AmountGelColumn))
+                {
+                    excelRowValues[listInfo.AmountGelColumn[0] - FirstExcelColumn] =
+                        money.Currency == Currency.Gel ? money.Amount : "";
                 }
 
                 while (excelRowValues[^1] == null)
@@ -231,7 +237,7 @@ namespace GoogleSheetWriter
                     $"{info.ListName}. Range is {fromRangeRow}:{toRangeRow}. Last filled row is {lastFilledRow}");
                 var request = service.Spreadsheets.Get(_spreadsheetId);
                 request.IncludeGridData = true;
-                request.Ranges = $"{info.ListName}!{info.DateColumn}{fromRangeRow}:{info.AmountAmdColumn}{toRangeRow}";
+                request.Ranges = $"{info.ListName}!{info.DateColumn}{fromRangeRow}:{info.AmountGelColumn}{toRangeRow}";
                 var response = await request.ExecuteAsync(cancellationToken);
                 var sheet = response.Sheets.First(s => s.Properties.Title == info.ListName);
 

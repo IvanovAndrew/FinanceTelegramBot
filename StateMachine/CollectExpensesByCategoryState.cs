@@ -89,12 +89,12 @@ namespace StateMachine
 
                 if (rows.Any())
                 {
-                    var currencies = new[] { Currency.Amd, Currency.Rur };
+                    var currencies = new[] { Currency.Amd, Currency.Rur, Currency.Gel };
                     var statistic = _expensesAggregator.Aggregate(rows, currencies);
             
-                    string[,] telegramTable = new string[statistic.Rows.Count + 2, 3];
+                    string[,] telegramTable = new string[statistic.Rows.Count + 2, currencies.Length + 1];
                     int i = 0;
-                    int column = 1;
+                    int column;
                     foreach (var expenseInfo in statistic.Rows)
                     {
                         telegramTable[i, 0] = ShortNameOfCategory(_firstColumnName(expenseInfo.Row));
@@ -107,15 +107,13 @@ namespace StateMachine
                         i++;
                     }
 
-                    telegramTable[i, 0] = "";
-                    telegramTable[i, 1] = "";
-                    telegramTable[i, 2] = "";
+                    FillRow(telegramTable, i, "", "");
 
                     telegramTable[i + 1, 0] = "Total";
                     column = 1;
                     foreach (var currency in currencies)
                     {
-                        telegramTable[i+1, column++] = statistic.Total[currency].ToString("N0");
+                        telegramTable[i + 1, column++] = statistic.Total[currency].ToString("N0");
                     }
 
                     text = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
@@ -136,6 +134,15 @@ namespace StateMachine
             }
             
             return await botClient.SendTextMessageAsync(chatId: message.ChatId, text, useMarkdown:true, cancellationToken: cancellationToken);;
+        }
+
+        private static void FillRow(string[,] telegramTable, int row, string title, string value)
+        {
+            int width = telegramTable.GetLength(1);
+            for (int i = 0; i < width; i++)
+            {
+                telegramTable[row, i] = i == 0? title : value;
+            }
         }
 
         public void Cancel()

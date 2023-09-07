@@ -29,7 +29,7 @@ namespace GoogleSheetWriter
         public string? SubCategory => GetByIndex(_indices.SubcategoryIndex);
         public string? Description => GetByIndex(_indices.DescriptionIndex);
 
-        public Money Amount => ParseMoney(GetByIndex(_indices.RurAmountIndex), GetByIndex(_indices.AmdAmountIndex));
+        public Money Amount => ParseMoney(GetByIndex(_indices.RurAmountIndex), GetByIndex(_indices.AmdAmountIndex), GetByIndex(_indices.GelAmountIndex));
 
         private string? GetByIndex(int? index)
         {
@@ -38,11 +38,12 @@ namespace GoogleSheetWriter
             return _cellData[index.Value];
         }
 
-        private Money ParseMoney(string? rurValue, string? amdValue)
+        private Money ParseMoney(string? rurValue, string? amdValue, string? gelValue)
         {
             string rur = (rurValue ?? String.Empty).Trim();
             string amd = (amdValue ?? String.Empty).Trim();
-            if (string.IsNullOrEmpty(rur) && string.IsNullOrEmpty(amd))
+            string gel = (gelValue ?? String.Empty).Trim();
+            if (string.IsNullOrEmpty(rur) && string.IsNullOrEmpty(amd) && string.IsNullOrEmpty(gel))
                 return new Money() {Currency = Currency.Amd, Amount = 0m};
 
             if (rur.Contains("Загрузка", StringComparison.CurrentCultureIgnoreCase))
@@ -59,8 +60,13 @@ namespace GoogleSheetWriter
             {
                 return money;
             }
+            
+            else if (Money.TryParse(gel, Currency.Gel, _culture, out money))
+            {
+                return money;
+            }
 
-            throw new ArgumentOutOfRangeException($"Couldn't parse money from {rurValue} and {amdValue}");
+            throw new ArgumentOutOfRangeException($"Couldn't parse money from {rurValue}, {amdValue}, and {gelValue}");
         }
     }
 }

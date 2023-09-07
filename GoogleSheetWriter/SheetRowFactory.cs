@@ -37,9 +37,10 @@ namespace GoogleSheetWriter
                 : null;
             int rurAmountIndex = listInfo.AmountRurColumn[0] - listInfo.DateColumn[0];
             int amdAmountIndex = listInfo.AmountAmdColumn[0] - listInfo.DateColumn[0];
+            int gelAmountIndex = listInfo.AmountGelColumn[0] - listInfo.DateColumn[0];
 
             var indices = new IndicesMapping(dateIndex, categoryIndex, subCategoryIndex, descriptionIndex,
-                rurAmountIndex, amdAmountIndex, listInfo.Category);
+                rurAmountIndex, amdAmountIndex, gelAmountIndex, listInfo.Category);
 
             return new SheetRowFactory(indices, culture);
         }

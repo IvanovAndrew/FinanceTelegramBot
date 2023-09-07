@@ -65,7 +65,7 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
                 {
                     Title = $"Category: {_category}. {Environment.NewLine}" +
                             $"Expenses from {firstDayOfMonth.ToString("dd MMMM yyyy")}",
-                    ColumnNames = new[] { "Subcategory", "AMD", "RUR" }
+                    ColumnNames = new[] { "Subcategory", "AMD", "RUR", "GEL" }
                 });
         }
 
@@ -86,7 +86,7 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
                 new TableOptions()
                 {
                     Title = $"Category: {_category}",
-                    ColumnNames = new[] { "Month", "AMD", "RUR" }
+                    ColumnNames = new[] { "Month", "AMD", "RUR", "GEL" }
                 });
         }
 

@@ -14,5 +14,6 @@
         public string DescriptionColumn;
         public string AmountRurColumn;
         public string AmountAmdColumn;
+        public string AmountGelColumn;
     }
 }
