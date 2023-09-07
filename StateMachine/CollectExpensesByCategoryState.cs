@@ -76,47 +76,34 @@ namespace StateMachine
             string text = "";
             try
             {
-                List<IExpense> rows;
+                List<IExpense> expenses;
                 using (_cancellationTokenSource = new CancellationTokenSource())
                 {
-                    rows = await _expenseRepository.Read(_cancellationTokenSource.Token);
+                    expenses = await _expenseRepository.Read(_cancellationTokenSource.Token);
                 }
                 
-                rows = rows.Where(expense => _specification.IsSatisfied(expense)).ToList();
-            
+                expenses = expenses.Where(expense => _specification.IsSatisfied(expense)).ToList();
 
-                _logger.LogInformation($"{rows.Count} expenses satisfy the requirements");
-
-                if (rows.Any())
+                _logger.LogInformation($"{expenses.Count} expenses satisfy the requirements");
+                
+                if (expenses.Any())
                 {
-                    var currencies = new[] { Currency.Amd, Currency.Rur, Currency.Gel };
-                    var statistic = _expensesAggregator.Aggregate(rows, currencies);
+                    var currencies = new []{Currency.Amd, Currency.Rur, Currency.Gel };
+                    var statistic = _expensesAggregator.Aggregate(expenses, currencies);
             
-                    string[,] telegramTable = new string[statistic.Rows.Count + 2, currencies.Length + 1];
+                    var telegramTable = new TelegramTableBuilder(statistic.Rows.Count + 2, currencies.Length + 1);
                     int i = 0;
-                    int column;
+                    
                     foreach (var expenseInfo in statistic.Rows)
                     {
-                        telegramTable[i, 0] = ShortNameOfCategory(_firstColumnName(expenseInfo.Row));
-                        column = 1;
-                        foreach (var currency in currencies)
-                        {
-                            telegramTable[i, column++] = expenseInfo[currency].ToString("N0");
-                        }
-                
+                        telegramTable.FillRow(ShortNameOfCategory(_firstColumnName(expenseInfo.Row)), expenseInfo, currencies);
                         i++;
                     }
 
-                    FillRow(telegramTable, i, "", "");
+                    telegramTable.FillRow(string.Empty, string.Empty);
+                    telegramTable.FillRow("Total", statistic.Total, currencies);
 
-                    telegramTable[i + 1, 0] = "Total";
-                    column = 1;
-                    foreach (var currency in currencies)
-                    {
-                        telegramTable[i + 1, column++] = statistic.Total[currency].ToString("N0");
-                    }
-
-                    text = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
+                    text = MarkdownFormatter.FormatTable(_tableOptions, telegramTable.Build());
                 }
                 else
                 {
@@ -136,13 +123,19 @@ namespace StateMachine
             return await botClient.SendTextMessageAsync(chatId: message.ChatId, text, useMarkdown:true, cancellationToken: cancellationToken);;
         }
 
-        private static void FillRow(string[,] telegramTable, int row, string title, string value)
+        private Currency[] GetAvailableCurrencies(List<IExpense> expenses)
         {
-            int width = telegramTable.GetLength(1);
-            for (int i = 0; i < width; i++)
+            // TODO move to appsettings
+            Dictionary<Currency, int> priorities = new Dictionary<Currency, int>()
             {
-                telegramTable[row, i] = i == 0? title : value;
-            }
+                [Currency.Amd] = 0,
+                [Currency.Rur] = 1,
+                [Currency.Gel] = 2,
+            };
+            
+            return 
+                expenses.Where(expense => expense.Amount.Amount != 0m).Select(expense => expense.Amount.Currency)
+                    .OrderBy(c => priorities[c]).ToArray();
         }
 
         public void Cancel()
