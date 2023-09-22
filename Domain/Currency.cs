@@ -7,6 +7,7 @@
 
         public static Currency Rur = new("RUR", "₽");
         public static Currency Amd = new("AMD", "֏");
+        public static Currency Gel = new("GEL", "₾");
     
         private Currency(string s, string symbol)
         {

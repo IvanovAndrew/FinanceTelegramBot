@@ -4,6 +4,17 @@ namespace Infrastructure
 {
     public class CurrencyParser : ICurrencyParser
     {
+        private Dictionary<string, Currency> _mapping = new()
+        {
+            ["драм"] = Currency.Amd, 
+            ["amd"] = Currency.Amd, 
+            ["rur"] = Currency.Rur, 
+            ["рубл"] = Currency.Rur, 
+            ["gel"] = Currency.Gel, 
+            ["lari"] = Currency.Gel, 
+            ["лари"] = Currency.Gel, 
+        };
+        
         public CurrencyParser()
         {
         }
@@ -12,19 +23,16 @@ namespace Infrastructure
         {
             var stringToParse = text.Trim();
             currency = null;
-        
-            if (stringToParse.Contains("драм", StringComparison.InvariantCultureIgnoreCase) || stringToParse.Contains("amd", StringComparison.InvariantCultureIgnoreCase))
+            
+            foreach (var (mask, mappedCurrency) in _mapping)
             {
-                currency = Currency.Amd;
-                return true;
+                if (stringToParse.Contains(mask, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    currency = mappedCurrency;
+                    return true;
+                }
             }
         
-            if (stringToParse.Contains("рубл", StringComparison.InvariantCultureIgnoreCase) || stringToParse.Contains("rur", StringComparison.InvariantCultureIgnoreCase))
-            {
-                currency = Currency.Rur;
-                return true;
-            }
-
             return false;
         }
     }
