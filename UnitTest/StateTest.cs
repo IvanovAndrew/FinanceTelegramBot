@@ -383,7 +383,7 @@ public class StateTest
         // Act
         var lastMessage = await botEngine.Proceed("/start");
         lastMessage = await botEngine.Proceed("outcome");
-        lastMessage = await botEngine.Proceed("From json");
+        lastMessage = await botEngine.Proceed("From check");
         
         // Assert
         CollectionAssert.AreEquivalent("Paste json file", lastMessage.Text);
@@ -418,7 +418,7 @@ public class StateTest
         // Act
         var lastMessage = await botEngine.Proceed("/start");
         lastMessage = await botEngine.Proceed("outcome");
-        lastMessage = await botEngine.Proceed("From json");
+        lastMessage = await botEngine.Proceed("From check");
         lastMessage = await botEngine.ProceedFile(telegramFile);
         
         // Assert
@@ -453,11 +453,55 @@ public class StateTest
         // Act
         var lastMessage = await botEngine.Proceed("/start");
         lastMessage = await botEngine.Proceed("outcome");
-        lastMessage = await botEngine.Proceed("From json");
+        lastMessage = await botEngine.Proceed("From check");
         lastMessage = await botEngine.ProceedFile(telegramFile);
         
         // Assert
         Assert.That(telegramBot.SentMessages.Any(c => c.Text.Contains("All expenses are saved", StringComparison.InvariantCultureIgnoreCase)));
+    }
+    
+    [Test]
+    public async Task StatisticForADay()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        
+        var expenseRepository = new ExpenseRepositoryStub();
+        await expenseRepository.SaveAll(
+            new List<IExpense>()
+            {
+                new Expense(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+            }, default);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+        
+        // Act
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("Statistics");
+        await botEngine.Proceed("For a day");
+        var lastMessage = await botEngine.Proceed("23 July 2023");
+
+        // Assert
+        StringAssert.Contains("23 July 2023", lastMessage.Text);
+        StringAssert.Contains("Category", lastMessage.Text);
+        StringAssert.Contains("Cats", lastMessage.Text);
+        StringAssert.Contains("Food", lastMessage.Text);
+        StringAssert.Contains("Total", lastMessage.Text);
     }
 
     private StateFactory CreateStateFactory(Category[] categories, IExpenseRepository expenseRepository, IDateTimeService dateTimeService, ILogger<StateFactory> logger)

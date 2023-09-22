@@ -22,7 +22,7 @@ class EnterTheWayState : IExpenseInfoState
         var keyboard = TelegramKeyboard.FromButtons(new[]
         {
             new TelegramButton{Text = "By myself", CallbackData = "user"},
-            new TelegramButton{Text = "From json", CallbackData = "json"},
+            new TelegramButton{Text = "From check", CallbackData = "json"},
         });
         
         return await botClient.SendTextMessageAsync(
