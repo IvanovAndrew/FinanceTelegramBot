@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using TelegramBot.Services;
 
 namespace TelegramBot
 {
@@ -8,7 +6,11 @@ namespace TelegramBot
     {
         public static async Task Main(string[] args)
         {
-            await CreateHostBuilder(args).Build().RunAsync();
+            var host =  CreateHostBuilder(args).Build();
+            
+            await host.Services.GetRequiredService<TelegramBotService>().GetBot();
+            
+            await host.RunAsync();
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args)

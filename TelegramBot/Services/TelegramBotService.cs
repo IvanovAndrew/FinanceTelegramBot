@@ -25,7 +25,7 @@ namespace TelegramBot.Services
         {
             if (_botClient != null) return _wrappedBot!;
 
-            _botClient = new TelegramBotClient(_token);
+            _botClient = new TelegramBotClient(_token) {Timeout = TimeSpan.FromSeconds(15)};
 
             var hook = $"{_url}{Route}";
 

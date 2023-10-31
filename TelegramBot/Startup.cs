@@ -115,7 +115,7 @@ namespace TelegramBot
 
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Warrior's finance bot"));
-            serviceProvider.GetRequiredService<TelegramBotService>().GetBot().Wait();
+            
         
             app.UseRouting();
 
