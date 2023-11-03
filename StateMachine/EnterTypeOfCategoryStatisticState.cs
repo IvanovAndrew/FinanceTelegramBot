@@ -8,15 +8,17 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
 {
     private readonly StateFactory _factory;
     private readonly string _category;
+    private readonly DateOnly _today;
     private ILogger _logger;
     public bool UserAnswerIsRequired => true;
     public IExpenseInfoState PreviousState { get; }
 
-    public EnterTypeOfCategoryStatisticState(StateFactory factory, IExpenseInfoState previousState, string category,
+    public EnterTypeOfCategoryStatisticState(StateFactory factory, IExpenseInfoState previousState, string category, DateOnly today,
         ILogger logger)
     {
         _factory = factory;
         _category = category;
+        _today = today;
         PreviousState = previousState;
         _logger = logger;
     }
@@ -49,7 +51,7 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
     {
         if (message.Text == "subcategory")
         {
-            var firstDayOfMonth = DateOnly.FromDateTime(DateTime.Today).FirstDayOfMonth();
+            var firstDayOfMonth = _today.FirstDayOfMonth();
 
             var expenseAggregator = new ExpensesAggregator<string>(
                 e => e.SubCategory ?? string.Empty, true, sortAsc: false);
@@ -76,7 +78,7 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
 
             var specification =
                 new MultipleSpecification(
-                    new ExpenseLaterThanSpecification(DateOnly.FromDateTime(DateTime.Today.AddYears(-1)).FirstDayOfMonth()),
+                    new ExpenseLaterThanSpecification(_today.AddYears(-1).FirstDayOfMonth()),
                     new ExpenseFromCategorySpecification(_category)
                 );
 

@@ -49,7 +49,7 @@ namespace StateMachine
     
         internal IExpenseInfoState CreateEnterTheMonthState(IExpenseInfoState previousState)
         {
-            return new EnterTheMonthState(this, previousState, DateOnly.FromDateTime(DateTime.Today), _logger);
+            return new EnterTheMonthState(this, previousState, _dateTimeService.Today(), _logger);
         }
 
         internal IExpenseInfoState CreateCategoryForStatisticState(IExpenseInfoState previousState)
@@ -59,7 +59,7 @@ namespace StateMachine
     
         internal IExpenseInfoState CreateEnterTheExpenseDayState(IExpenseInfoState previousState)
         {
-            return new EnterTheExpenseDayState(this, previousState, DateOnly.FromDateTime(DateTime.Today), _logger);
+            return new EnterTheExpenseDayState(this, previousState, _dateTimeService.Today(), _logger);
         }
 
         internal IExpenseInfoState CreateEnterTheCategoryState(ExpenseBuilder expenseBuilder, IExpenseInfoState previousState)
@@ -119,7 +119,7 @@ namespace StateMachine
 
         public IExpenseInfoState GetEnterTypeOfCategoryStatistic(IExpenseInfoState previousState, Category category)
         {
-            return new EnterTypeOfCategoryStatisticState(this, previousState, category.Name, _logger);
+            return new EnterTypeOfCategoryStatisticState(this, previousState, category.Name, _dateTimeService.Today(), _logger);
         }
 
         public IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses, IExpenseInfoState previousState)
