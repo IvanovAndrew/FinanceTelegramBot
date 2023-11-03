@@ -23,7 +23,6 @@ namespace TelegramBot
             services.AddLogging();
             services.AddSingleton<IDateTimeService, DateTimeService>();
             services.AddSingleton<TelegramBotService>(s => ActivatorUtilities.CreateInstance<TelegramBotService>(s, 
-                _configuration.GetSection("Telegram")["Url"], 
                 _configuration.GetSection("Telegram")["Token"], 
                 long.Parse(_configuration.GetSection("Telegram")["SupportChatId"])));
             services.AddSingleton<CategoryOptions>();

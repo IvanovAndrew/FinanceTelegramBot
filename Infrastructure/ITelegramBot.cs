@@ -8,4 +8,7 @@ public interface ITelegramBot
     Task SetMyCommandsAsync(TelegramButton[] buttons, CancellationToken cancellationToken = default);
     Task DeleteMessageAsync(long chatId, int messageId, CancellationToken cancellationToken);
     Task<IFile?> GetFileAsync(string fileId, string? mimeType, CancellationToken cancellationToken = default);
+
+    Task<TelegramWebHookInfo> GetWebhookInfoAsync();
+    Task SetWebhookAsync(string url);
 }

@@ -77,4 +77,24 @@ public class TelegramBotClientImpl : ITelegramBot
         
         return new TelegramFile(){Text = text};
     }
+
+    public async Task SetWebhookAsync(string url)
+    {
+        await _client.SetWebhookAsync(url);
+    }
+    
+    public async Task<TelegramWebHookInfo> GetWebhookInfoAsync()
+    {
+        var webHookInfo = await _client.GetWebhookInfoAsync();
+
+        return new TelegramWebHookInfo()
+        {
+            Url = webHookInfo.Url,
+            LastErrorDate = webHookInfo.LastErrorDate,
+            LastErrorMessage = webHookInfo.LastErrorMessage,
+            PendingUpdateCount = webHookInfo.PendingUpdateCount,
+            IpAddress = webHookInfo.IpAddress,
+            MaxConnections = webHookInfo.MaxConnections,
+        };
+    }
 }

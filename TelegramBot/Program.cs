@@ -1,22 +1,24 @@
-using TelegramBot.Services;
-
 namespace TelegramBot
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
-            var host =  CreateHostBuilder(args).Build();
-            
-            await host.Services.GetRequiredService<TelegramBotService>().GetBot();
-            
-            await host.RunAsync();
+            CreateHostBuilder(args).Build().Run();
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    var app = webBuilder.UseStartup<Startup>();
+                    var port = Environment.GetEnvironmentVariable("PORT");
+                    if (port != null)
+                    {
+                        app.UseUrls($"http://*:{port}");
+                    }
+                });
         }
     }
 }

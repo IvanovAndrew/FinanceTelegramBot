@@ -47,4 +47,14 @@ public class TelegramBotMock : ITelegramBot
     {
         return Task.FromResult(SavedFiles[fileId] as IFile)!;
     }
+
+    public Task<TelegramWebHookInfo> GetWebhookInfoAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SetWebhookAsync(string url)
+    {
+        throw new NotImplementedException();
+    }
 }
