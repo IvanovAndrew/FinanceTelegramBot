@@ -58,10 +58,11 @@ namespace TelegramBot.Controllers
 
             var hookUrl = url;
 
-            if (!hookUrl.EndsWith(MessageRoute))
+            var path = Route + "/" + MessageRoute;
+            if (!hookUrl.EndsWith(path))
             {
                 hookUrl = url.Last() == '/' ? url : url + "/";
-                hookUrl += MessageRoute;
+                hookUrl += path;
             }
             
             await bot.SetWebhookAsync(hookUrl);
