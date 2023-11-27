@@ -55,7 +55,7 @@ namespace StateMachine
                     new TableOptions()
                     {
                         Title = selectedDay.ToString("dd MMMM yyyy"),
-                        ColumnNames = new []{"Category", "AMD", "RUR", "GEL"}
+                        FirstColumnName = "Category"
                     });
             }
 

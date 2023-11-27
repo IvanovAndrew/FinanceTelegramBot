@@ -6,10 +6,10 @@ namespace Infrastructure
     {
         public static string FormatTable(TableOptions tableOptions, string[,] rows)
         {
-            if (tableOptions.ColumnNames == null || tableOptions.ColumnNames.Length == 0) throw new ArgumentException("Missing table titles");
+            if (tableOptions.FirstColumnName == null) throw new ArgumentException("Missing table title");
             if (rows == null || rows.Length == 0) throw new ArgumentException("Missing table values");
 
-            int[] columnWidth = CalculateColumnWidth(tableOptions.ColumnNames, rows);
+            int[] columnWidth = CalculateColumnWidth(tableOptions.AllColumns, rows);
         
             var builder = new StringBuilder();
 
@@ -22,17 +22,17 @@ namespace Infrastructure
                 builder.AppendLine(tableOptions.Title);
             }
         
-            for (int i = 0; i < tableOptions.ColumnNames.Length; i++)
+            for (int i = 0; i < tableOptions.AllColumns.Length; i++)
             {
                 if (i != 0)
                 {
                     builder.Append("|");
                 }
-                builder.Append($@"{tableOptions.ColumnNames[i].PadLeft(columnWidth[i])}");
+                builder.Append($@"{tableOptions.AllColumns[i].PadLeft(columnWidth[i])}");
             }
             builder.AppendLine();
         
-            for (int i = 0; i < tableOptions.ColumnNames.Length; i++)
+            for (int i = 0; i < tableOptions.AllColumns.Length; i++)
             {
                 if (i != 0)
                 {

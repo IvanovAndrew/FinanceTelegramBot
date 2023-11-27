@@ -55,7 +55,7 @@ internal class EnterTheMonthState : IExpenseInfoState
                 new ExpenseFromDateRangeSpecification(selectedMonth.FirstDayOfMonth(), selectedMonth.LastDayOfMonth());
             
             return _factory.GetExpensesState(this, specification, expenseAggregator, s => s,
-                new TableOptions(){Title = selectedMonth.ToString("MMMM yyyy"), ColumnNames = new []{"Category", "AMD", "RUR", "GEL"}});
+                new TableOptions(){Title = selectedMonth.ToString("MMMM yyyy"), FirstColumnName = "Category"});
         }
 
         return this;

@@ -88,7 +88,8 @@ namespace StateMachine
                 
                 if (expenses.Any())
                 {
-                    var currencies = new []{Currency.Amd, Currency.Rur, Currency.Gel };
+                    var currencies = expenses.Select(c => c.Amount.Currency).Distinct().ToArray();
+                    _tableOptions.OtherColumns = currencies.Select(c => c.ToString()).ToArray();
                     var statistic = _expensesAggregator.Aggregate(expenses, currencies);
             
                     var telegramTable = new TelegramTableBuilder(statistic.Rows.Count + 2, currencies.Length + 1);
