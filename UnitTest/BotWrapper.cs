@@ -18,7 +18,8 @@ internal class BotEngineWrapper
         var lastSendMessage = _telegramBot.SentMessages.LastOrDefault() as MessageStub;
 
         var messageText = text;
-        if (lastSendMessage?.TelegramKeyboard != null)
+
+        if (!messageText.StartsWith("/") && lastSendMessage?.TelegramKeyboard != null)
         {
             messageText = lastSendMessage.TelegramKeyboard.Buttons.SelectMany(row => row.Select(b => b))
                 .First(b => string.Equals(b.Text, text, StringComparison.InvariantCultureIgnoreCase)).CallbackData;

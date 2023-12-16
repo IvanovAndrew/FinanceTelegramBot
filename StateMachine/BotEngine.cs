@@ -34,8 +34,10 @@ namespace StateMachine
                 _answers[message.ChatId] = state = _stateFactory.CreateGreetingState();
             }
             
+            
+            await RemovePreviousMessage(state, botClient, message.ChatId);
+            
             IExpenseInfoState newState;
-
             if (TryGetCommand(message.Text, botClient, _stateFactory, message.ChatId, out var command))
             {
                 newState = await command.Execute(state);
@@ -45,8 +47,6 @@ namespace StateMachine
 
                 return response;
             }
-            
-            await RemovePreviousMessage(state, botClient, message.ChatId);
 
             if (message.Edited)
             {

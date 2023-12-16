@@ -285,6 +285,39 @@ public class StateTest
     }
     
     [Test]
+    public async Task WhenBackCommandIsExecutedThenLastBotMessageWillBeRemoved()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        
+        var expenseRepository = new ExpenseRepositoryStub();
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+        
+        // Act
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("outcome");
+        await botEngine.Proceed("By myself");
+        await botEngine.Proceed("today");
+        var lastMessage = await botEngine.Proceed("/back");
+
+        // Assert
+        Assert.That(telegramBot.SentMessages.Select(c => c.Text), Is.Not.Contains("Enter the category"));
+    }
+    
+    [Test]
     public async Task IfWrongPriceIsEnteredItWillBePossibleToReenterIt()
     {
         // Arrange
