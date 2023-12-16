@@ -285,6 +285,51 @@ public class StateTest
     }
     
     [Test]
+    public async Task IfWrongPriceIsEnteredItWillBePossibleToReenterIt()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        
+        var expenseRepository = new ExpenseRepositoryStub();
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+        
+        // Act
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("outcome");
+        await botEngine.Proceed("By myself");
+        await botEngine.Proceed("today");
+        await botEngine.Proceed("cats");
+        await botEngine.Proceed("royal canin");
+        await botEngine.Proceed("20000 dam");
+        await botEngine.Proceed("1999");
+        await botEngine.Proceed("10000 amd");
+        var lastMessage = await botEngine.Proceed("Save");
+
+        var savedExpenses = await expenseRepository.Read(default);
+        var savedExpense = savedExpenses.First();
+        
+        // Assert
+        Assert.That(() => new DateOnly(2023, 6, 29) == savedExpense.Date);
+        Assert.That(savedExpense.Category, Is.EqualTo("Cats"));
+        Assert.That(savedExpense.SubCategory, Is.EqualTo(null));
+        Assert.That(savedExpense.Description, Is.EqualTo("royal canin"));
+        Assert.That(savedExpense.Amount, Is.EqualTo(new Money(){Amount = 10_000, Currency = Currency.Amd}));
+    }
+    
+    [Test]
     public async Task ClickOnCancelButtonCancelsLongTermOperation()
     {
         // Arrange

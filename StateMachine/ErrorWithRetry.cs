@@ -26,7 +26,7 @@ namespace StateMachine
 
         public async Task Handle(IMessage message, CancellationToken cancellationToken)
         {
-            await Task.Run(() => { });
+            await _state.Handle(message, cancellationToken);
         }
 
         public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
