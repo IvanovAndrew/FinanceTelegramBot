@@ -12,10 +12,6 @@ namespace Infrastructure
             int[] columnWidth = CalculateColumnWidth(tableOptions.AllColumns, rows);
         
             var builder = new StringBuilder();
-
-            // telegram unfixed bug: leading symbol is trimmed
-            // https://github.com/telegramdesktop/tdesktop/issues/1521
-            builder.AppendLine(@"|");
             
             if (!string.IsNullOrEmpty(tableOptions.Title))
             {
