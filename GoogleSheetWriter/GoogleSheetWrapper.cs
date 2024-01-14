@@ -20,6 +20,7 @@ namespace GoogleSheetWriter
         private readonly ILogger _logger;
         private const int BatchSize = 500;
         private char FirstExcelColumn = 'A';
+        private static readonly SemaphoreSlim _semaphore = new(1);
 
         public GoogleSheetWrapper(SheetOptions options, CategoryToListMappingOptions mappingOptions,
             string applicationName, string spreadsheetId, ILogger<GoogleSheetWrapper> logger)
@@ -50,27 +51,36 @@ namespace GoogleSheetWriter
                 listInfo = _options.BigDealInfo;
             }
 
-            int row = await GetNumberFilledRows(service, listInfo.ListName, cancellationToken) + 1;
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
-            string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountGelColumn}{row + expenses.Count - 1}";
-
-            var excelRowValues = FillExcelRows(expenses, listInfo, row);
-
-            var valueRange = new ValueRange
+            await _semaphore.WaitAsync(cancellationToken);
+            try
             {
-                Range = range,
-                MajorDimension = "ROWS",
-                Values = excelRowValues
-            };
+                int row = await GetNumberFilledRows(service, listInfo.ListName, cancellationToken) + 1;
+                cancellationToken.ThrowIfCancellationRequested();
 
-            SpreadsheetsResource.ValuesResource.UpdateRequest request =
-                service.Spreadsheets.Values.Update(valueRange, _spreadsheetId, range);
-            request.ValueInputOption =
-                SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
+                string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountGelColumn}{row + expenses.Count - 1}";
 
-            await request.ExecuteAsync(cancellationToken);
+                var excelRowValues = FillExcelRows(expenses, listInfo, row);
+
+                var valueRange = new ValueRange
+                {
+                    Range = range,
+                    MajorDimension = "ROWS",
+                    Values = excelRowValues
+                };
+
+                SpreadsheetsResource.ValuesResource.UpdateRequest request =
+                    service.Spreadsheets.Values.Update(valueRange, _spreadsheetId, range);
+                request.ValueInputOption =
+                    SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+
+                await request.ExecuteAsync(cancellationToken);
+            }
+            catch (Exception e)
+            {
+                _semaphore.Release();
+                throw;
+            }
         }
 
         private List<IList<object>> FillExcelRows(List<IExpense> expenses, ListInfo listInfo, int firstRow)
@@ -172,7 +182,6 @@ namespace GoogleSheetWriter
         private async Task<int> GetNumberFilledRows(SheetsService service, string listName,
             CancellationToken cancellationToken)
         {
-            // TODO call it Async
             var request = service.Spreadsheets.Get(_spreadsheetId);
             request.IncludeGridData = true;
             request.Ranges = $"{listName}!A1:B";
