@@ -581,6 +581,184 @@ public class StateTest
         StringAssert.Contains("Food", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
+    
+    [Test]
+    public async Task StatisticForADayAllowsToChooseBetweenTodayYesterdayAndEnterCustomDate()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        
+        var expenseRepository = new ExpenseRepositoryStub();
+        await expenseRepository.SaveAll(
+            new List<IExpense>()
+            {
+                new Expense(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+            }, default);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+        
+        // Act
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("Statistics");
+        var response = await botEngine.Proceed("For a day");
+        
+
+        // Assert
+        var buttons = response.TelegramKeyboard?.Buttons?.SelectMany(c => c.Select(_ => _.Text));
+        CollectionAssert.Contains(buttons, "24 July 2023");
+        CollectionAssert.Contains(buttons, "23 July 2023");
+        CollectionAssert.Contains(buttons, "Another day");
+    }
+    
+    [Test]
+    public async Task StatisticForACustomDay()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        
+        var expenseRepository = new ExpenseRepositoryStub();
+        await expenseRepository.SaveAll(
+            new List<IExpense>()
+            {
+                new Expense(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+            }, default);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+        
+        // Act
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("Statistics");
+        await botEngine.Proceed("For a day");
+        await botEngine.Proceed("Another day");
+        var lastMessage = await botEngine.Proceed("22.07.2023");
+        
+
+        // Assert
+        StringAssert.Contains("22 July 2023", lastMessage.Text);
+        StringAssert.Contains("Category", lastMessage.Text);
+        StringAssert.Contains("Cats", lastMessage.Text);
+        StringAssert.Contains("֏10,000", lastMessage.Text);
+        StringAssert.Contains("Total", lastMessage.Text);
+    }
+    
+    [Test]
+    public async Task StatisticForAMonthAllowsToChooseBetweenCurrentPreviousAndEnterCustomMonth()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        
+        var expenseRepository = new ExpenseRepositoryStub();
+        await expenseRepository.SaveAll(
+            new List<IExpense>()
+            {
+                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+            }, default);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+        
+        // Act
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("Statistics");
+        var response = await botEngine.Proceed("For a month");
+        
+
+        // Assert
+        var buttons = response.TelegramKeyboard?.Buttons?.SelectMany(c => c.Select(_ => _.Text));
+        CollectionAssert.Contains(buttons, "July 2023");
+        CollectionAssert.Contains(buttons, "June 2023");
+        CollectionAssert.Contains(buttons, "Another month");
+    }
+    
+    [Test]
+    public async Task StatisticForACustomMonth()
+    {
+        // Arrange
+        var telegramBot = new TelegramBotMock();
+        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var categories = new Category[]
+        {
+            new()
+            {
+                Name = "Food",
+                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+            },
+            new()
+            {
+                Name = "Cats",
+            }
+        };
+        
+        var expenseRepository = new ExpenseRepositoryStub();
+        await expenseRepository.SaveAll(
+            new List<IExpense>()
+            {
+                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+            }, default);
+        var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
+        
+        // Act
+        await botEngine.Proceed("/start");
+        await botEngine.Proceed("Statistics");
+        await botEngine.Proceed("For a month");
+        await botEngine.Proceed("Another month");
+        var lastMessage = await botEngine.Proceed("May 2023");
+        
+
+        // Assert
+        StringAssert.Contains("May 2023", lastMessage.Text);
+        StringAssert.Contains("Category", lastMessage.Text);
+        StringAssert.Contains("Cats", lastMessage.Text);
+        StringAssert.Contains("֏10,000", lastMessage.Text);
+        StringAssert.Contains("Total", lastMessage.Text);
+    }
 
     private StateFactory CreateStateFactory(Category[] categories, IExpenseRepository expenseRepository, IDateTimeService dateTimeService, ILogger<StateFactory> logger)
     {

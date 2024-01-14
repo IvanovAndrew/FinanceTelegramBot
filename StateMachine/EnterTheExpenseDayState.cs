@@ -8,9 +8,9 @@ namespace StateMachine
     {
         public bool UserAnswerIsRequired => true;
         private readonly StateFactory _factory;
-        private readonly DateOnly _today;
+        protected readonly DateOnly _today;
         private readonly ILogger _logger;
-        private readonly string _dateFormat = "yyyy-MM-dd";
+        protected readonly string _dateFormat = "dd.MM.yyyy";
     
         public IExpenseInfoState PreviousState { get; private set; }
 
@@ -22,14 +22,28 @@ namespace StateMachine
             PreviousState = previousState;
         }
     
-        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
+        public virtual async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             var info = "Enter the day";
-            
-            var keyboard = 
+
+            var yesterday = _today.AddDays(-1);
+
+            var keyboard =
                 TelegramKeyboard.FromButtons(
-                    Enumerable.Range(0, 6).Reverse().Select(c => _today.AddDays(-c))
-                .Select(date => new TelegramButton() {Text = $"{date.ToString("dd MMMM yyyy")}", CallbackData = date.ToString(_dateFormat)}), 3);
+                    new TelegramButton[]
+                    {
+                        new()
+                        {
+                            Text = $"{_today.ToString("dd MMMM yyyy")}", 
+                            CallbackData = _today.ToString(_dateFormat)
+                        },
+                        new()
+                        {
+                            Text = $"{yesterday.ToString("dd MMMM yyyy")}",
+                            CallbackData = yesterday.ToString(_dateFormat)
+                        },
+                        new() { Text = "Another day", CallbackData = "custom" },
+                    }, 3);
         
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
@@ -58,8 +72,25 @@ namespace StateMachine
                         FirstColumnName = "Category"
                     });
             }
+            
+            if (message.Text == "custom")
+            {
+                return new EnterCustomExpenseDateState(_factory, this, _today, _logger);
+            }
 
             return this;
+        }
+    }
+    
+    internal class EnterCustomExpenseDateState : EnterTheExpenseDayState
+    {
+        internal EnterCustomExpenseDateState(StateFactory factory, IExpenseInfoState previousState, DateOnly today, ILogger logger) : base(factory, previousState, today, logger)
+        {
+        }
+
+        public override async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
+        {
+            return await botClient.SendTextMessageAsync(chatId, $"Enter the day (for example, today is {_today.ToString(_dateFormat)})", cancellationToken: cancellationToken);
         }
     }
 }
