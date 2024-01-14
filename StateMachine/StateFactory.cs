@@ -46,20 +46,15 @@ namespace StateMachine
         {
             return new CreateStatisticTypeState(this, previousState, _logger);
         }
-    
-        internal IExpenseInfoState CreateEnterTheMonthState(IExpenseInfoState previousState)
-        {
-            return new EnterTheMonthState(this, previousState, _dateTimeService.Today(), _logger);
-        }
 
         internal IExpenseInfoState CreateCategoryForStatisticState(IExpenseInfoState previousState)
         {
             return new EnterCategoryForStatisticState(this, previousState, _categories, _logger);
         }
     
-        internal IExpenseInfoState CreateEnterTheExpenseDayState(IExpenseInfoState previousState)
+        internal IExpenseInfoState CreateCollectDayExpenseState(IExpenseInfoState previousState)
         {
-            return new EnterTheExpenseDayState(this, previousState, _dateTimeService.Today(), _logger);
+            return new CollectDayExpenseState(this, previousState, _dateTimeService.Today(), _logger);
         }
 
         internal IExpenseInfoState CreateEnterTheCategoryState(ExpenseBuilder expenseBuilder, IExpenseInfoState previousState)
@@ -125,6 +120,11 @@ namespace StateMachine
         public IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses, IExpenseInfoState previousState)
         {
             return new SaveAllExpensesState(this, previousState, expenses, _expenseRepository, _logger);
+        }
+
+        internal IExpenseInfoState CreateCollectMonthStatisticState(IExpenseInfoState previousState)
+        {
+            return new CollectMonthStatisticState(this, previousState, _dateTimeService.Today(), _logger);
         }
     }
 }

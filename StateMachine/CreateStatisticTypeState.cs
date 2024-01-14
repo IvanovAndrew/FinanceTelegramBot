@@ -44,8 +44,8 @@ namespace StateMachine
 
         public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
         {
-            if (message.Text == "statisticByDay") return _factory.CreateEnterTheExpenseDayState(this);
-            if (message.Text == "statisticByMonth") return _factory.CreateEnterTheMonthState(this);
+            if (message.Text == "statisticByDay") return _factory.CreateCollectDayExpenseState(this);
+            if (message.Text == "statisticByMonth") return _factory.CreateCollectMonthStatisticState(this);
             if (message.Text == "statisticByCategory") return _factory.CreateCategoryForStatisticState(this);
 
             throw new BotStateException(new []{"statisticByDay", "statisticByMonth", "statisticByCategory"}, message.Text);
