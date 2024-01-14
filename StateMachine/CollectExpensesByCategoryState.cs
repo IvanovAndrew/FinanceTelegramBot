@@ -111,9 +111,9 @@ namespace StateMachine
                     text = "There is no any expenses for this period";
                 }
             }
-            catch (OperationCanceledException e)
+            catch (OperationCanceledException)
             {
-                text = "Operation is canceled";
+                text = "Operation is canceled by user";
             }
             finally
             {

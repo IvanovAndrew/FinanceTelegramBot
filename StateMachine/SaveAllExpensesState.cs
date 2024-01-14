@@ -51,15 +51,14 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
 
             saved = true;
         }
-        catch (OperationCanceledException e)
+        catch (OperationCanceledException)
         {
+            _logger.LogInformation("Operation is canceled by user");
         }
         finally
         {
             _cancellationTokenSource = null;
         }
-
-        
 
         await botClient.DeleteMessageAsync(message.ChatId, message.Id, cancellationToken);
         await botClient.DeleteMessageAsync(message.ChatId, savingMessage.Id, cancellationToken);

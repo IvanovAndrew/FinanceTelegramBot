@@ -49,9 +49,9 @@ namespace StateMachine
 
                 saved = true;
             }
-            catch (OperationCanceledException e)
+            catch (OperationCanceledException)
             {
-                // ignore
+                _logger.LogInformation("Operation is canceled by user");
             }
             finally
             {

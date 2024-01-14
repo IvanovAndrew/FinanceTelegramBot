@@ -660,9 +660,8 @@ public class StateTest
         await botEngine.Proceed("Statistics");
         await botEngine.Proceed("For a day");
         await botEngine.Proceed("Another day");
-        var lastMessage = await botEngine.Proceed("22.07.2023");
+        var lastMessage = await botEngine.Proceed("22 July 2023");
         
-
         // Assert
         StringAssert.Contains("22 July 2023", lastMessage.Text);
         StringAssert.Contains("Category", lastMessage.Text);
