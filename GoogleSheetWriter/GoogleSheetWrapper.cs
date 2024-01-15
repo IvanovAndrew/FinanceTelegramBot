@@ -20,7 +20,7 @@ namespace GoogleSheetWriter
         private readonly ILogger _logger;
         private const int BatchSize = 500;
         private char FirstExcelColumn = 'A';
-        private static readonly SemaphoreSlim _semaphore = new(1);
+        private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
         public GoogleSheetWrapper(SheetOptions options, CategoryToListMappingOptions mappingOptions,
             string applicationName, string spreadsheetId, ILogger<GoogleSheetWrapper> logger)
@@ -51,7 +51,8 @@ namespace GoogleSheetWriter
                 listInfo = _options.BigDealInfo;
             }
 
-            await _semaphore.WaitAsync(cancellationToken);
+            await _semaphore.WaitAsync(TimeSpan.FromMinutes(1), cancellationToken);
+            _logger.LogDebug("Semaphore is taken");
             try
             {
                 int row = await GetNumberFilledRows(service, listInfo.ListName, cancellationToken) + 1;
@@ -76,10 +77,10 @@ namespace GoogleSheetWriter
 
                 await request.ExecuteAsync(cancellationToken);
             }
-            catch (Exception e)
+            finally
             {
                 _semaphore.Release();
-                throw;
+                _logger.LogDebug("Semaphore is realized");
             }
         }
 

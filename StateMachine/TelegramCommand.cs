@@ -28,14 +28,14 @@ public class CancelCommand : TelegramCommand
     {
     }
     
-    public override async Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationToken = default)
+    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationToken = default)
     {
         if (state is ILongTermOperation longTermOperation)
         {
             longTermOperation.Cancel();
         }
 
-        return _stateFactory.CreateGreetingState();
+        return Task.FromResult(_stateFactory.CreateGreetingState());
     }
 
 }
