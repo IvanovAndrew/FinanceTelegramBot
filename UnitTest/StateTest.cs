@@ -890,15 +890,16 @@ public class StateTest
         await botEngine.Proceed("For a category");
         await botEngine.Proceed("Food");
         await botEngine.Proceed("Subcategory");
-        await botEngine.Proceed("Snacks");
         var lastMessage = await botEngine.Proceed("July 2022");
         
 
         // Assert
-        StringAssert.Contains("July 2023", lastMessage.Text);
+        StringAssert.Contains("Expenses from July 2022", lastMessage.Text);
         StringAssert.Contains("Category", lastMessage.Text);
         StringAssert.Contains("Subcategory", lastMessage.Text);
         StringAssert.Contains("Food", lastMessage.Text);
+        StringAssert.Contains("Snacks", lastMessage.Text);
+        StringAssert.Contains("Products", lastMessage.Text);
         StringAssert.Contains("֏1,000", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
@@ -939,15 +940,16 @@ public class StateTest
         await botEngine.Proceed("For a category");
         await botEngine.Proceed("Food");
         await botEngine.Proceed("Subcategory");
-        await botEngine.Proceed("Snacks");
         await botEngine.Proceed("Another");
-        var lastMessage = await botEngine.Proceed("January 2022");
+        var lastMessage = await botEngine.Proceed("March 2022");
         
 
         // Assert
-        StringAssert.Contains("July 2023", lastMessage.Text);
+        StringAssert.Contains("Expenses from March 2022", lastMessage.Text);
         StringAssert.Contains("Category", lastMessage.Text);
         StringAssert.Contains("Food", lastMessage.Text);
+        StringAssert.Contains("Snacks", lastMessage.Text);
+        StringAssert.Contains("Products", lastMessage.Text);
         StringAssert.Contains("֏1,000", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }

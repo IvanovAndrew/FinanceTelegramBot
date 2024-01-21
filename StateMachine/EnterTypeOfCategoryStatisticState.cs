@@ -29,11 +29,7 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
     {
         var keyboard = TelegramKeyboard.FromButtons(new[]
         {
-            new TelegramButton()
-            {
-                Text = "Subcategory",
-                CallbackData = "subcategory"
-            },
+            new TelegramButton() { Text = "Subcategory", CallbackData = "subcategory" },
             new TelegramButton() { Text = "For the period", CallbackData = "periodtodate" },
         });
 
@@ -52,13 +48,13 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
     {
         if (message.Text == "subcategory")
         {
-            return _factory.CreateEnterSubCategoryExpensesState(this, _category);
+            return _factory.CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(this, _category);
             
         }
 
         if (message.Text == "periodtodate")
         {
-            return _factory.CreateCollectCategoryExpensesState(this, _category);
+            return _factory.CreateCollectCategoryExpensesByMonthsState(this, _category);
         }
 
         throw new BotStateException(new []{"subcategory", "lastyear"}, message.Text);

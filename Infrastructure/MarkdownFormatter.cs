@@ -12,6 +12,7 @@ namespace Infrastructure
             int[] columnWidth = CalculateColumnWidth(tableOptions.AllColumns, rows);
         
             var builder = new StringBuilder();
+            builder.AppendLine("Statistic");
             
             if (!string.IsNullOrEmpty(tableOptions.Title))
             {
