@@ -13,7 +13,7 @@ internal class CollectSubCategoryExpensesState : IExpenseInfoState
     private readonly ILogger<StateFactory> _logger;
 
     private IExpenseInfoState _datePicker;
-    private string DateFormat = "MMM yyyy";
+    private string DateFormat = "MMMM yyyy";
 
     public CollectSubCategoryExpensesState(StateFactory factory, IExpenseInfoState previousState, DateOnly today, Category category, SubCategory subCategory, ILogger<StateFactory> logger)
     {
@@ -27,7 +27,7 @@ internal class CollectSubCategoryExpensesState : IExpenseInfoState
             new[] { _today.AddYears(-1), _today.AddMonths(-6), _today.AddMonths(-1) }, "Another period");
     }
 
-    public bool UserAnswerIsRequired { get; }
+    public bool UserAnswerIsRequired => true;
     public IExpenseInfoState PreviousState { get; }
     public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
