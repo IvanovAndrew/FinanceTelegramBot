@@ -35,15 +35,15 @@ namespace StateMachine
 
         public bool UserAnswerIsRequired => false;
 
-        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
+        public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             throw new InvalidCastException();
         }
 
-        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        public Task Handle(IMessage message, CancellationToken cancellationToken)
         {
             // TODO move logic to here
-            await Task.Run(() => { });
+            return Task.CompletedTask;
         }
 
         private static string ShortNameOfCategory(string name)

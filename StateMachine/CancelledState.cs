@@ -23,9 +23,9 @@ namespace StateMachine
             return botClient.SendTextMessageAsync(chatId, "Canceled");
         }
 
-        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        public Task Handle(IMessage message, CancellationToken cancellationToken)
         {
-            await Task.Run(() => { });
+            return Task.CompletedTask;
         }
 
         public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)

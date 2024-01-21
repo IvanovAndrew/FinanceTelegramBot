@@ -10,12 +10,12 @@ public class CommandAttribute : Attribute
 
 public abstract class TelegramCommand
 {
-    protected readonly StateFactory _stateFactory;
-    protected readonly long _chatId;
+    protected readonly StateFactory StateFactory;
+    protected readonly long ChatId;
     protected TelegramCommand(StateFactory stateFactory, long chatId)
     {
-        _stateFactory = stateFactory;
-        _chatId = chatId;
+        StateFactory = stateFactory;
+        ChatId = chatId;
     }
     
     public abstract Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationToken = default);
@@ -35,7 +35,7 @@ public class CancelCommand : TelegramCommand
             longTermOperation.Cancel();
         }
 
-        return Task.FromResult(_stateFactory.CreateGreetingState());
+        return Task.FromResult(StateFactory.CreateGreetingState());
     }
 
 }
@@ -49,7 +49,7 @@ public class StartCommand : TelegramCommand
     
     public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationTokenSource = default)
     {
-        return Task.FromResult(_stateFactory.CreateGreetingState());
+        return Task.FromResult(StateFactory.CreateGreetingState());
     }
 }
 

@@ -11,20 +11,22 @@ internal class DatePickerState : IExpenseInfoState
     private readonly string _customOptionTitle;
     private const string CallbackCustom = "custom";
 
-    internal DatePickerState(IExpenseInfoState previousState, string text, DateOnly today, string dateFormat, DateOnly[] options, string customOptionTitle) : this(text, today, dateFormat)
+    internal DatePickerState(IExpenseInfoState previousState, string text, DateOnly today, string dateFormat, DateOnly[] options, string customOptionTitle) : this(text, today, dateFormat, previousState)
     {
-        PreviousState = previousState;
         Text = text;
         DateFormat = dateFormat;
         _options = options;
         _customOptionTitle = customOptionTitle;
     }
     
-    protected DatePickerState(string text, DateOnly today, string dateFormat)
+    protected DatePickerState(string text, DateOnly today, string dateFormat, IExpenseInfoState previousState)
     {
         Text = text;
         Today = today;
         DateFormat = dateFormat;
+        _options = Array.Empty<DateOnly>();
+        _customOptionTitle = string.Empty;
+        PreviousState = previousState;
     }
     
     public bool UserAnswerIsRequired => true;
@@ -41,9 +43,15 @@ internal class DatePickerState : IExpenseInfoState
             buttons[i] = new TelegramButton() { Text = dateString, CallbackData = dateString };
         }
 
-        buttons[_options.Length] = new TelegramButton { Text = _customOptionTitle, CallbackData = CallbackCustom }; 
+        buttons[_options.Length] = new TelegramButton { Text = _customOptionTitle, CallbackData = CallbackCustom };
+
+        int chunkSize = 3;
+        if (buttons.Length == 4)
+        {
+            chunkSize = 2;
+        }
         
-        var keyboard = TelegramKeyboard.FromButtons(buttons, chunkSize: 3);
+        var keyboard = TelegramKeyboard.FromButtons(buttons, chunkSize: chunkSize);
         
         return await botClient.SendTextMessageAsync(
             chatId: chatId,
@@ -61,7 +69,7 @@ internal class DatePickerState : IExpenseInfoState
     {
         if (message.Text == CallbackCustom)
         {
-            return new CustomDatePickerState(Text, Today, DateFormat);
+            return new CustomDatePickerState(Text, Today, DateFormat, PreviousState);
         }
 
         return PreviousState;
@@ -70,11 +78,11 @@ internal class DatePickerState : IExpenseInfoState
 
 internal class CustomDatePickerState : DatePickerState
 {
-    protected internal CustomDatePickerState(string text, DateOnly today, string dateFormat) : base(text, today, dateFormat)
+    protected internal CustomDatePickerState(string text, DateOnly today, string dateFormat, IExpenseInfoState previousState) : base(text, today, dateFormat, previousState)
     {
     }
 
-    public override async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
+    public override async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await botClient.SendTextMessageAsync(
             chatId: chatId, $"{Text}. Example: {Today.ToString(DateFormat)}", cancellationToken:cancellationToken);

@@ -114,7 +114,7 @@ namespace StateMachine
 
         public IExpenseInfoState GetEnterTypeOfCategoryStatistic(IExpenseInfoState previousState, Category category)
         {
-            return new EnterTypeOfCategoryStatisticState(this, previousState, category.Name, _dateTimeService.Today(), _logger);
+            return new EnterTypeOfCategoryStatisticState(this, previousState, category, _dateTimeService.Today(), _logger);
         }
 
         public IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses, IExpenseInfoState previousState)
@@ -125,6 +125,21 @@ namespace StateMachine
         internal IExpenseInfoState CreateCollectMonthStatisticState(IExpenseInfoState previousState)
         {
             return new CollectMonthStatisticState(this, previousState, _dateTimeService.Today(), _logger);
+        }
+
+        public IExpenseInfoState CreateCollectCategoryExpensesState(IExpenseInfoState previousState, Category category)
+        {
+            return new CollectCategoryExpensesState(this, previousState, _dateTimeService.Today(), category, _logger);
+        }
+
+        public IExpenseInfoState CreateEnterSubCategoryExpensesState(IExpenseInfoState  previousState, Category category)
+        {
+            return new EnterSubCategoryExpensesState(this, previousState, category, _logger);
+        }
+
+        public IExpenseInfoState CreateCollectSubCategoryExpensesState(IExpenseInfoState previousState, Category category, SubCategory subCategory)
+        {
+            return new CollectSubCategoryExpensesState(this, previousState, _dateTimeService.Today(), category, subCategory, _logger);
         }
     }
 }

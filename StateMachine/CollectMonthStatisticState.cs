@@ -34,7 +34,7 @@ internal class CollectMonthStatisticState : IExpenseInfoState
 
     public Task Handle(IMessage message, CancellationToken cancellationToken)
     {
-        return Task.Run(() => { });
+        return Task.CompletedTask;
     }
 
     public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)

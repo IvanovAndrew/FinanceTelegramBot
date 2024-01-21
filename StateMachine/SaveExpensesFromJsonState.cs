@@ -26,15 +26,15 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
 
     public bool UserAnswerIsRequired => false;
 
-    public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
+    public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
     {
         throw new InvalidOperationException();
     }
 
-    public async Task Handle(IMessage message, CancellationToken cancellationToken)
+    public Task Handle(IMessage message, CancellationToken cancellationToken)
     {
         // TODO move calculation logic to here
-        await Task.Run(() => { });
+        return Task.CompletedTask;
     }
 
     public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)

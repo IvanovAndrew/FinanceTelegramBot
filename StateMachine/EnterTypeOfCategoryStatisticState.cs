@@ -7,13 +7,14 @@ namespace StateMachine;
 internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
 {
     private readonly StateFactory _factory;
-    private readonly string _category;
+    private readonly Category _category;
     private readonly DateOnly _today;
     private ILogger _logger;
+    
     public bool UserAnswerIsRequired => true;
     public IExpenseInfoState PreviousState { get; }
 
-    public EnterTypeOfCategoryStatisticState(StateFactory factory, IExpenseInfoState previousState, string category, DateOnly today,
+    public EnterTypeOfCategoryStatisticState(StateFactory factory, IExpenseInfoState previousState, Category category, DateOnly today,
         ILogger logger)
     {
         _factory = factory;
@@ -21,6 +22,7 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
         _today = today;
         PreviousState = previousState;
         _logger = logger;
+        
     }
 
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
@@ -32,64 +34,31 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
                 Text = "Subcategory",
                 CallbackData = "subcategory"
             },
-            new TelegramButton() { Text = "For last year", CallbackData = "lastyear" },
+            new TelegramButton() { Text = "For the period", CallbackData = "periodtodate" },
         });
 
         return await botClient.SendTextMessageAsync(
             chatId: chatId,
-            text: "Choose",
             keyboard: keyboard,
             cancellationToken: cancellationToken);
     }
 
-    public async Task Handle(IMessage message, CancellationToken cancellationToken)
+    public Task Handle(IMessage message, CancellationToken cancellationToken)
     {
-        await Task.Run(() => { });
+        return Task.CompletedTask;
     }
 
     public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
     {
         if (message.Text == "subcategory")
         {
-            var firstDayOfMonth = _today.FirstDayOfMonth();
-
-            var expenseAggregator = new ExpensesAggregator<string>(
-                e => e.SubCategory ?? string.Empty, true, sortAsc: false);
-
-            var specification = new MultipleSpecification(
-                new ExpenseLaterThanSpecification(firstDayOfMonth),
-                new ExpenseFromCategorySpecification(_category));
+            return _factory.CreateEnterSubCategoryExpensesState(this, _category);
             
-            return _factory.GetExpensesState(this, specification,
-                expenseAggregator,
-                s => s,
-                new TableOptions()
-                {
-                    Title = $"Category: {_category}. {Environment.NewLine}" +
-                            $"Expenses from {firstDayOfMonth.ToString("dd MMMM yyyy")}",
-                    FirstColumnName = "Subcategory"
-                });
         }
 
-        if (message.Text == "lastyear")
+        if (message.Text == "periodtodate")
         {
-            var expenseAggregator = new ExpensesAggregator<DateOnly>(
-                e => e.Date.LastDayOfMonth(), false, sortAsc: true);
-
-            var specification =
-                new MultipleSpecification(
-                    new ExpenseLaterThanSpecification(_today.AddYears(-1).FirstDayOfMonth()),
-                    new ExpenseFromCategorySpecification(_category)
-                );
-
-
-            return _factory.GetExpensesState(this, specification, expenseAggregator,
-                s => s.ToString("MMM yyyy"),
-                new TableOptions()
-                {
-                    Title = $"Category: {_category}",
-                    FirstColumnName = "Month"
-                });
+            return _factory.CreateCollectCategoryExpensesState(this, _category);
         }
 
         throw new BotStateException(new []{"subcategory", "lastyear"}, message.Text);

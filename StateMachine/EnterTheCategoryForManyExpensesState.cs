@@ -19,6 +19,7 @@ class EnterTheCategoryForManyExpensesState : IExpenseInfoState
         _expenses = expenses;
         _logger = logger;
         PreviousState = previousState;
+        _expensesFromJson = new List<IExpense>();
     }
         
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
@@ -31,7 +32,7 @@ class EnterTheCategoryForManyExpensesState : IExpenseInfoState
 
     public async Task Handle(IMessage message, CancellationToken cancellationToken)
     {
-        await Task.Run(() => _expensesFromJson = new ExpenseJsonParser().Parse(message.Text, "Еда", Currency.Rur));
+        await Task.Run(() => _expensesFromJson.AddRange(new ExpenseJsonParser().Parse(message.Text, "Еда", Currency.Rur)));
     }
 
     public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
@@ -46,6 +47,5 @@ class EnterTheCategoryForManyExpensesState : IExpenseInfoState
         {
             return _factory.CreateEnterTheCategoryForManyExpenses(_expensesFromJson, this);
         }
-
     }
 }
