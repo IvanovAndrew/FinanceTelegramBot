@@ -45,6 +45,10 @@ namespace TelegramBot.Controllers
                     await botClient.SendTextMessageAsync(message.ChatId, "Something went wrong. I've already informed Andrew about it.");
                     await botClient.SendTextMessageAsync(_botService.SupportChatId, $"Your wife is angry because of {e}");
                 }
+                else
+                {
+                    await botClient.SendTextMessageAsync(message.ChatId, "Uncovered error {e}");
+                }
             }
             
             return Ok();
