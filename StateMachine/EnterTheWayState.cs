@@ -23,6 +23,7 @@ class EnterTheWayState : IExpenseInfoState
         {
             new TelegramButton{Text = "By myself", CallbackData = "user"},
             new TelegramButton{Text = "From check", CallbackData = "json"},
+            new TelegramButton{Text = "From qr", CallbackData = "rawqr"},
         });
         
         return await botClient.SendTextMessageAsync(
@@ -41,7 +42,8 @@ class EnterTheWayState : IExpenseInfoState
     {
         if (message.Text == "json") return _factory.CreateRequestPasteJsonState(this);
         if (message.Text == "user") return _factory.CreateEnterTheDateState(this, false);
+        if (message.Text == "rawqr") return _factory.CreateEnterRawQrState(this);
 
-        throw new BotStateException(new []{"json", "user"}, message.Text);
+        throw new BotStateException(new []{"json", "user", "rawqr"}, message.Text);
     }
 }

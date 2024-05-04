@@ -25,6 +25,8 @@ namespace TelegramBot
             services.AddSingleton<TelegramBotService>(s => ActivatorUtilities.CreateInstance<TelegramBotService>(s, 
                 _configuration.GetSection("Telegram")["Token"], 
                 long.Parse(_configuration.GetSection("Telegram")["SupportChatId"])));
+            services.AddSingleton<IFnsService, FnsService>(s =>
+                ActivatorUtilities.CreateInstance<FnsService>(s, _configuration.GetSection("Fns")["Token"]));
             services.AddSingleton<CategoryOptions>();
         
             services.AddScoped<ICurrencyParser, CurrencyParser>();

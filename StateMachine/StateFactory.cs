@@ -9,14 +9,16 @@ namespace StateMachine
         private readonly IDateTimeService _dateTimeService;
         private readonly IMoneyParser _moneyParser;
         private readonly IEnumerable<Category> _categories;
+        private readonly IFnsService _fnsService;
         private readonly IExpenseRepository _expenseRepository;
         private readonly ILogger<StateFactory> _logger;
     
-        public StateFactory(IDateTimeService dateTimeService, IMoneyParser moneyParser, IEnumerable<Category> categories, 
+        public StateFactory(IDateTimeService dateTimeService, IMoneyParser moneyParser, IEnumerable<Category> categories, IFnsService fnsService, 
             IExpenseRepository expenseRepository, ILogger<StateFactory> logger)
         {
             _dateTimeService = dateTimeService;
             _categories = categories;
+            _fnsService = fnsService;
             _expenseRepository = expenseRepository;
             _moneyParser = moneyParser;
             _logger = logger;
@@ -140,6 +142,11 @@ namespace StateMachine
         public IExpenseInfoState CreateCollectSubCategoryExpensesState(IExpenseInfoState previousState, Category category)
         {
             return new CollectSubCategoryExpensesState(this, previousState, _dateTimeService.Today(), category, _logger);
+        }
+
+        public IExpenseInfoState CreateEnterRawQrState(IExpenseInfoState previousState)
+        {
+            return new EnterRawQrState(this, previousState, _fnsService, _logger);
         }
     }
 }
