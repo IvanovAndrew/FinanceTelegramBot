@@ -956,20 +956,20 @@ public class StateTest
 
     private StateFactory CreateStateFactory(Category[] categories, IExpenseRepository expenseRepository, IDateTimeService dateTimeService, ILogger<StateFactory> logger)
     {
-        return new StateFactory(dateTimeService, new MoneyParser(new CurrencyParser()), categories, expenseRepository, logger);
+        return new StateFactory(dateTimeService, new MoneyParser(new CurrencyParser()), categories, fnsService, expenseRepository, logger);
     }
 
-    private BotEngine CreateBotEngine(Category[] categories, IExpenseRepository expenseRepository, IDateTimeService dateTimeService)
+    private BotEngine CreateBotEngine(Category[] categories, IFnsService fnsService, IExpenseRepository expenseRepository, IDateTimeService dateTimeService)
     {
         var logger = new LoggerStub<StateFactory>();
-        var stateFactory = CreateStateFactory(categories, expenseRepository, dateTimeService, logger);
+        var stateFactory = CreateStateFactory(categories, fnsService, expenseRepository, dateTimeService, logger);
 
         return new BotEngine(stateFactory, logger);
     }
-
+    
     private BotEngineWrapper CreateBotEngineWrapper(Category[] categories, IExpenseRepository expenseRepository, IDateTimeService dateTimeService, TelegramBotMock telegramBot)
     {
-        var botEngine = CreateBotEngine(categories, expenseRepository, dateTimeService);
+        var botEngine = CreateBotEngine(categories, new FnsServiceStub(), expenseRepository, dateTimeService);
         return new BotEngineWrapper(botEngine, telegramBot);
     }
 }
