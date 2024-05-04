@@ -61,7 +61,7 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
                 {
                     Title = $"Category: {_category.Name}. {Environment.NewLine}" +
                             $"Expenses from {firstDayOfMonth.ToString(DateFormat)}",
-                    FirstColumnName = "Subcategory"
+                    FirstColumnName = "Subcategory",
                 });
             
         }

@@ -2,7 +2,7 @@
 
 public class ExpenseFromCategorySpecification : ISpecification<IExpense>
 {
-    private readonly string _category; 
+    private readonly string _category;
     public ExpenseFromCategorySpecification(Category category) : this(category.Name)
     {
     }
@@ -12,7 +12,7 @@ public class ExpenseFromCategorySpecification : ISpecification<IExpense>
         _category = category;
     }
     
-    public bool IsSatisfied(IExpense item)
+    public virtual bool IsSatisfied(IExpense item)
     {
         return string.Equals(item.Category, _category, StringComparison.InvariantCultureIgnoreCase);
     }

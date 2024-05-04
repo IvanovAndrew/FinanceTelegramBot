@@ -4,29 +4,34 @@ using Microsoft.Extensions.Logging;
 
 namespace StateMachine;
 
-internal class CollectSubCategoryExpensesState : IExpenseInfoState
+internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
 {
     private readonly StateFactory _factory;
-    private readonly DateOnly _today;
     private readonly Category _category;
+    private readonly SubCategory _subCategory;
+    private readonly DateOnly _today;
     private readonly ILogger<StateFactory> _logger;
 
     private IExpenseInfoState _datePicker;
     private string DateFormat = "MMMM yyyy";
 
-    public CollectSubCategoryExpensesState(StateFactory factory, IExpenseInfoState previousState, DateOnly today, Category category, ILogger<StateFactory> logger)
+    public CollectSubCategoryExpensesByMonthsState(StateFactory factory, IExpenseInfoState previousState, DateOnly today,
+        Category category, SubCategory subCategory, ILogger<StateFactory> logger)
     {
         _factory = factory;
         PreviousState = previousState;
         _today = today;
         _category = category;
+        _subCategory = subCategory;
         _logger = logger;
-        _datePicker = new DatePickerState(previousState, "Enter the start period", _today, DateFormat,
+        
+        _datePicker = new DatePickerState(this, "Enter the start period", _today, DateFormat,
             new[] { _today.AddYears(-1), _today.AddMonths(-6), _today.AddMonths(-1) }, "Another period");
     }
 
     public bool UserAnswerIsRequired => true;
     public IExpenseInfoState PreviousState { get; }
+
     public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return _datePicker.Request(botClient, chatId, cancellationToken);
@@ -44,29 +49,29 @@ internal class CollectSubCategoryExpensesState : IExpenseInfoState
         if (nextState is DatePickerState datePicker)
         {
             _datePicker = datePicker;
-            return _datePicker;
+            return this;
         }
 
         if (DateOnly.TryParseExact(message.Text, DateFormat, out var dateFrom))
         {
             var firstDayOfMonth = dateFrom.FirstDayOfMonth();
-            var expenseAggregator = new ExpensesAggregator<string>(
-                e => e.SubCategory ?? string.Empty, true, sortAsc: false);
+            var expenseAggregator = new ExpensesAggregator<DateOnly>(
+                e => e.Date.LastDayOfMonth(), true, sortAsc: false);
 
             var specification = new MultipleSpecification(
                 new ExpenseLaterThanSpecification(firstDayOfMonth),
-                new ExpenseFromCategorySpecification(_category));
-            
+                new ExpenseFromCategoryAndSubcategorySpecification(_category, _subCategory));
+
             return _factory.GetExpensesState(this, specification,
                 expenseAggregator,
-                s => s,
+                s => s.ToString(DateFormat),
                 new TableOptions()
                 {
                     Title = $"Category: {_category.Name}. {Environment.NewLine}" +
+                            $"Subcategory: {_subCategory.Name}. {Environment.NewLine}" +
                             $"Expenses from {firstDayOfMonth.ToString(DateFormat)}",
-                    FirstColumnName = "Subcategory"
+                    FirstColumnName = "Month"
                 });
-            
         }
 
         return this;

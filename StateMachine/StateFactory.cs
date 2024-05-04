@@ -133,15 +133,21 @@ namespace StateMachine
         {
             return new CollectCategoryExpensesState(this, previousState, _dateTimeService.Today(), category, _logger);
         }
+        
+        public IExpenseInfoState CreateCollectSubcategoryExpensesByMonthsState(IExpenseInfoState previousState,
+            Category category, SubCategory subCategory)
+        {
+            return new CollectSubCategoryExpensesByMonthsState(this, previousState, _dateTimeService.Today(), category, subCategory, _logger);
+        }
 
         public IExpenseInfoState CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(IExpenseInfoState  previousState, Category category)
         {
             return new CollectCategoryExpensesBySubcategoriesForAPeriodState(this, previousState, category, _dateTimeService.Today(), _logger);
         }
 
-        public IExpenseInfoState CreateCollectSubCategoryExpensesState(IExpenseInfoState previousState, Category category)
+        public IExpenseInfoState EnterSubcategoryStatisticState(IExpenseInfoState previousState, Category category)
         {
-            return new CollectSubCategoryExpensesState(this, previousState, _dateTimeService.Today(), category, _logger);
+            return new EnterSubcategoryStatisticState(this, previousState, category, _logger);
         }
 
         public IExpenseInfoState CreateEnterRawQrState(IExpenseInfoState previousState)

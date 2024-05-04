@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using Domain;
-using Microsoft.Extensions.Configuration;
 
-namespace TelegramBot.Controllers
+namespace TelegramBot
 {
     public class CategoryOptions
     {

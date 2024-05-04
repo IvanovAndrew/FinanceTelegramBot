@@ -14,7 +14,7 @@ namespace Domain
 
     public class SubCategory
     {
-        public string Name { get; init; }
+        public string Name { get; init; } = String.Empty;
         public string? ShortName { get; init; }
     }
 }
