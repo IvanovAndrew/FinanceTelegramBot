@@ -1,4 +1,6 @@
-﻿using Infrastructure;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using Infrastructure;
 
 namespace StateMachine;
 
@@ -6,63 +8,73 @@ public class CommandAttribute : Attribute
 {
     public string Text { get; init; } = "";
     public string Command { get; init; } = "";
+    public int Order { get; init; }
 }
 
 public abstract class TelegramCommand
 {
-    protected readonly StateFactory StateFactory;
-    protected readonly long ChatId;
-    protected TelegramCommand(StateFactory stateFactory, long chatId)
+    public abstract Task<IExpenseInfoState> Execute(IExpenseInfoState state, StateFactory stateFactory);
+
+    public static List<CommandAttribute> GetAllCommands()
     {
-        StateFactory = stateFactory;
-        ChatId = chatId;
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        
+        return assembly.GetTypes()
+            .Where(t => t.GetCustomAttributes(typeof(CommandAttribute), true).Length > 0)
+            .Select(t => (CommandAttribute)t.GetCustomAttributes(typeof(CommandAttribute), true).First())
+            .ToList();
     }
     
-    public abstract Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationToken = default);
+    public static bool TryGetCommand(string text, [NotNullWhen(true)] out TelegramCommand? telegramCommand)
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        Dictionary<string, Type> commandToTypeMap = new Dictionary<string, Type>();
+        
+        var type = assembly.GetTypes()
+            .FirstOrDefault(t => t.IsInstanceOfType(typeof(TelegramCommand)) && 
+                                 t.GetCustomAttributes(typeof(CommandAttribute), true).Length > 0 && 
+                                ((CommandAttribute)t.GetCustomAttributes(typeof(CommandAttribute), true).First()).Command == text);
+
+        if (type == null)
+        {
+            telegramCommand = null;
+            return false;
+        }
+
+        telegramCommand = (TelegramCommand) Activator.CreateInstance(type)!;
+        return true;
+    }
 }
 
-[Command(Text = "Cancel", Command = "/cancel")]
+[Command(Text = "Cancel", Command = "/cancel", Order = 2)]
 public class CancelCommand : TelegramCommand
 {
-    public CancelCommand(StateFactory stateFactory, long chatId) : base(stateFactory, chatId)
-    {
-    }
-    
-    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationToken = default)
+    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, StateFactory stateFactory)
     {
         if (state is ILongTermOperation longTermOperation)
         {
             longTermOperation.Cancel();
         }
 
-        return Task.FromResult(StateFactory.CreateGreetingState());
+        return Task.FromResult(stateFactory.CreateGreetingState());
     }
 
 }
 
-[Command(Text = "Start", Command = "/start")]
+[Command(Text = "Start", Command = "/start", Order = 0)]
 public class StartCommand : TelegramCommand
 {
-    public StartCommand(StateFactory stateFactory, long chatId) : base(stateFactory, chatId)
+    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, StateFactory stateFactory)
     {
-    }
-    
-    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationTokenSource = default)
-    {
-        return Task.FromResult(StateFactory.CreateGreetingState());
+        return Task.FromResult(stateFactory.CreateGreetingState());
     }
 }
 
-[Command(Text = "Back", Command = "/back")]
+[Command(Text = "Back", Command = "/back", Order = 1)]
 public class BackCommand : TelegramCommand
 {
-    public BackCommand(StateFactory stateFactory, long chatId) : base(stateFactory, chatId)
-    {
-    }
-    
-    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, CancellationToken cancellationToken = default)
+    public override Task<IExpenseInfoState> Execute(IExpenseInfoState state, StateFactory stateFactory)
     {
         return Task.FromResult(state.PreviousState);
     }
 }
-

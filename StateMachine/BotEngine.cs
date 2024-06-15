@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -20,45 +19,50 @@ namespace StateMachine
 
         public async Task<IMessage> Proceed(IMessage message, ITelegramBot botClient)
         {
-            await botClient.SetMyCommandsAsync(
-                new[]
-                {
-                    new TelegramButton() { Text = "Start", CallbackData = "/start" },
-                    new TelegramButton() { Text = "Back", CallbackData = "/back" },
-                    new TelegramButton() { Text = "Cancel", CallbackData = "/cancel" },
-                });
-
             _logger.LogInformation($"{message.Text} was received");
-            if (!_answers.TryGetValue(message.ChatId, out var state))
-            {
-                _answers[message.ChatId] = state = _stateFactory.CreateGreetingState();
-            }
+
+            var allCommands = TelegramCommand.GetAllCommands(); 
             
-            
-            await RemovePreviousMessage(state, botClient, message.ChatId);
-            
+            await botClient.SetMyCommandsAsync(
+                allCommands
+                    .OrderBy(c => c.Order)
+                    .Select(c => new TelegramButton() { Text = c.Text, CallbackData = c.Command })
+                    .ToArray()
+                );
+
+            bool stateExists = _answers.TryGetValue(message.ChatId, out var state);
             IExpenseInfoState newState;
-            if (TryGetCommand(message.Text, botClient, _stateFactory, message.ChatId, out var command))
+
+            if (stateExists)
             {
-                newState = await command.Execute(state);
-                _answers[message.ChatId] = newState;
-                var response = await newState.Request(botClient, message.ChatId);
-                _sentMessage[newState] = response;
+                await RemovePreviousMessage(state!, botClient, message.ChatId);
 
-                return response;
+                if (TelegramCommand.TryGetCommand(message.Text, out var command))
+                {
+                    newState = await command.Execute(state, _stateFactory);
+                    _answers[message.ChatId] = newState;
+                    var response = await newState.Request(botClient, message.ChatId);
+                    _sentMessage[newState] = response;
+
+                    return response;
+                }
+                
+                if (message.Edited)
+                {
+                    state = state.PreviousState;
+                }
+                
+                await state.Handle(message, default);
+                _answers[message.ChatId] = newState = state.ToNextState(message, default);
             }
-
-            if (message.Edited)
+            else
             {
-                state = state.PreviousState;
+                newState = _stateFactory.CreateGreetingState();
             }
-
-            await state.Handle(message, default);
-            _answers[message.ChatId] = newState = state.ToNextState(message, default);
 
             if (newState is ILongTermOperation longOperation)
             {
-                _sentMessage[state] = await longOperation.Handle(botClient, message, default);
+                _sentMessage[state!] = await longOperation.Handle(botClient, message, default);
                 while (!_answers.TryRemove(message.ChatId, out _)) { }
 
                 return _sentMessage[state];
@@ -89,30 +93,6 @@ namespace StateMachine
             
                 return _sentMessage[newState];
             }
-        }
-
-        private bool TryGetCommand(string text, ITelegramBot telegramBot, StateFactory stateFactory, long chatId, [NotNullWhen(true)] out TelegramCommand? command)
-        {
-            if (text == "/start")
-            {
-                command = new StartCommand(stateFactory, chatId);
-                return true;
-            }
-            
-            if (text == "/back")
-            {
-                command = new BackCommand(stateFactory, chatId);
-                return true;
-            }
-            
-            if (text == "/cancel")
-            {
-                command = new CancelCommand(stateFactory, chatId);
-                return true;
-            }
-            
-            command = null;
-            return false;
         }
 
         private async Task RemovePreviousMessage(IExpenseInfoState state, ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
