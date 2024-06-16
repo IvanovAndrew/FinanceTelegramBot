@@ -43,46 +43,56 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
 
     public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
     {
-        var savingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
-
-        bool saved = false;
-        try
+        if (TelegramCommand.TryGetCommand(message.Text, out var _))
         {
-            using (_cancellationTokenSource = new CancellationTokenSource())
+            Cancel();
+        }
+        else
+        {
+            var savingMessage =
+                await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
+
+            bool saved = false;
+            try
             {
-                await _expenseRepository.SaveAll(_expenses, _cancellationTokenSource.Token);
+                using (_cancellationTokenSource = new CancellationTokenSource())
+                {
+                    await _expenseRepository.SaveAll(_expenses, _cancellationTokenSource.Token);
+                }
+
+                saved = true;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Operation is canceled by user");
+            }
+            finally
+            {
+                _cancellationTokenSource = null;
             }
 
-            saved = true;
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogInformation("Operation is canceled by user");
-        }
-        finally
-        {
-            _cancellationTokenSource = null;
+            var sum = new Money() { Amount = 0, Currency = _expenses[0].Amount.Currency };
+            foreach (var expense in _expenses)
+            {
+                sum += expense.Amount;
+            }
+
+            string infoMessage = $"All expenses are saved with the following options: {Environment.NewLine}" +
+                                 string.Join($"{Environment.NewLine}",
+                                     $"Date: {_expenses[0].Date:dd.MM.yyyy}",
+                                     $"Category: {_expenses[0].Category}",
+                                     $"Total Amount: {sum}",
+                                     "",
+                                     saved ? "Saved" : "Saving is cancelled"
+                                 );
+
+            _logger.LogInformation(infoMessage);
+
+            await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
+            return await botClient.SendTextMessageAsync(message.ChatId, infoMessage);
         }
 
-        var sum = new Money() { Amount = 0, Currency = _expenses[0].Amount.Currency };
-        foreach (var expense in _expenses)
-        {
-            sum += expense.Amount;
-        }
-
-        string infoMessage = $"All expenses are saved with the following options: {Environment.NewLine}" + 
-                             string.Join($"{Environment.NewLine}", 
-                                 $"Date: {_expenses[0].Date:dd.MM.yyyy}", 
-                                 $"Category: {_expenses[0].Category}", 
-                                 $"Total Amount: {sum}",
-                                 "",
-                                 saved? "Saved" : "Saving is cancelled"
-                             );
-            
-        _logger.LogInformation(infoMessage);
-
-        await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
-        return await botClient.SendTextMessageAsync(message.ChatId, infoMessage);
+        return await botClient.SendTextMessageAsync(message.ChatId, "Canceled");
     }
 
     public void Cancel()

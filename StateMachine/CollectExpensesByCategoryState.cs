@@ -69,54 +69,62 @@ namespace StateMachine
 
         public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
         {
-            var collectingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Collecting expenses... It can take some time.");
-
             string text = "";
-            try
+            if (TelegramCommand.TryGetCommand(message.Text, out _))
             {
-                List<IExpense> expenses;
-                using (_cancellationTokenSource = new CancellationTokenSource())
-                {
-                    expenses = await _expenseRepository.Read(_cancellationTokenSource.Token);
-                }
-                
-                expenses = expenses.Where(expense => _specification.IsSatisfied(expense)).ToList();
-
-                _logger.LogInformation($"{expenses.Count} expenses satisfy the requirements");
-                
-                if (expenses.Any())
-                {
-                    var currencies = expenses.Select(c => c.Amount.Currency).Distinct().ToArray();
-                    _tableOptions.OtherColumns = currencies.Select(c => c.ToString()).ToArray();
-                    var statistic = _expensesAggregator.Aggregate(expenses, currencies);
+                Cancel();
+                text = "Canceled";
+            }
+            else
+            {
+                var collectingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Collecting expenses... It can take some time.");
             
-                    var telegramTable = new TelegramTableBuilder(statistic.Rows.Count + 2, currencies.Length + 1);
-                    int i = 0;
-                    
-                    foreach (var expenseInfo in statistic.Rows)
-                    {
-                        telegramTable.FillRow(ShortNameOfCategory(_firstColumnName(expenseInfo.Row)), expenseInfo, currencies);
-                        i++;
-                    }
-
-                    telegramTable.FillRow(string.Empty, string.Empty);
-                    telegramTable.FillRow("Total", statistic.Total, currencies);
-
-                    text = MarkdownFormatter.FormatTable(_tableOptions, telegramTable.Build());
-                }
-                else
+                try
                 {
-                    text = "There is no any expenses for this period";
+                    List<IExpense> expenses;
+                    using (_cancellationTokenSource = new CancellationTokenSource())
+                    {
+                        expenses = await _expenseRepository.Read(_cancellationTokenSource.Token);
+                    }
+                    
+                    expenses = expenses.Where(expense => _specification.IsSatisfied(expense)).ToList();
+
+                    _logger.LogInformation($"{expenses.Count} expenses satisfy the requirements");
+                    
+                    if (expenses.Any())
+                    {
+                        var currencies = expenses.Select(c => c.Amount.Currency).Distinct().ToArray();
+                        _tableOptions.OtherColumns = currencies.Select(c => c.ToString()).ToArray();
+                        var statistic = _expensesAggregator.Aggregate(expenses, currencies);
+                
+                        var telegramTable = new TelegramTableBuilder(statistic.Rows.Count + 2, currencies.Length + 1);
+                        int i = 0;
+                        
+                        foreach (var expenseInfo in statistic.Rows)
+                        {
+                            telegramTable.FillRow(ShortNameOfCategory(_firstColumnName(expenseInfo.Row)), expenseInfo, currencies);
+                            i++;
+                        }
+
+                        telegramTable.FillRow(string.Empty, string.Empty);
+                        telegramTable.FillRow("Total", statistic.Total, currencies);
+
+                        text = MarkdownFormatter.FormatTable(_tableOptions, telegramTable.Build());
+                    }
+                    else
+                    {
+                        text = "There is no any expenses for this period";
+                    }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                text = "Operation is canceled by user";
-            }
-            finally
-            {
-                _cancellationTokenSource = null;
-                await botClient.DeleteMessageAsync(collectingMessage, cancellationToken);
+                catch (OperationCanceledException)
+                {
+                    text = "Operation is canceled by user";
+                }
+                finally
+                {
+                    _cancellationTokenSource = null;
+                    await botClient.DeleteMessageAsync(collectingMessage, cancellationToken);
+                }
             }
             
             return await botClient.SendTextMessageAsync(chatId: message.ChatId, text, useMarkdown:true, cancellationToken: cancellationToken);;

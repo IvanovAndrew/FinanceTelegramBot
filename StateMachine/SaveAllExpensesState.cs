@@ -32,7 +32,12 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
 
     public Task Handle(IMessage message, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (TelegramCommand.TryGetCommand(message.Text, out _))
+        {
+            Cancel();
+        }
+        
+        return Task.CompletedTask;
     }
 
     public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
