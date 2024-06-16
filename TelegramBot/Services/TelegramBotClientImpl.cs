@@ -7,12 +7,77 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TelegramBot.Services;
 
+public class TelegramBotLogDecorator : ITelegramBot
+{
+    private readonly ITelegramBot _source;
+    private readonly ILogger _logger;
+
+    public TelegramBotLogDecorator(ITelegramBot source, ILogger logger)
+    {
+        _source = source;
+        _logger = logger;
+    }
+    
+    public Task<IMessage> SendTextMessageAsync(long chatId, string text)
+    {
+        _logger.LogInformation(text);
+        return _source.SendTextMessageAsync(chatId, text);
+    }
+
+    public Task<IMessage> SendTextMessageAsync(long chatId, string? text = null, TelegramKeyboard? keyboard = null, bool useMarkdown = false,
+        CancellationToken cancellationToken = default)
+    {
+        return _source.SendTextMessageAsync(chatId, text, keyboard, useMarkdown, cancellationToken);
+    }
+
+    public Task SetMyCommandsAsync(TelegramButton[] buttons, CancellationToken cancellationToken = default)
+    {
+        return _source.SetMyCommandsAsync(buttons, cancellationToken);
+    }
+
+    public async Task DeleteMessageAsync(IMessage message, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInformation($"Removing message {message.Id} \"{message.Text}\"");
+            await _source.DeleteMessageAsync(message, cancellationToken);
+            _logger.LogInformation($"Message {message.Id} \"{message.Text}\" is removed");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e);
+            throw;
+        }
+    }
+
+    public Task<IFile?> GetFileAsync(string fileId, string? mimeType, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation($"Telegram: get file");
+        return _source.GetFileAsync(fileId, mimeType, cancellationToken);
+    }
+
+    public Task<TelegramWebHookInfo> GetWebhookInfoAsync()
+    {
+        _logger.LogInformation($"Telegram: get web hook info");
+        return _source.GetWebhookInfoAsync();
+    }
+
+    public Task SetWebhookAsync(string url)
+    {
+        _logger.LogInformation($"Telegram: set web hook to {url}");
+        return _source.SetWebhookAsync(url);
+    }
+}
+
 public class TelegramBotClientImpl : ITelegramBot
 {
     private readonly ITelegramBotClient _client;
-    public TelegramBotClientImpl(ITelegramBotClient client)
+    private readonly IDateTimeService _dateTimeService;
+
+    public TelegramBotClientImpl(ITelegramBotClient client, IDateTimeService dateTimeService)
     {
         _client = client;
+        _dateTimeService = dateTimeService;
     }
     
     public async Task<IMessage> SendTextMessageAsync(long chatId, string text)
@@ -53,9 +118,22 @@ public class TelegramBotClientImpl : ITelegramBot
             cancellationToken:cancellationToken);
     }
 
-    public async Task DeleteMessageAsync(long chatId, int messageId, CancellationToken cancellationToken)
+    public async Task DeleteMessageAsync(IMessage message, CancellationToken cancellationToken)
     {
-        await _client.DeleteMessageAsync(chatId, messageId, cancellationToken);
+        var diff = _dateTimeService.Now().Subtract(message.Date);
+        if (diff.Hours >= 48)
+        {
+            throw new DeleteOutdatedTelegramMessageException();
+        }
+
+        try
+        {
+            await _client.DeleteMessageAsync(message.ChatId, message.Id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            throw new TelegramBotException(e);
+        }
     }
 
     public async Task<IFile?> GetFileAsync(string fileId, string? mimeType, CancellationToken cancellationToken)
@@ -97,4 +175,28 @@ public class TelegramBotClientImpl : ITelegramBot
             MaxConnections = webHookInfo.MaxConnections,
         };
     }
+}
+
+public class TelegramBotException : Exception
+{
+    public TelegramBotException()
+    {
+        
+    }
+    
+    public TelegramBotException(Exception exception) : base("Telegram client exception", exception)
+    {
+    }
+}
+
+public class TelegramBotSpecificException : TelegramBotException
+{
+    public TelegramBotSpecificException(Exception ex) : base(ex)
+    {
+    }
+}
+
+public class DeleteOutdatedTelegramMessageException : TelegramBotException
+{
+    public override string Message { get; } = "A message can only be deleted if it was sent less than 48 hours ago";
 }

@@ -4,17 +4,13 @@ namespace UnitTest;
 
 public class DateTimeServiceStub : IDateTimeService
 {
-    private readonly DateOnly _today;
+    private readonly DateTime _now;
 
-    public DateTimeServiceStub(DateTime today) : this(DateOnly.FromDateTime(today))
+    public DateTimeServiceStub(DateTime now)
     {
-        
-    }
-    
-    public DateTimeServiceStub(DateOnly today)
-    {
-        _today = today;
+        _now = now;
     }
 
-    public DateOnly Today() => _today;
+    public DateOnly Today() => DateOnly.FromDateTime(_now);
+    public DateTime Now() => _now;
 }

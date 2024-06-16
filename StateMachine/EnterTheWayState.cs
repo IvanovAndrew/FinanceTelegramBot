@@ -5,14 +5,12 @@ namespace StateMachine;
 
 class EnterTheWayState : IExpenseInfoState
 {
-    private readonly StateFactory _factory;
     public bool UserAnswerIsRequired => true;
     public IExpenseInfoState PreviousState { get; }
     private readonly ILogger _logger;
         
-    internal EnterTheWayState(StateFactory factory, IExpenseInfoState previousState, ILogger logger)
+    internal EnterTheWayState(IExpenseInfoState previousState, ILogger logger)
     {
-        _factory = factory;
         _logger = logger;
         PreviousState = previousState;
     }
@@ -38,11 +36,12 @@ class EnterTheWayState : IExpenseInfoState
         return Task.CompletedTask;
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
-        if (message.Text == "json") return _factory.CreateRequestPasteJsonState(this);
-        if (message.Text == "user") return _factory.CreateEnterTheDateState(this, false);
-        if (message.Text == "rawqr") return _factory.CreateEnterRawQrState(this);
+        if (message.Text == "json") return stateFactory.CreateRequestPasteJsonState(this);
+        if (message.Text == "user") return stateFactory.CreateEnterTheDateState(this, false);
+        if (message.Text == "rawqr") return stateFactory.CreateEnterRawQrState(this);
 
         throw new BotStateException(new []{"json", "user", "rawqr"}, message.Text);
     }

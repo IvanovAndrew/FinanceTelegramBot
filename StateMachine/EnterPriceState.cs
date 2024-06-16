@@ -6,16 +6,14 @@ namespace StateMachine
 {
     class EnterPriceState : IExpenseInfoState
     {
-        private readonly StateFactory _factory;
         private readonly ExpenseBuilder _expenseBuilder;
         private readonly IMoneyParser _moneyParser;
         private readonly ILogger _logger;
     
         public IExpenseInfoState PreviousState { get; private set; }
 
-        internal EnterPriceState(StateFactory factory, IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, IMoneyParser moneyParser, ILogger logger)
+        internal EnterPriceState(IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, IMoneyParser moneyParser, ILogger logger)
         {
-            _factory = factory;
             _expenseBuilder = expenseBuilder;
             _moneyParser = moneyParser;
             _logger = logger;
@@ -41,17 +39,18 @@ namespace StateMachine
         }
 
         // TODO side effect
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
             if (_expenseBuilder.Sum == null)
             {
                 string warning = $"{message.Text} wasn't recognized as money.";
                 _logger.LogDebug(warning);
             
-                return _factory.CreateErrorWithRetryState(warning, this);
+                return stateFactory.CreateErrorWithRetryState(warning, this);
             }
 
-            return _factory.CreateConfirmState(_expenseBuilder.Build(), this);
+            return stateFactory.CreateConfirmState(_expenseBuilder.Build(), this);
         }
     }
 }

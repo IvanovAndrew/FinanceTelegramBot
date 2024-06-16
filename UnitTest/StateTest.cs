@@ -14,7 +14,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -43,7 +43,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -72,7 +72,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -104,7 +104,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -137,7 +137,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -170,7 +170,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -209,7 +209,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -246,7 +246,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -289,7 +289,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -322,7 +322,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -367,7 +367,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -411,7 +411,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -441,7 +441,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -474,7 +474,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -509,7 +509,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 6, 29));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -543,7 +543,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -587,7 +587,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -630,7 +630,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -675,7 +675,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -718,7 +718,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -764,7 +764,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -811,7 +811,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -859,7 +859,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -909,7 +909,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -959,7 +959,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()
@@ -1007,7 +1007,7 @@ public class StateTest
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
-        var dateTimeService = new DateTimeServiceStub(new DateOnly(2023, 7, 24));
+        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
         var categories = new Category[]
         {
             new()

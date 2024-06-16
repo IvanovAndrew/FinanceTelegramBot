@@ -29,9 +29,10 @@ namespace StateMachine
             await _state.Handle(message, cancellationToken);
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
-            return _state.ToNextState(message, cancellationToken);
+            return _state.MoveToNextState(message, stateFactory, cancellationToken);
         }
     }
 }

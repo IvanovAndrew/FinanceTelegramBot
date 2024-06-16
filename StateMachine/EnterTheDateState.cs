@@ -5,7 +5,6 @@ namespace StateMachine
 {
     class EnterTheDateState : IExpenseInfoState
     {
-        private readonly StateFactory _factory;
         private readonly IDateTimeService _dateTimeService;
         private readonly ILogger _logger;
         private readonly bool _askCustomDate;
@@ -14,9 +13,8 @@ namespace StateMachine
         public IExpenseInfoState PreviousState { get; private set; }
         public bool UserAnswerIsRequired => true;
     
-        public EnterTheDateState(StateFactory factory, IExpenseInfoState previousState, IDateTimeService dateTimeService, ILogger logger, bool askCustomDate = false)
+        public EnterTheDateState(IExpenseInfoState previousState, IDateTimeService dateTimeService, ILogger logger, bool askCustomDate = false)
         {
-            _factory = factory;
             _dateTimeService = dateTimeService;
             _askCustomDate = askCustomDate;
             _logger = logger;
@@ -58,20 +56,21 @@ namespace StateMachine
             });
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
             if (_expenseBuilder.Date == null && message.Text.ToLowerInvariant() == "other")
             {
-                return _factory.CreateEnterTheDateState(this, true);
+                return stateFactory.CreateEnterTheDateState(this, true);
             }
         
             if (_expenseBuilder.Date == null)
             {
                 _logger.LogDebug($"{message.Text} isn't a date");
-                return _factory.CreateErrorWithRetryState($"{message.Text} isn't a date.", this);
+                return stateFactory.CreateErrorWithRetryState($"{message.Text} isn't a date.", this);
             }
 
-            return _factory.CreateEnterTheCategoryState(_expenseBuilder, this);
+            return stateFactory.CreateEnterTheCategoryState(_expenseBuilder, this);
         }
     }
 }

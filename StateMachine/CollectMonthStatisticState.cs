@@ -6,17 +6,15 @@ namespace StateMachine;
 
 internal class CollectMonthStatisticState : IExpenseInfoState
 {
-    private readonly StateFactory _factory;
     private readonly DateOnly _today;
-    private readonly ILogger<StateFactory> _logger;
+    private readonly ILogger _logger;
     private DatePickerState _datePicker; 
     private const string DateFormat = "MMMM yyyy";
 
     public IExpenseInfoState PreviousState { get; }
     
-    public CollectMonthStatisticState(StateFactory factory, IExpenseInfoState previousState, DateOnly today, ILogger<StateFactory> logger)
+    public CollectMonthStatisticState(IExpenseInfoState previousState, DateOnly today, ILogger logger)
     {
-        _factory = factory;
         PreviousState = previousState;
         _today = today;
         
@@ -37,9 +35,10 @@ internal class CollectMonthStatisticState : IExpenseInfoState
         return Task.CompletedTask;
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
-        var nextState = _datePicker.ToNextState(message, cancellationToken);
+        var nextState = _datePicker.ToNextState(message, stateFactory, cancellationToken);
 
         if (nextState is DatePickerState datePickerState)
         {
@@ -54,7 +53,7 @@ internal class CollectMonthStatisticState : IExpenseInfoState
             var specification =
                 new ExpenseFromDateRangeSpecification(selectedMonth.FirstDayOfMonth(), selectedMonth.LastDayOfMonth());
         
-            return _factory.GetExpensesState(this, specification, expenseAggregator, s => s,
+            return stateFactory.GetExpensesState(this, specification, expenseAggregator, s => s,
                 new TableOptions(){Title = selectedMonth.ToString(DateFormat), FirstColumnName = "Category"});
         }
 

@@ -12,7 +12,6 @@ public class TelegramMessage : IMessage
     public string Text { get; private set; }
     public bool Edited { get; private init; }
     public ITelegramFileInfo? FileInfo {get; private set; }
-    
 
     public TelegramMessage(Message message, string? text = null)
     {

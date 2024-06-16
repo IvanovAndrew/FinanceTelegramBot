@@ -7,16 +7,14 @@ namespace StateMachine;
 
 class HandleJsonState : IExpenseInfoState
 {
-    private readonly StateFactory _factory;
     public bool UserAnswerIsRequired => false;
     public IExpenseInfoState PreviousState { get; }
     private ITelegramFileInfo FileInfo { get; }
     private List<IExpense> _expenses = new();
     private readonly ILogger _logger;
         
-    internal HandleJsonState(StateFactory factory, IExpenseInfoState previousState, ITelegramFileInfo fileInfo, ILogger logger)
+    internal HandleJsonState(IExpenseInfoState previousState, ITelegramFileInfo fileInfo, ILogger logger)
     {
-        _factory = factory;
         FileInfo = fileInfo;
         _logger = logger;
         PreviousState = previousState;
@@ -41,18 +39,19 @@ class HandleJsonState : IExpenseInfoState
         await Task.Run(() => _expenses = new ExpenseJsonParser().Parse(FileInfo.Content!.Text, "Еда", Currency.Rur));
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(FileInfo.Content?.Text))
         {
-            return _factory.CreateErrorWithRetryState("Couldn't download the file or the file is empty", this);
+            return stateFactory.CreateErrorWithRetryState("Couldn't download the file or the file is empty", this);
         }
 
         if (_expenses.Count == 0)
         {
-            return _factory.CreateErrorWithRetryState("File doesn't contain any expenses", this);
+            return stateFactory.CreateErrorWithRetryState("File doesn't contain any expenses", this);
         }
 
-        return _factory.CreateSaveExpensesFromJsonState(this, _expenses);
+        return stateFactory.CreateSaveExpensesFromJsonState(this, _expenses);
     }
 }

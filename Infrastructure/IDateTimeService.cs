@@ -5,6 +5,7 @@ namespace Infrastructure;
 public interface IDateTimeService
 {
     DateOnly Today();
+    DateTime Now();
 
     bool TryParse(string text, out DateOnly date)
     {

@@ -6,12 +6,12 @@ namespace StateMachine
 {
     public class BotEngine
     {
-        private readonly StateFactory _stateFactory;
+        private readonly IStateFactory _stateFactory;
         private static ConcurrentDictionary<long, IExpenseInfoState> _answers = new();
         private static ConcurrentDictionary<IExpenseInfoState, IMessage> _sentMessage = new();
         private readonly ILogger _logger;
 
-        public BotEngine(StateFactory stateFactory, ILogger logger)
+        public BotEngine(IStateFactory stateFactory, ILogger logger)
         {
             _stateFactory = stateFactory?? throw new ArgumentNullException(nameof(stateFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -30,35 +30,22 @@ namespace StateMachine
                     .ToArray()
                 );
 
-            bool stateExists = _answers.TryGetValue(message.ChatId, out var state);
+            if (!_answers.TryGetValue(message.ChatId, out var state))
+            {
+                _answers[message.ChatId] = state = new InitialState();
+            }
+            
             IExpenseInfoState newState;
 
-            if (stateExists)
-            {
-                await RemovePreviousMessage(state!, botClient, message.ChatId);
+            await RemovePreviousMessage(state, botClient);
 
-                if (TelegramCommand.TryGetCommand(message.Text, out var command))
-                {
-                    newState = await command.Execute(state, _stateFactory);
-                    _answers[message.ChatId] = newState;
-                    var response = await newState.Request(botClient, message.ChatId);
-                    _sentMessage[newState] = response;
-
-                    return response;
-                }
-                
-                if (message.Edited)
-                {
-                    state = state.PreviousState;
-                }
-                
-                await state.Handle(message, default);
-                _answers[message.ChatId] = newState = state.ToNextState(message, default);
-            }
-            else
+            if (message.Edited)
             {
-                newState = _stateFactory.CreateGreetingState();
+                state = state.PreviousState;
             }
+            
+            await state.Handle(message, default);
+            _answers[message.ChatId] = newState = state.MoveToNextState(message, _stateFactory, default);
 
             if (newState is ILongTermOperation longOperation)
             {
@@ -77,7 +64,7 @@ namespace StateMachine
                 while (!newState.UserAnswerIsRequired)
                 {
                     await newState.Handle(message, default);
-                    _answers[message.ChatId] = newState = newState.ToNextState(message, default);
+                    _answers[message.ChatId] = newState = newState.MoveToNextState(message, _stateFactory, default);
 
                     if (newState is ILongTermOperation longOperation1)
                     {
@@ -95,28 +82,17 @@ namespace StateMachine
             }
         }
 
-        private async Task RemovePreviousMessage(IExpenseInfoState state, ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
+        private async Task RemovePreviousMessage(IExpenseInfoState state, ITelegramBot botClient, CancellationToken cancellationToken = default)
         {
             if (_sentMessage.TryRemove(state, out var previousMessage))
             {
-                var diff = DateTime.Now.Subtract(previousMessage.Date);
-                if (diff.Hours > 24)
+                try
                 {
-                    _logger.LogWarning(
-                        $"Couldn't delete message {previousMessage.Id} {previousMessage.Text} because it was sent less than 24 hours ago");
+                    await botClient.DeleteMessageAsync(previousMessage, cancellationToken);
                 }
-                else
+                catch
                 {
-                    _logger.LogInformation($"Removing message {previousMessage.Id} \"{previousMessage.Text}\"");
-                    try
-                    {
-                        await botClient.DeleteMessageAsync(chatId, previousMessage.Id, cancellationToken);
-                        _logger.LogInformation($"Message {previousMessage.Id} \"{previousMessage.Text}\" is removed");
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError($"Couldn't delete message {previousMessage.Id} {previousMessage.Text}.", e);
-                    }
+                    // ignore
                 }
             }
         }

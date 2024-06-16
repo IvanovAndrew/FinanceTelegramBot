@@ -5,14 +5,12 @@ namespace StateMachine
 {
     class CancelledState : IExpenseInfoState
     {
-        private readonly StateFactory _factory;
         private readonly ILogger _logger;
 
         public IExpenseInfoState PreviousState { get; private set; }
 
-        public CancelledState(StateFactory factory, ILogger logger)
+        public CancelledState(ILogger logger)
         {
-            _factory = factory;
             _logger = logger;
         }
 
@@ -28,7 +26,8 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

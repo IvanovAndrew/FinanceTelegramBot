@@ -6,15 +6,13 @@ namespace StateMachine;
 
 internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseInfoState
 {
-    private readonly StateFactory _factory;
     private readonly Category _category;
-    private readonly ILogger<StateFactory> _logger;
+    private readonly ILogger _logger;
     private DatePickerState _datePicker;
     private const string DateFormat = "MMMM yyyy";
 
-    public CollectCategoryExpensesBySubcategoriesForAPeriodState(StateFactory stateFactory, IExpenseInfoState previousState, Category category, DateOnly today, ILogger<StateFactory> logger)
+    public CollectCategoryExpensesBySubcategoriesForAPeriodState(IExpenseInfoState previousState, Category category, DateOnly today, ILogger logger)
     {
-        _factory = stateFactory;
         PreviousState = previousState;
         _category = category;
         _logger = logger;
@@ -34,9 +32,10 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
         return Task.CompletedTask;
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
-        var nextState = _datePicker.ToNextState(message, cancellationToken);
+        var nextState = _datePicker.ToNextState(message, stateFactory, cancellationToken);
 
         if (nextState is DatePickerState datePicker)
         {
@@ -54,7 +53,7 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
                 new ExpenseLaterThanSpecification(firstDayOfMonth),
                 new ExpenseFromCategorySpecification(_category));
             
-            return _factory.GetExpensesState(this, specification,
+            return stateFactory.GetExpensesState(this, specification,
                 expenseAggregator,
                 s => s,
                 new TableOptions()

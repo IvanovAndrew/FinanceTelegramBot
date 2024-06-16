@@ -6,7 +6,6 @@ namespace StateMachine;
 
 internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
 {
-    private readonly StateFactory _factory;
     private readonly List<IExpense> _expenses;
     private readonly IExpenseRepository _expenseRepository;
     private readonly ILogger _logger;
@@ -14,9 +13,8 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
     
     public IExpenseInfoState PreviousState { get; private set; }
     
-    internal SaveExpensesFromJsonState(StateFactory factory, IExpenseInfoState previousState, List<IExpense> expenses, IExpenseRepository expenseRepository, ILogger logger)
+    internal SaveExpensesFromJsonState(IExpenseInfoState previousState, List<IExpense> expenses, IExpenseRepository expenseRepository, ILogger logger)
     {
-        _factory = factory;
         _expenses = expenses;
         _expenseRepository = expenseRepository;
         _logger = logger;
@@ -37,9 +35,10 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
         return Task.CompletedTask;
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
-        return _factory.CreateGreetingState();
+        return stateFactory.CreateGreetingState();
     }
 
     public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
@@ -82,7 +81,7 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
             
         _logger.LogInformation(infoMessage);
 
-        await botClient.DeleteMessageAsync(message.ChatId, savingMessage.Id, cancellationToken);
+        await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
         return await botClient.SendTextMessageAsync(message.ChatId, infoMessage);
     }
 

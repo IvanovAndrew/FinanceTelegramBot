@@ -6,7 +6,6 @@ namespace StateMachine
 {
     internal class CollectExpensesByCategoryState<T> : IExpenseInfoState, ILongTermOperation
     {
-        private readonly StateFactory _factory;
         private readonly ISpecification<IExpense> _specification;
         private readonly ExpensesAggregator<T> _expensesAggregator;
         private readonly TableOptions _tableOptions;
@@ -17,13 +16,12 @@ namespace StateMachine
 
         public IExpenseInfoState PreviousState { get; private set; }
 
-        public CollectExpensesByCategoryState(StateFactory stateFactory, IExpenseInfoState previousState,
+        public CollectExpensesByCategoryState(IExpenseInfoState previousState,
             ISpecification<IExpense> specification, ExpensesAggregator<T> expensesAggregator,
             Func<T, string> firstColumnName,
             TableOptions tableOptions,
             IExpenseRepository expenseRepository, ILogger logger)
         {
-            _factory = stateFactory;
             _specification = specification;
             _expensesAggregator = expensesAggregator;
             _firstColumnName = firstColumnName;
@@ -63,14 +61,14 @@ namespace StateMachine
             return name;
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
-            return _factory.CreateGreetingState();
+            return stateFactory.CreateGreetingState();
         }
 
         public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Collecting expenses... It can take some time.");
             var collectingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Collecting expenses... It can take some time.");
 
             string text = "";
@@ -118,7 +116,7 @@ namespace StateMachine
             finally
             {
                 _cancellationTokenSource = null;
-                await botClient.DeleteMessageAsync(message.ChatId, collectingMessage.Id, cancellationToken);
+                await botClient.DeleteMessageAsync(collectingMessage, cancellationToken);
             }
             
             return await botClient.SendTextMessageAsync(chatId: message.ChatId, text, useMarkdown:true, cancellationToken: cancellationToken);;

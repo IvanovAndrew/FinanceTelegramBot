@@ -6,7 +6,6 @@ namespace StateMachine
 {
     internal class SaveExpenseState : IExpenseInfoState, ILongTermOperation
     {
-        private readonly StateFactory _factory;
         private readonly IExpense _expense;
         private readonly IExpenseRepository _expenseRepository;
         private readonly ILogger _logger;
@@ -14,9 +13,8 @@ namespace StateMachine
     
         public IExpenseInfoState PreviousState { get; private set; }
     
-        internal SaveExpenseState(StateFactory factory, IExpenseInfoState previousState, IExpense expense, IExpenseRepository expenseRepository, ILogger logger)
+        internal SaveExpenseState(IExpenseInfoState previousState, IExpense expense, IExpenseRepository expenseRepository, ILogger logger)
         {
-            _factory = factory;
             _expense = expense;
             _expenseRepository = expenseRepository;
             _logger = logger;
@@ -68,15 +66,16 @@ namespace StateMachine
                     saved? "Saved" : "Saving is canceled"
                 );
 
-            await botClient.DeleteMessageAsync(message.ChatId, savingMessage.Id, cancellationToken);
+            await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
 
             _logger.LogInformation(infoMessage);
             return await botClient.SendTextMessageAsync(message.ChatId, infoMessage);
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
-            return _factory.CreateGreetingState();
+            return stateFactory.CreateGreetingState();
         }
 
         public void Cancel()

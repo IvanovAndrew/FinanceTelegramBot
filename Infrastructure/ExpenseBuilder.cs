@@ -1,15 +1,15 @@
 using Domain;
 
-namespace StateMachine
+namespace Infrastructure
 {
-    internal class ExpenseBuilder
+    public class ExpenseBuilder
     {
-        internal DateOnly? Date { get; set; }
-        internal Category? Category { get; set; }
-        internal SubCategory? SubCategory { get; set; }
+        public DateOnly? Date { get; set; }
+        public Category? Category { get; set; }
+        public SubCategory? SubCategory { get; set; }
 
-        internal string? Description { get; set; }
-        internal Money? Sum { get; set; }
+        public string? Description { get; set; }
+        public Money? Sum { get; set; }
 
         public IExpense Build()
         {

@@ -36,11 +36,10 @@ public class TelegramBotMock : ITelegramBot
         await Task.Delay(5, cancellationToken);
     }
 
-    public Task DeleteMessageAsync(long chatId, int messageId, CancellationToken cancellationToken)
+    public Task DeleteMessageAsync(IMessage message, CancellationToken cancellationToken)
     {
-        var messageToRemove = _messages.First(m => m.Id == messageId);
-        _messages.Remove(messageToRemove);
-        return Task.Run(() => {});
+        _messages.Remove(message);
+        return Task.CompletedTask;
     }
 
     public Task<IFile?> GetFileAsync(string fileId, string? mimeType, CancellationToken cancellationToken)

@@ -5,15 +5,13 @@ namespace StateMachine
 {
     internal class CreateStatisticTypeState : IExpenseInfoState
     {
-        private readonly StateFactory _factory;
         private readonly ILogger _logger;
     
         public bool UserAnswerIsRequired => true;
         public IExpenseInfoState PreviousState { get; }
     
-        public CreateStatisticTypeState(StateFactory factory, IExpenseInfoState previousState, ILogger logger)
+        public CreateStatisticTypeState(IExpenseInfoState previousState, ILogger logger)
         {
-            _factory = factory;
             _logger = logger;
             PreviousState = previousState;
         }
@@ -42,11 +40,12 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
-            if (message.Text == "statisticByDay") return _factory.CreateCollectDayExpenseState(this);
-            if (message.Text == "statisticByMonth") return _factory.CreateCollectMonthStatisticState(this);
-            if (message.Text == "statisticByCategory") return _factory.CreateCategoryForStatisticState(this);
+            if (message.Text == "statisticByDay") return stateFactory.CreateCollectDayExpenseState(this);
+            if (message.Text == "statisticByMonth") return stateFactory.CreateCollectMonthStatisticState(this);
+            if (message.Text == "statisticByCategory") return stateFactory.CreateCategoryForStatisticState(this);
 
             throw new BotStateException(new []{"statisticByDay", "statisticByMonth", "statisticByCategory"}, message.Text);
         }

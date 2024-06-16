@@ -7,7 +7,6 @@ namespace StateMachine
     internal class CollectDayExpenseState : IExpenseInfoState
     {
         public bool UserAnswerIsRequired => true;
-        private readonly StateFactory _factory;
         private readonly DateOnly _today;
         private readonly ILogger _logger;
         private readonly string _dateFormat = "dd MMMM yyyy";
@@ -15,9 +14,8 @@ namespace StateMachine
     
         public IExpenseInfoState PreviousState { get; private set; }
 
-        public CollectDayExpenseState(StateFactory factory, IExpenseInfoState previousState, DateOnly today, ILogger logger)
+        public CollectDayExpenseState(IExpenseInfoState previousState, DateOnly today, ILogger logger)
         {
-            _factory = factory;
             _today = today;
             _logger = logger;
             PreviousState = previousState;
@@ -36,9 +34,10 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
-            var nextState = _datePicker.ToNextState(message, cancellationToken);
+            var nextState = _datePicker.ToNextState(message, stateFactory, cancellationToken);
 
             if (nextState is DatePickerState datePickerState)
             {
@@ -50,7 +49,7 @@ namespace StateMachine
             {
                 var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc:false);
                 var specification = new ExpenseForTheDateSpecification(selectedDay);
-                return _factory.GetExpensesState(this, specification,
+                return stateFactory.GetExpensesState(this, specification,
                     expenseAggregator, 
                     s => s,
                     new TableOptions()

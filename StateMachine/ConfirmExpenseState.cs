@@ -6,15 +6,13 @@ namespace StateMachine
 {
     class ConfirmExpenseState : IExpenseInfoState
     {
-        private readonly StateFactory _factory;
         private readonly IExpense _expense;
         private readonly ILogger _logger;
         public IExpenseInfoState PreviousState { get; }
         public bool UserAnswerIsRequired => true;
     
-        public ConfirmExpenseState(StateFactory stateFactory, IExpenseInfoState previousState, IExpense expense, ILogger logger)
+        public ConfirmExpenseState(IExpenseInfoState previousState, IExpense expense, ILogger logger)
         {
-            _factory = stateFactory;
             _expense = expense;
             _logger = logger;
             PreviousState = previousState;
@@ -53,16 +51,17 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
             if (string.Equals(message.Text, "Save", StringComparison.InvariantCultureIgnoreCase))
             {
-                return _factory.CreateSaveState(this, _expense);
+                return stateFactory.CreateSaveState(this, _expense);
             }
             
             if (string.Equals(message.Text, "Cancel", StringComparison.InvariantCultureIgnoreCase))
             {
-                return _factory.CreateCancelState();
+                return stateFactory.CreateCancelState();
             }
 
             throw new BotStateException(new []{"Save", "Cancel"}, message.Text);

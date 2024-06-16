@@ -65,7 +65,8 @@ internal class DatePickerState : IExpenseInfoState
         return Task.FromResult(0);
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
         if (message.Text == CallbackCustom)
         {

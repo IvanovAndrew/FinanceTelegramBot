@@ -27,7 +27,7 @@ namespace TelegramBot.Controllers
         [Route(MessageRoute)]
         public async Task<IActionResult> Post([FromBody] Update update)
         {
-            var botClient = _botService.GetBot();
+            var botClient = new TelegramBotLogDecorator(_botService.GetBot(), _logger);
 
             var message = TelegramMessage.FromUpdate(update);
         

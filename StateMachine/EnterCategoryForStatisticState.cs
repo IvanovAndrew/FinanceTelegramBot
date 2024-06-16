@@ -6,14 +6,11 @@ namespace StateMachine
 {
     internal class EnterCategoryForStatisticState : IExpenseInfoState
     {
-        private readonly StateFactory _factory;
         private readonly IEnumerable<Category> _categories;
         private ILogger _logger;
 
-        public EnterCategoryForStatisticState(StateFactory factory, IExpenseInfoState previousState,
-            IEnumerable<Category> categories, ILogger logger)
+        public EnterCategoryForStatisticState(IExpenseInfoState previousState, IEnumerable<Category> categories, ILogger logger)
         {
-            _factory = factory;
             PreviousState = previousState;
             _logger = logger;
             _categories = categories;
@@ -42,12 +39,13 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
             var categoryDomain = _categories.FirstOrDefault(c => c.Name == message.Text);
             if (categoryDomain != null)
             {
-                return _factory.GetEnterTypeOfCategoryStatistic(this, categoryDomain);
+                return stateFactory.GetEnterTypeOfCategoryStatistic(this, categoryDomain);
             }
 
             return this;

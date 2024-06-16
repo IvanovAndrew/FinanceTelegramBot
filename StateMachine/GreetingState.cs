@@ -5,14 +5,12 @@ namespace StateMachine
 {
     class GreetingState : IExpenseInfoState
     {
-        private readonly StateFactory _factory;
         private readonly ILogger _logger;
     
         public IExpenseInfoState PreviousState { get; private set; }
     
-        public GreetingState(StateFactory factory, ILogger logger)
+        public GreetingState(ILogger logger)
         {
-            _factory = factory;
             _logger = logger;
             PreviousState = this;
         }
@@ -40,12 +38,17 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
-            if (message.Text == "showExpenses") return _factory.CreateChooseStatisticState(this); 
-            if (message.Text == "startExpense") return _factory.WayOfEnteringExpenseState(this);
-
-            throw new BotStateException(new []{"showExpenses", "startExpense"}, message.Text);
+            if (message.Text == "showExpenses") return stateFactory.CreateChooseStatisticState(this); 
+            if (message.Text == "startExpense") return stateFactory.WayOfEnteringExpenseState(this);
+            
+            else
+            {
+                var start = stateFactory.WayOfEnteringExpenseState(this);
+                return start.MoveToNextState(message, stateFactory, cancellationToken);
+            }
         }
     }
 }

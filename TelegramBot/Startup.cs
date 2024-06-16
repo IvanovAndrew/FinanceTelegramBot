@@ -2,7 +2,6 @@ using GoogleSheetWriter;
 using Infrastructure;
 using Microsoft.OpenApi.Models;
 using StateMachine;
-using TelegramBot.Controllers;
 using TelegramBot.Services;
 
 namespace TelegramBot
@@ -96,7 +95,7 @@ namespace TelegramBot
             services.AddSingleton<GoogleSheetWrapper>(s => ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), _configuration["SpreadsheetOptions:ApplicationName"], _configuration["SpreadsheetOptions:SpreadsheetID"]));
             services.AddSingleton<IExpenseRepository, ExpenseRepositoryDecorator>(s => 
                 ActivatorUtilities.CreateInstance<ExpenseRepositoryDecorator>(s, s.GetRequiredService<GoogleSheetWrapper>()));
-            services.AddScoped<StateFactory>(s => ActivatorUtilities.CreateInstance<StateFactory>(s,
+            services.AddScoped<IStateFactory, StateFactory>(s => ActivatorUtilities.CreateInstance<StateFactory>(s,
                 s.GetRequiredService<IDateTimeService>(),
                 s.GetRequiredService<IMoneyParser>(),
                 s.GetRequiredService<CategoryOptions>().Categories,

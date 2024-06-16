@@ -6,15 +6,13 @@ namespace StateMachine;
 
 public class EnterRawQrState : IExpenseInfoState
 {
-    private readonly StateFactory _factory;
     private readonly IFnsService _fnsService;
-    private readonly ILogger<StateFactory> _logger;
+    private readonly ILogger _logger;
     private FnsResponse? _check;
     
-    public EnterRawQrState(StateFactory factory, IExpenseInfoState previousState, IFnsService fnsService, ILogger<StateFactory> logger)
+    public EnterRawQrState(IExpenseInfoState previousState, IFnsService fnsService, ILogger logger)
     {
         PreviousState = previousState;
-        _factory = factory;
         _logger = logger;
         _fnsService = fnsService;
     }
@@ -31,11 +29,12 @@ public class EnterRawQrState : IExpenseInfoState
         _check = await _fnsService.GetCheck(message.Text);
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
         if (_check == null)
         {
-            return _factory.CreateErrorWithRetryState("Couldn't download the receipt", this);
+            return stateFactory.CreateErrorWithRetryState("Couldn't download the receipt", this);
         }
 
         var expenses = _check.Data?.Json?.Items?.Select(i => (IExpense) new Expense()
@@ -52,9 +51,9 @@ public class EnterRawQrState : IExpenseInfoState
         
         if (!expenses.Any())
         {
-            return _factory.CreateErrorWithRetryState("The receipt doesn't contain any expenses", this);
+            return stateFactory.CreateErrorWithRetryState("The receipt doesn't contain any expenses", this);
         }
 
-        return _factory.CreateSaveExpensesFromJsonState(this, expenses);
+        return stateFactory.CreateSaveExpensesFromJsonState(this, expenses);
     }
 }

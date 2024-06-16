@@ -6,4 +6,6 @@ public class DateTimeService : IDateTimeService
     {
         return DateOnly.FromDateTime(DateTime.Today);
     }
+
+    public DateTime Now() => DateTime.Now;
 }

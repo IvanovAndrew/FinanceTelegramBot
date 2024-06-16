@@ -7,14 +7,12 @@ namespace StateMachine;
 
 class RequestJsonState : IExpenseInfoState
 {
-    private readonly StateFactory _factory;
     public bool UserAnswerIsRequired => true;
     public IExpenseInfoState PreviousState { get; }
     private readonly ILogger _logger;
         
-    internal RequestJsonState(StateFactory factory, IExpenseInfoState previousState, ILogger logger)
+    internal RequestJsonState(IExpenseInfoState previousState, ILogger logger)
     {
-        _factory = factory;
         _logger = logger;
         PreviousState = previousState;
     }
@@ -32,7 +30,8 @@ class RequestJsonState : IExpenseInfoState
         return Task.CompletedTask;
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
         string info = "";
         if (message.FileInfo == null)
@@ -47,9 +46,9 @@ class RequestJsonState : IExpenseInfoState
         if (!string.IsNullOrEmpty(info))
         {
             _logger.LogInformation(info);
-            return _factory.CreateErrorWithRetryState(info, this);
+            return stateFactory.CreateErrorWithRetryState(info, this);
         }
 
-        return _factory.CreateHandleJsonFileState(this, message.FileInfo!);
+        return stateFactory.CreateHandleJsonFileState(this, message.FileInfo!);
     }
 }

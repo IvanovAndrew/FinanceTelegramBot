@@ -5,15 +5,13 @@ namespace StateMachine
 {
     class EnterDescriptionState : IExpenseInfoState
     {
-        private readonly StateFactory _factory;
         private readonly ExpenseBuilder _expenseBuilder;
         private readonly ILogger _logger;
     
         public IExpenseInfoState PreviousState { get; private set; }
     
-        internal EnterDescriptionState(StateFactory factory, IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, ILogger logger)
+        internal EnterDescriptionState(IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, ILogger logger)
         {
-            _factory = factory;
             _expenseBuilder = expenseBuilder;
             _logger = logger;
 
@@ -32,10 +30,11 @@ namespace StateMachine
             await Task.Run(() => _expenseBuilder.Description = message.Text);
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return _factory.CreateEnterThePriceState(_expenseBuilder, this);
+            return stateFactory.CreateEnterThePriceState(_expenseBuilder, this);
         }
     }
 }

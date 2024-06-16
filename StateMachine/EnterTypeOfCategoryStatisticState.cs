@@ -6,7 +6,6 @@ namespace StateMachine;
 
 internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
 {
-    private readonly StateFactory _factory;
     private readonly Category _category;
     private readonly DateOnly _today;
     private ILogger _logger;
@@ -14,10 +13,9 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
     public bool UserAnswerIsRequired => true;
     public IExpenseInfoState PreviousState { get; }
 
-    public EnterTypeOfCategoryStatisticState(StateFactory factory, IExpenseInfoState previousState, Category category, DateOnly today,
+    public EnterTypeOfCategoryStatisticState(IExpenseInfoState previousState, Category category, DateOnly today,
         ILogger logger)
     {
-        _factory = factory;
         _category = category;
         _today = today;
         PreviousState = previousState;
@@ -46,22 +44,22 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
         return Task.CompletedTask;
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
         if (message.Text == "subcategory")
         {
-            return _factory.CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(this, _category);
-            
+            return stateFactory.CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(this, _category);
         }
 
         if (message.Text == "periodtodate")
         {
-            return _factory.CreateCollectCategoryExpensesByMonthsState(this, _category);
+            return stateFactory.CreateCollectCategoryExpensesByMonthsState(this, _category);
         }
         
         if (message.Text == "subcategoryperiodtodate")
         {
-            return _factory.EnterSubcategoryStatisticState(this, _category);
+            return stateFactory.EnterSubcategoryStatisticState(this, _category);
         }
 
         throw new BotStateException(new []{"subcategory", "lastyear", "subcategoryperiodtodate"}, message.Text);

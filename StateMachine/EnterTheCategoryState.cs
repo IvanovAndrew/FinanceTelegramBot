@@ -6,16 +6,14 @@ namespace StateMachine
 {
     class EnterTheCategoryState : IExpenseInfoState
     {
-        private readonly StateFactory _factory;
         private readonly ExpenseBuilder _expenseBuilder;
         private readonly IEnumerable<Category> _categories;
         private readonly ILogger _logger;
     
         public IExpenseInfoState PreviousState { get; private set; }
 
-        internal EnterTheCategoryState(StateFactory stateFactory, IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, IEnumerable<Category> categories, ILogger logger)
+        internal EnterTheCategoryState(IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, IEnumerable<Category> categories, ILogger logger)
         {
-            _factory = stateFactory;
             _expenseBuilder = expenseBuilder;
             _categories = categories;
             _logger = logger;
@@ -55,18 +53,19 @@ namespace StateMachine
             await Task.Run(action);
         }
 
-        public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+        public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+            CancellationToken cancellationToken)
         {
             var categoryDomain = _expenseBuilder.Category;
             if (categoryDomain != null)
             {
                 if (categoryDomain.SubCategories.Any())
                 {
-                    return _factory.CreateEnterTheSubcategoryState(_expenseBuilder, this, categoryDomain.SubCategories);
+                    return stateFactory.CreateEnterTheSubcategoryState(_expenseBuilder, this, categoryDomain.SubCategories);
                 }
                 else
                 {
-                    return _factory.CreateEnterDescriptionState(_expenseBuilder, this);
+                    return stateFactory.CreateEnterDescriptionState(_expenseBuilder, this);
                 }
             }
 

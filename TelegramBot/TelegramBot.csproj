@@ -32,6 +32,9 @@
 
     <ItemGroup>
       <Content Remove="StateMachine\**" />
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>

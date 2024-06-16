@@ -6,19 +6,17 @@ namespace StateMachine;
 
 internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
 {
-    private readonly StateFactory _factory;
     private readonly Category _category;
     private readonly SubCategory _subCategory;
     private readonly DateOnly _today;
-    private readonly ILogger<StateFactory> _logger;
+    private readonly ILogger _logger;
 
     private IExpenseInfoState _datePicker;
     private string DateFormat = "MMMM yyyy";
 
-    public CollectSubCategoryExpensesByMonthsState(StateFactory factory, IExpenseInfoState previousState, DateOnly today,
-        Category category, SubCategory subCategory, ILogger<StateFactory> logger)
+    public CollectSubCategoryExpensesByMonthsState(IExpenseInfoState previousState, DateOnly today,
+        Category category, SubCategory subCategory, ILogger logger)
     {
-        _factory = factory;
         PreviousState = previousState;
         _today = today;
         _category = category;
@@ -42,9 +40,10 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
         return Task.CompletedTask;
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
-        var nextState = _datePicker.ToNextState(message, cancellationToken);
+        var nextState = _datePicker.MoveToNextState(message, stateFactory, cancellationToken);
 
         if (nextState is DatePickerState datePicker)
         {
@@ -62,7 +61,7 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
                 new ExpenseLaterThanSpecification(firstDayOfMonth),
                 new ExpenseFromCategoryAndSubcategorySpecification(_category, _subCategory));
 
-            return _factory.GetExpensesState(this, specification,
+            return stateFactory.GetExpensesState(this, specification,
                 expenseAggregator,
                 s => s.ToString(DateFormat),
                 new TableOptions()

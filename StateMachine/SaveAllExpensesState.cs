@@ -6,7 +6,6 @@ namespace StateMachine;
 
 public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
 {
-    private readonly StateFactory _factory;
     private readonly List<IExpense> _expenses;
     private readonly IExpenseRepository _expenseRepository;
     private readonly ILogger _logger;
@@ -14,10 +13,9 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
 
     public IExpenseInfoState PreviousState { get; private set; }
 
-    internal SaveAllExpensesState(StateFactory factory, IExpenseInfoState previousState, List<IExpense> expenses,
+    internal SaveAllExpensesState(IExpenseInfoState previousState, List<IExpense> expenses,
         IExpenseRepository expenseRepository, ILogger logger)
     {
-        _factory = factory;
         _expenses = expenses;
         _expenseRepository = expenseRepository;
         _logger = logger;
@@ -60,8 +58,8 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
             _cancellationTokenSource = null;
         }
 
-        await botClient.DeleteMessageAsync(message.ChatId, message.Id, cancellationToken);
-        await botClient.DeleteMessageAsync(message.ChatId, savingMessage.Id, cancellationToken);
+        await botClient.DeleteMessageAsync(message, cancellationToken);
+        await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
 
         if (!saved)
         {
@@ -72,7 +70,8 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
         return await botClient.SendTextMessageAsync(message.ChatId, $"{_expenses.Count} expenses saved");
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
         throw new InvalidOperationException();
     }

@@ -6,16 +6,14 @@ namespace StateMachine;
 
 internal class EnterSubcategoryStatisticState : IExpenseInfoState
 {
-    private readonly StateFactory _factory;
     private readonly Category _category;
     private SubCategory? _subCategory;
-    private readonly ILogger<StateFactory> _logger;
+    private readonly ILogger _logger;
 
-    public EnterSubcategoryStatisticState(StateFactory factory, IExpenseInfoState previousState, Category category,
-        ILogger<StateFactory> logger)
+    public EnterSubcategoryStatisticState(IExpenseInfoState previousState, Category category,
+        ILogger logger)
     {
         PreviousState = previousState;
-        _factory = factory;
         _category = category;
         _logger = logger;
     }
@@ -34,10 +32,11 @@ internal class EnterSubcategoryStatisticState : IExpenseInfoState
         await Task.Run(() => _subCategory = _category.SubCategories.FirstOrDefault(c => c.Name == message.Text));
     }
 
-    public IExpenseInfoState ToNextState(IMessage message, CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
+        CancellationToken cancellationToken)
     {
         return _subCategory != null
-            ? _factory.CreateCollectSubcategoryExpensesByMonthsState(this, _category, _subCategory)
+            ? stateFactory.CreateCollectSubcategoryExpensesByMonthsState(this, _category, _subCategory)
             : this;
     }
 }
