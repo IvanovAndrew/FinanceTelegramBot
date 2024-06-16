@@ -49,7 +49,7 @@ namespace StateMachine
 
             if (newState is ILongTermOperation longOperation)
             {
-                _sentMessage[state!] = await longOperation.Handle(botClient, message, default);
+                _sentMessage[state] = await longOperation.Handle(botClient, message, default);
                 while (!_answers.TryRemove(message.ChatId, out _)) { }
 
                 return _sentMessage[state];

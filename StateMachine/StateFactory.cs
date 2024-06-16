@@ -11,10 +11,10 @@ namespace StateMachine
         private readonly IEnumerable<Category> _categories;
         private readonly IFnsService _fnsService;
         private readonly IExpenseRepository _expenseRepository;
-        private readonly ILogger _logger;
+        private readonly ILogger<StateFactory> _logger;
     
         public StateFactory(IDateTimeService dateTimeService, IMoneyParser moneyParser, IEnumerable<Category> categories, IFnsService fnsService, 
-            IExpenseRepository expenseRepository, ILogger logger)
+            IExpenseRepository expenseRepository, ILogger<StateFactory> logger)
         {
             _dateTimeService = dateTimeService;
             _categories = categories;

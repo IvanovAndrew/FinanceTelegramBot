@@ -1,3 +1,4 @@
+using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using StateMachine;
 using Telegram.Bot.Types;
@@ -14,9 +15,9 @@ namespace TelegramBot.Controllers
         private const string WebhookRoute = "webhook";
         private readonly ILogger _logger;
         private readonly TelegramBotService _botService;
-        private readonly StateFactory _stateFactory;
+        private readonly IStateFactory _stateFactory;
 
-        public BotController(ILogger<BotController> logger, StateFactory stateFactory, TelegramBotService botService)
+        public BotController(ILogger<BotController> logger, IStateFactory stateFactory, TelegramBotService botService)
         {
             _logger = logger;
             _stateFactory = stateFactory;
