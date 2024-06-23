@@ -40,6 +40,7 @@ namespace TelegramBot.Controllers
             }
             catch (Exception e)
             {
+                botEngine.ClearState(message.ChatId);
                 _logger.LogError($"Unhandled exception: {e}");
                 if (message.ChatId != _botService.SupportChatId)
                 {
@@ -48,7 +49,7 @@ namespace TelegramBot.Controllers
                 }
                 else
                 {
-                    await botClient.SendTextMessageAsync(message.ChatId, "Uncovered error {e}");
+                    await botClient.SendTextMessageAsync(message.ChatId, $"{e}");
                 }
             }
             

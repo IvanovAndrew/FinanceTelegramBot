@@ -96,5 +96,12 @@ namespace StateMachine
                 }
             }
         }
+
+        public void ClearState(long messageChatId)
+        {
+            while (!_answers.TryRemove(messageChatId, out _))
+            {
+            }
+        }
     }
 }

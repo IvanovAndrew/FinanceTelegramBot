@@ -34,7 +34,15 @@ public class FnsService : IFnsService
         if (response.IsSuccessStatusCode)
         {
             var responseString = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<FnsResponse>(responseString);
+            try
+            {
+                return JsonConvert.DeserializeObject<FnsResponse>(responseString);
+            }
+            catch (Exception e)
+            {
+                var error = JsonConvert.DeserializeObject<FnsErrorResponse>(responseString);
+                throw new FnsException(error.Data);
+            }
         }
 
         return null;
@@ -266,4 +274,27 @@ public class FnsManualRequest
     
     [DataMember(Name = "sum")]
     public string Sum { get; set; }
-} 
+}
+
+[DataContract]
+public class FnsErrorResponse
+{
+    [DataMember(Name = "code")]
+    public int Code { get; set; }
+    
+    [DataMember(Name = "first")]
+    public int First { get; set; }
+    
+    [DataMember(Name = "data")]
+    public string Data { get; set; }
+}
+
+public class FnsException : Exception
+{
+    private string _message;
+    public override string Message => $"FNS Error: {_message}"; 
+    public FnsException(string message) : base(message)
+    {
+        _message = message;
+    }
+}
