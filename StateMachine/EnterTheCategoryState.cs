@@ -10,15 +10,11 @@ namespace StateMachine
         private readonly IEnumerable<Category> _categories;
         private readonly ILogger _logger;
     
-        public IExpenseInfoState PreviousState { get; private set; }
-
-        internal EnterTheCategoryState(IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, IEnumerable<Category> categories, ILogger logger)
+        internal EnterTheCategoryState(ExpenseBuilder expenseBuilder, IEnumerable<Category> categories, ILogger logger)
         {
             _expenseBuilder = expenseBuilder;
             _categories = categories;
             _logger = logger;
-
-            PreviousState = previousState;
         }
 
         public bool UserAnswerIsRequired => true;
@@ -53,6 +49,11 @@ namespace StateMachine
             await Task.Run(action);
         }
 
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            return stateFactory.CreateEnterTheDateState(this, false);
+        }
+
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
@@ -61,11 +62,11 @@ namespace StateMachine
             {
                 if (categoryDomain.SubCategories.Any())
                 {
-                    return stateFactory.CreateEnterTheSubcategoryState(_expenseBuilder, this, categoryDomain.SubCategories);
+                    return stateFactory.CreateEnterTheSubcategoryState(_expenseBuilder,  categoryDomain.SubCategories);
                 }
                 else
                 {
-                    return stateFactory.CreateEnterDescriptionState(_expenseBuilder, this);
+                    return stateFactory.CreateEnterDescriptionState(_expenseBuilder);
                 }
             }
 

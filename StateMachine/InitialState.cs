@@ -5,21 +5,22 @@ namespace StateMachine;
 public class InitialState : IExpenseInfoState
 {
     public bool UserAnswerIsRequired => false;
-    public IExpenseInfoState PreviousState => this;
 
     public InitialState()
     {
     }
 
-    public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
+    public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        throw new MissingInformationBotException();
     }
 
     public Task Handle(IMessage message, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }
+
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) => this;
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)

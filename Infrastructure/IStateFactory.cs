@@ -6,41 +6,37 @@ public interface IStateFactory
 {
     IExpenseInfoState CreateGreetingState();
 
-    IExpenseInfoState WayOfEnteringExpenseState(IExpenseInfoState previousState);
-    IExpenseInfoState CreateRequestPasteJsonState(IExpenseInfoState previousState);
+    IExpenseInfoState WayOfEnteringExpenseState();
+    IExpenseInfoState CreateRequestPasteJsonState();
     IExpenseInfoState CreateEnterTheDateState(IExpenseInfoState previousState, bool askCustomDate = false);
-    IExpenseInfoState CreateChooseStatisticState(IExpenseInfoState previousState);
-    IExpenseInfoState CreateCategoryForStatisticState(IExpenseInfoState previousState);
-    IExpenseInfoState CreateCollectDayExpenseState(IExpenseInfoState previousState);
-    IExpenseInfoState CreateEnterTheCategoryState(ExpenseBuilder expenseBuilder, IExpenseInfoState previousState);
+    IExpenseInfoState CreateChooseStatisticState();
+    IExpenseInfoState CreateCategoryForStatisticState();
+    IExpenseInfoState CreateCollectDayExpenseState();
+    IExpenseInfoState CreateEnterTheCategoryState(ExpenseBuilder expenseBuilder);
 
-    IExpenseInfoState CreateEnterTheSubcategoryState(ExpenseBuilder expenseBuilder, IExpenseInfoState previousState,
-        SubCategory[] subCategories);
-    IExpenseInfoState CreateEnterDescriptionState(ExpenseBuilder expenseBuilder, IExpenseInfoState previousState);
-    IExpenseInfoState CreateEnterThePriceState(ExpenseBuilder expenseBuilder, IExpenseInfoState previousState);
-    IExpenseInfoState CreateConfirmState(IExpense expense, IExpenseInfoState previousState);
-    IExpenseInfoState CreateSaveState(IExpenseInfoState previousState, IExpense expense);
-    IExpenseInfoState CreateSaveExpensesFromJsonState(IExpenseInfoState previousState, List<IExpense> expenses);
-    IExpenseInfoState CreateHandleJsonFileState(IExpenseInfoState previousState, ITelegramFileInfo fileInfo);
-    IExpenseInfoState CreateErrorWithRetryState(string warning, IExpenseInfoState previousState);
+    IExpenseInfoState CreateEnterTheSubcategoryState(ExpenseBuilder expenseBuilder, SubCategory[] subCategories);
+    IExpenseInfoState CreateEnterDescriptionState(ExpenseBuilder expenseBuilder);
+    IExpenseInfoState CreateEnterThePriceState(ExpenseBuilder expenseBuilder);
+    IExpenseInfoState CreateConfirmState(IExpense expense);
+    IExpenseInfoState CreateSaveState(IExpense expense);
+    IExpenseInfoState CreateSaveExpensesFromJsonState(List<IExpense> expenses);
+    IExpenseInfoState CreateHandleJsonFileState(ITelegramFileInfo fileInfo);
+    IExpenseInfoState CreateErrorWithRetryState(string warning, IExpenseInfoState state);
     IExpenseInfoState CreateCancelState();
 
-    IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, ISpecification<IExpense> specification,
+    IExpenseInfoState GetExpensesState<T>(IExpenseInfoState expenseInfoState, ISpecification<IExpense> specification,
         ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions);
-    IExpenseInfoState GetEnterTypeOfCategoryStatistic(IExpenseInfoState previousState, Category category);
+    IExpenseInfoState CreateEnterTypeOfCategoryStatistic(Category category, IExpenseInfoState previousState);
 
-    IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses,
-        IExpenseInfoState previousState);
-    IExpenseInfoState CreateCollectMonthStatisticState(IExpenseInfoState previousState);
+    IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses);
+    IExpenseInfoState CreateCollectMonthStatisticState();
 
     IExpenseInfoState
-        CreateCollectCategoryExpensesByMonthsState(IExpenseInfoState previousState, Category category);
+        CreateCollectCategoryExpensesByMonthsState(Category category);
 
-    IExpenseInfoState CreateCollectSubcategoryExpensesByMonthsState(IExpenseInfoState previousState,
-        Category category, SubCategory subCategory);
+    IExpenseInfoState CreateCollectSubcategoryExpensesByMonthsState(Category category, SubCategory subCategory);
 
-    IExpenseInfoState CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(IExpenseInfoState previousState,
-        Category category);
+    IExpenseInfoState CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(Category category);
     IExpenseInfoState EnterSubcategoryStatisticState(IExpenseInfoState previousState, Category category);
-    IExpenseInfoState CreateEnterRawQrState(IExpenseInfoState previousState);
+    IExpenseInfoState CreateEnterRawQrState();
 }

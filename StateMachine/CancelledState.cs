@@ -7,8 +7,6 @@ namespace StateMachine
     {
         private readonly ILogger _logger;
 
-        public IExpenseInfoState PreviousState { get; private set; }
-
         public CancelledState(ILogger logger)
         {
             _logger = logger;
@@ -26,10 +24,15 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            return stateFactory.CreateGreetingState();
+        }
+
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return stateFactory.CreateGreetingState();
         }
     }
 }

@@ -11,15 +11,11 @@ namespace StateMachine
         private readonly ILogger _logger;
         private CancellationTokenSource? _cancellationTokenSource;
     
-        public IExpenseInfoState PreviousState { get; private set; }
-    
-        internal SaveExpenseState(IExpenseInfoState previousState, IExpense expense, IExpenseRepository expenseRepository, ILogger logger)
+        internal SaveExpenseState(IExpense expense, IExpenseRepository expenseRepository, ILogger logger)
         {
             _expense = expense;
             _expenseRepository = expenseRepository;
             _logger = logger;
-
-            PreviousState = previousState;
         }
 
         public bool UserAnswerIsRequired => false;
@@ -37,6 +33,12 @@ namespace StateMachine
             }
             
             return Task.CompletedTask;
+        }
+
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            Cancel();
+            return stateFactory.CreateConfirmState(_expense);
         }
 
         public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)

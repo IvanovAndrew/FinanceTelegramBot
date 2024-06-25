@@ -14,10 +14,8 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
     private IExpenseInfoState _datePicker;
     private string DateFormat = "MMMM yyyy";
 
-    public CollectSubCategoryExpensesByMonthsState(IExpenseInfoState previousState, DateOnly today,
-        Category category, SubCategory subCategory, ILogger logger)
+    public CollectSubCategoryExpensesByMonthsState(DateOnly today, Category category, SubCategory subCategory, ILogger logger)
     {
-        PreviousState = previousState;
         _today = today;
         _category = category;
         _subCategory = subCategory;
@@ -28,7 +26,6 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
     }
 
     public bool UserAnswerIsRequired => true;
-    public IExpenseInfoState PreviousState { get; }
 
     public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
@@ -38,6 +35,11 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
     public Task Handle(IMessage message, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
+    }
+
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+    {
+        return stateFactory.EnterSubcategoryStatisticState(this, _category);
     }
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,

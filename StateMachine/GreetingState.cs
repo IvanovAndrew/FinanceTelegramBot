@@ -7,12 +7,9 @@ namespace StateMachine
     {
         private readonly ILogger _logger;
     
-        public IExpenseInfoState PreviousState { get; private set; }
-    
         public GreetingState(ILogger logger)
         {
             _logger = logger;
-            PreviousState = this;
         }
 
         public bool UserAnswerIsRequired => true;
@@ -38,15 +35,20 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            return this;
+        }
+
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
-            if (message.Text == "showExpenses") return stateFactory.CreateChooseStatisticState(this); 
-            if (message.Text == "startExpense") return stateFactory.WayOfEnteringExpenseState(this);
+            if (message.Text == "showExpenses") return stateFactory.CreateChooseStatisticState(); 
+            if (message.Text == "startExpense") return stateFactory.WayOfEnteringExpenseState();
             
             else
             {
-                var start = stateFactory.WayOfEnteringExpenseState(this);
+                var start = stateFactory.WayOfEnteringExpenseState();
                 return start.MoveToNextState(message, stateFactory, cancellationToken);
             }
         }

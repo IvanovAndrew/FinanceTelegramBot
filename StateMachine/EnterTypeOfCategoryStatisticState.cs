@@ -8,17 +8,15 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
 {
     private readonly Category _category;
     private readonly DateOnly _today;
+    private readonly IExpenseInfoState _previousState;
     private ILogger _logger;
     
     public bool UserAnswerIsRequired => true;
-    public IExpenseInfoState PreviousState { get; }
-
-    public EnterTypeOfCategoryStatisticState(IExpenseInfoState previousState, Category category, DateOnly today,
-        ILogger logger)
+    public EnterTypeOfCategoryStatisticState(Category category, DateOnly today, IExpenseInfoState previousState, ILogger logger)
     {
         _category = category;
         _today = today;
-        PreviousState = previousState;
+        _previousState = previousState;
         _logger = logger;
         
     }
@@ -44,17 +42,22 @@ internal class EnterTypeOfCategoryStatisticState : IExpenseInfoState
         return Task.CompletedTask;
     }
 
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+    {
+        return _previousState;
+    }
+
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
         if (message.Text == "subcategory")
         {
-            return stateFactory.CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(this, _category);
+            return stateFactory.CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(_category);
         }
 
         if (message.Text == "periodtodate")
         {
-            return stateFactory.CreateCollectCategoryExpensesByMonthsState(this, _category);
+            return stateFactory.CreateCollectCategoryExpensesByMonthsState(_category);
         }
         
         if (message.Text == "subcategoryperiodtodate")

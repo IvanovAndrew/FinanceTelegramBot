@@ -10,15 +10,13 @@ public class EnterRawQrState : IExpenseInfoState
     private readonly ILogger _logger;
     private FnsResponse? _check;
     
-    public EnterRawQrState(IExpenseInfoState previousState, IFnsService fnsService, ILogger logger)
+    public EnterRawQrState(IFnsService fnsService, ILogger logger)
     {
-        PreviousState = previousState;
         _logger = logger;
         _fnsService = fnsService;
     }
 
     public bool UserAnswerIsRequired => true;
-    public IExpenseInfoState PreviousState { get; }
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await botClient.SendTextMessageAsync(chatId, "Enter the string you get after QR reading", cancellationToken: cancellationToken);
@@ -28,6 +26,9 @@ public class EnterRawQrState : IExpenseInfoState
     {
         _check = await _fnsService.GetCheck(message.Text);
     }
+
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) =>
+        stateFactory.WayOfEnteringExpenseState();
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
@@ -54,6 +55,6 @@ public class EnterRawQrState : IExpenseInfoState
             return stateFactory.CreateErrorWithRetryState("The receipt doesn't contain any expenses", this);
         }
 
-        return stateFactory.CreateSaveExpensesFromJsonState(this, expenses);
+        return stateFactory.CreateSaveExpensesFromJsonState(expenses);
     }
 }

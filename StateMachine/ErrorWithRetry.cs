@@ -7,7 +7,6 @@ namespace StateMachine
         private readonly string _errorMessage;
         private readonly IExpenseInfoState _state;
 
-        public IExpenseInfoState PreviousState => _state.PreviousState;
     
         internal ErrorWithRetry(string message, IExpenseInfoState state)
         {
@@ -27,6 +26,11 @@ namespace StateMachine
         public async Task Handle(IMessage message, CancellationToken cancellationToken)
         {
             await _state.Handle(message, cancellationToken);
+        }
+
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            return _state.MoveToPreviousState(stateFactory);
         }
 
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,

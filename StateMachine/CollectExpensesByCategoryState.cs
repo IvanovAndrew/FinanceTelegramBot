@@ -13,22 +13,20 @@ namespace StateMachine
         private readonly Func<T, string> _firstColumnName;
         private readonly ILogger _logger;
         private CancellationTokenSource? _cancellationTokenSource;
+        private readonly IExpenseInfoState _previousState;
 
-        public IExpenseInfoState PreviousState { get; private set; }
-
-        public CollectExpensesByCategoryState(IExpenseInfoState previousState,
-            ISpecification<IExpense> specification, ExpensesAggregator<T> expensesAggregator,
+        public CollectExpensesByCategoryState(IExpenseInfoState previousState, ISpecification<IExpense> specification, ExpensesAggregator<T> expensesAggregator,
             Func<T, string> firstColumnName,
             TableOptions tableOptions,
             IExpenseRepository expenseRepository, ILogger logger)
         {
+            _previousState = previousState;
             _specification = specification;
             _expensesAggregator = expensesAggregator;
             _firstColumnName = firstColumnName;
             _tableOptions = tableOptions;
             _expenseRepository = expenseRepository;
             _logger = logger;
-            PreviousState = previousState;
         }
 
         public bool UserAnswerIsRequired => false;
@@ -43,6 +41,8 @@ namespace StateMachine
             // TODO move logic to here
             return Task.CompletedTask;
         }
+
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) => _previousState;
 
         private static string ShortNameOfCategory(string name)
         {
@@ -69,7 +69,9 @@ namespace StateMachine
 
         public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
         {
+            bool tableFilled = false;
             string text = "";
+            
             if (TelegramCommand.TryGetCommand(message.Text, out _))
             {
                 Cancel();
@@ -110,6 +112,7 @@ namespace StateMachine
                         telegramTable.FillRow("Total", statistic.Total, currencies);
 
                         text = MarkdownFormatter.FormatTable(_tableOptions, telegramTable.Build());
+                        tableFilled = true;
                     }
                     else
                     {
@@ -127,29 +130,18 @@ namespace StateMachine
                 }
             }
             
-            return await botClient.SendTextMessageAsync(chatId: message.ChatId, text, useMarkdown:true, cancellationToken: cancellationToken);;
+            return await botClient.SendTextMessageAsync(chatId: message.ChatId, text, useMarkdown:tableFilled, cancellationToken: cancellationToken);
         }
 
-        private Currency[] GetAvailableCurrencies(List<IExpense> expenses)
+        public Task Cancel()
         {
-            // TODO move to appsettings
-            Dictionary<Currency, int> priorities = new Dictionary<Currency, int>()
-            {
-                [Currency.Amd] = 0,
-                [Currency.Rur] = 1,
-                [Currency.Gel] = 2,
-            };
-            
-            return 
-                expenses.Where(expense => expense.Amount.Amount != 0m).Select(expense => expense.Amount.Currency)
-                    .OrderBy(c => priorities[c]).ToArray();
-        }
-
-        public void Cancel()
-        {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
+            return Task.Run(() =>
+                {
+                    _cancellationTokenSource?.Cancel();
+                    _cancellationTokenSource?.Dispose();
+                    _cancellationTokenSource = null;
+                }
+            );
         }
     }
 }

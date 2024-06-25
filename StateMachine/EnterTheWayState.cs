@@ -6,13 +6,11 @@ namespace StateMachine;
 class EnterTheWayState : IExpenseInfoState
 {
     public bool UserAnswerIsRequired => true;
-    public IExpenseInfoState PreviousState { get; }
     private readonly ILogger _logger;
         
-    internal EnterTheWayState(IExpenseInfoState previousState, ILogger logger)
+    internal EnterTheWayState(ILogger logger)
     {
         _logger = logger;
-        PreviousState = previousState;
     }
         
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
@@ -36,12 +34,17 @@ class EnterTheWayState : IExpenseInfoState
         return Task.CompletedTask;
     }
 
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+    {
+        return stateFactory.CreateGreetingState();
+    }
+
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
-        if (message.Text == "json") return stateFactory.CreateRequestPasteJsonState(this);
+        if (message.Text == "json") return stateFactory.CreateRequestPasteJsonState();
         if (message.Text == "user") return stateFactory.CreateEnterTheDateState(this, false);
-        if (message.Text == "rawqr") return stateFactory.CreateEnterRawQrState(this);
+        if (message.Text == "rawqr") return stateFactory.CreateEnterRawQrState();
 
         throw new BotStateException(new []{"json", "user", "rawqr"}, message.Text);
     }
