@@ -50,6 +50,10 @@ namespace GoogleSheetWriter
             {
                 listInfo = _options.BigDealInfo;
             }
+            else if (listName == _options.CurrencyConversion.ListName)
+            {
+                listInfo = _options.CurrencyConversion;
+            }
 
             await _semaphore.WaitAsync(TimeSpan.FromMinutes(1), cancellationToken);
             _logger.LogDebug("Semaphore is taken");
@@ -220,7 +224,7 @@ namespace GoogleSheetWriter
             var service = await InitializeService(cancellationToken);
 
             var result = new List<IExpense>();
-            foreach (var list in new []{_options.UsualExpenses, _options.FlatInfo, _options.BigDealInfo})
+            foreach (var list in new []{_options.UsualExpenses, _options.FlatInfo, _options.BigDealInfo, _options.CurrencyConversion})
             {
                 result.AddRange(
                     await GetRows(service, list, _logger, cancellationToken)
