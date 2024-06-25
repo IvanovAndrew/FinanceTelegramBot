@@ -5,8 +5,8 @@ namespace Infrastructure;
 [Command(Text = "Back", Command = "/back", Order = 1)]
 public class BackCommand : TelegramCommand
 {
-    public override IExpenseInfoState Execute(IExpenseInfoState state, IStateFactory stateFactory)
+    protected override IExpenseInfoState ToNextState(IExpenseInfoState state, IStateFactory stateFactory)
     {
-        return state.PreviousState;
+        return state.MoveToPreviousState(stateFactory);
     }
 }

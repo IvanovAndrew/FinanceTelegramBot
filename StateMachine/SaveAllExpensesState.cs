@@ -1,4 +1,4 @@
-﻿using Domain;
+using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -81,10 +81,13 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
         throw new InvalidOperationException();
     }
 
-    public void Cancel()
+    public Task Cancel()
     {
-        _cancellationTokenSource?.Cancel();
-        _cancellationTokenSource?.Dispose();
-        _cancellationTokenSource = null;
+        return Task.Run(() =>
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+        });
     }
 }

@@ -6,7 +6,22 @@ namespace Infrastructure;
 
 public abstract class TelegramCommand
 {
-    public abstract IExpenseInfoState Execute(IExpenseInfoState state, IStateFactory stateFactory);
+    public IExpenseInfoState Execute(IExpenseInfoState state, IStateFactory stateFactory)
+    {
+        Task.WaitAll(Cancel(state));
+
+        return ToNextState(state, stateFactory);
+    }
+
+    private async Task Cancel(IExpenseInfoState state)
+    {
+        if (state is ILongTermOperation longTermOperation)
+        {
+            await longTermOperation.Cancel();
+        }
+    }
+
+    protected abstract IExpenseInfoState ToNextState(IExpenseInfoState state, IStateFactory stateFactory);
 
     public static List<CommandAttribute> GetAllCommands()
     {
