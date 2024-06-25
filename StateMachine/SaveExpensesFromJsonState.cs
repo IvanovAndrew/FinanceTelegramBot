@@ -1,4 +1,4 @@
-﻿using Domain;
+using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -95,10 +95,13 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
         return await botClient.SendTextMessageAsync(message.ChatId, "Canceled");
     }
 
-    public void Cancel()
+    public Task Cancel()
     {
-        _cancellationTokenSource?.Cancel();
-        _cancellationTokenSource?.Dispose();
-        _cancellationTokenSource = null;
+        return Task.Run(() =>
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+        });
     }
 }

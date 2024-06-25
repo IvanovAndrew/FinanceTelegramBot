@@ -83,11 +83,15 @@ namespace StateMachine
             return stateFactory.CreateGreetingState();
         }
 
-        public void Cancel()
+        public Task Cancel()
         {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
+            return Task.Run(
+                () =>
+                {
+                    _cancellationTokenSource?.Cancel();
+                    _cancellationTokenSource?.Dispose();
+                    _cancellationTokenSource = null;
+                });
         }
     }
 }
