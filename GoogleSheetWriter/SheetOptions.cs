@@ -5,5 +5,6 @@
         public ListInfo UsualExpenses;
         public ListInfo FlatInfo;
         public ListInfo BigDealInfo;
+        public ListInfo CurrencyConversion;
     }
 }
