@@ -8,16 +8,14 @@ namespace StateMachine;
 class HandleJsonState : IExpenseInfoState
 {
     public bool UserAnswerIsRequired => false;
-    public IExpenseInfoState PreviousState { get; }
     private ITelegramFileInfo FileInfo { get; }
     private List<IExpense> _expenses = new();
     private readonly ILogger _logger;
         
-    internal HandleJsonState(IExpenseInfoState previousState, ITelegramFileInfo fileInfo, ILogger logger)
+    internal HandleJsonState(ITelegramFileInfo fileInfo, ILogger logger)
     {
         FileInfo = fileInfo;
         _logger = logger;
-        PreviousState = previousState;
     }
         
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
@@ -39,6 +37,8 @@ class HandleJsonState : IExpenseInfoState
         await Task.Run(() => _expenses = new ExpenseJsonParser().Parse(FileInfo.Content!.Text, "Еда", Currency.Rur));
     }
 
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) => stateFactory.CreateRequestPasteJsonState();
+
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
@@ -52,6 +52,6 @@ class HandleJsonState : IExpenseInfoState
             return stateFactory.CreateErrorWithRetryState("File doesn't contain any expenses", this);
         }
 
-        return stateFactory.CreateSaveExpensesFromJsonState(this, _expenses);
+        return stateFactory.CreateSaveExpensesFromJsonState(_expenses);
     }
 }

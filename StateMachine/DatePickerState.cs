@@ -9,28 +9,30 @@ internal class DatePickerState : IExpenseInfoState
     protected readonly string DateFormat;
     private readonly DateOnly[] _options;
     private readonly string _customOptionTitle;
+    private IExpenseInfoState _parentState;
     private const string CallbackCustom = "custom";
 
-    internal DatePickerState(IExpenseInfoState previousState, string text, DateOnly today, string dateFormat, DateOnly[] options, string customOptionTitle) : this(text, today, dateFormat, previousState)
+    internal DatePickerState(IExpenseInfoState parentState, string text, DateOnly today, string dateFormat, DateOnly[] options, string customOptionTitle) : this(text, today, dateFormat, parentState)
     {
         Text = text;
         DateFormat = dateFormat;
         _options = options;
         _customOptionTitle = customOptionTitle;
+        _parentState = parentState;
     }
     
-    protected DatePickerState(string text, DateOnly today, string dateFormat, IExpenseInfoState previousState)
+    protected DatePickerState(string text, DateOnly today, string dateFormat, IExpenseInfoState parentState)
     {
         Text = text;
         Today = today;
         DateFormat = dateFormat;
         _options = Array.Empty<DateOnly>();
         _customOptionTitle = string.Empty;
-        PreviousState = previousState;
+        _parentState = parentState;
     }
     
     public bool UserAnswerIsRequired => true;
-    public IExpenseInfoState PreviousState { get; }
+    
 
     
     public virtual async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
@@ -65,21 +67,26 @@ internal class DatePickerState : IExpenseInfoState
         return Task.FromResult(0);
     }
 
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+    {
+        return _parentState.MoveToPreviousState(stateFactory);
+    }
+
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
         if (message.Text == CallbackCustom)
         {
-            return new CustomDatePickerState(Text, Today, DateFormat, PreviousState);
+            return new CustomDatePickerState(Text, Today, DateFormat, _parentState);
         }
 
-        return PreviousState;
+        return _parentState;
     }
 }
 
 internal class CustomDatePickerState : DatePickerState
 {
-    protected internal CustomDatePickerState(string text, DateOnly today, string dateFormat, IExpenseInfoState previousState) : base(text, today, dateFormat, previousState)
+    protected internal CustomDatePickerState(string text, DateOnly today, string dateFormat, IExpenseInfoState parentState) : base(text, today, dateFormat, parentState)
     {
     }
 

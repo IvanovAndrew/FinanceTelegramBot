@@ -38,6 +38,12 @@ namespace TelegramBot.Controllers
             {
                 await botEngine.Proceed(message, botClient);
             }
+            catch (BotException e)
+            {
+                botEngine.ClearState(message.ChatId);
+                _logger.LogError($"{e}");
+                await botClient.SendTextMessageAsync(message.ChatId, $"{e.Message}");
+            }
             catch (Exception e)
             {
                 botEngine.ClearState(message.ChatId);

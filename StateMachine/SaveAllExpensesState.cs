@@ -1,4 +1,4 @@
-using Domain;
+﻿using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -11,16 +11,12 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
     private readonly ILogger _logger;
     private CancellationTokenSource? _cancellationTokenSource;
 
-    public IExpenseInfoState PreviousState { get; private set; }
-
-    internal SaveAllExpensesState(IExpenseInfoState previousState, List<IExpense> expenses,
+    internal SaveAllExpensesState(List<IExpense> expenses,
         IExpenseRepository expenseRepository, ILogger logger)
     {
         _expenses = expenses;
         _expenseRepository = expenseRepository;
         _logger = logger;
-
-        PreviousState = previousState;
     }
 
     public bool UserAnswerIsRequired => false;
@@ -38,6 +34,12 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
         }
         
         return Task.CompletedTask;
+    }
+
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+    {
+        Cancel();
+        throw new NotImplementedException();
     }
 
     public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)

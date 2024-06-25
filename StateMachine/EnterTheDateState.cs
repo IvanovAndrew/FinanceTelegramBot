@@ -9,16 +9,16 @@ namespace StateMachine
         private readonly ILogger _logger;
         private readonly bool _askCustomDate;
         private readonly ExpenseBuilder _expenseBuilder = new();
-    
-        public IExpenseInfoState PreviousState { get; private set; }
+        private IExpenseInfoState _previousState;
+
         public bool UserAnswerIsRequired => true;
     
-        public EnterTheDateState(IExpenseInfoState previousState, IDateTimeService dateTimeService, ILogger logger, bool askCustomDate = false)
+        public EnterTheDateState(IDateTimeService dateTimeService, ILogger logger, IExpenseInfoState previousState, bool askCustomDate = false)
         {
             _dateTimeService = dateTimeService;
             _askCustomDate = askCustomDate;
             _logger = logger;
-            PreviousState = previousState;
+            _previousState = previousState;
         }
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
@@ -56,6 +56,11 @@ namespace StateMachine
             });
         }
 
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            return _previousState;
+        }
+
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
@@ -70,7 +75,7 @@ namespace StateMachine
                 return stateFactory.CreateErrorWithRetryState($"{message.Text} isn't a date.", this);
             }
 
-            return stateFactory.CreateEnterTheCategoryState(_expenseBuilder, this);
+            return stateFactory.CreateEnterTheCategoryState(_expenseBuilder);
         }
     }
 }

@@ -9,15 +9,13 @@ namespace StateMachine
         private readonly IEnumerable<Category> _categories;
         private ILogger _logger;
 
-        public EnterCategoryForStatisticState(IExpenseInfoState previousState, IEnumerable<Category> categories, ILogger logger)
+        public EnterCategoryForStatisticState(IEnumerable<Category> categories, ILogger logger)
         {
-            PreviousState = previousState;
             _logger = logger;
             _categories = categories;
         }
 
         public bool UserAnswerIsRequired { get; } = true;
-        public IExpenseInfoState PreviousState { get; }
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
@@ -39,13 +37,18 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            return stateFactory.CreateChooseStatisticState();
+        }
+
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
             var categoryDomain = _categories.FirstOrDefault(c => c.Name == message.Text);
             if (categoryDomain != null)
             {
-                return stateFactory.GetEnterTypeOfCategoryStatistic(this, categoryDomain);
+                return stateFactory.CreateEnterTypeOfCategoryStatistic(categoryDomain, this);
             }
 
             return this;

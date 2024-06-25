@@ -12,13 +12,10 @@ namespace StateMachine
         private readonly string _dateFormat = "dd MMMM yyyy";
         private DatePickerState _datePicker;
     
-        public IExpenseInfoState PreviousState { get; private set; }
-
-        public CollectDayExpenseState(IExpenseInfoState previousState, DateOnly today, ILogger logger)
+        public CollectDayExpenseState(DateOnly today, ILogger logger)
         {
             _today = today;
             _logger = logger;
-            PreviousState = previousState;
 
             _datePicker = new DatePickerState(this, "Enter the day", today, _dateFormat,
                 new[] { _today, _today.AddDays(-1) }, "Another day");
@@ -33,6 +30,9 @@ namespace StateMachine
         {
             return Task.CompletedTask;
         }
+
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) =>
+            stateFactory.CreateChooseStatisticState();
 
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)

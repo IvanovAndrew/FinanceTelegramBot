@@ -1,4 +1,3 @@
-using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -10,14 +9,11 @@ namespace StateMachine
         private readonly IMoneyParser _moneyParser;
         private readonly ILogger _logger;
     
-        public IExpenseInfoState PreviousState { get; private set; }
-
-        internal EnterPriceState(IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, IMoneyParser moneyParser, ILogger logger)
+        internal EnterPriceState(ExpenseBuilder expenseBuilder, IMoneyParser moneyParser, ILogger logger)
         {
             _expenseBuilder = expenseBuilder;
             _moneyParser = moneyParser;
             _logger = logger;
-            PreviousState = previousState;
         }
 
         public bool UserAnswerIsRequired => true;
@@ -38,6 +34,8 @@ namespace StateMachine
             });
         }
 
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) =>stateFactory.CreateEnterDescriptionState(_expenseBuilder);
+
         // TODO side effect
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
@@ -50,7 +48,7 @@ namespace StateMachine
                 return stateFactory.CreateErrorWithRetryState(warning, this);
             }
 
-            return stateFactory.CreateConfirmState(_expenseBuilder.Build(), this);
+            return stateFactory.CreateConfirmState(_expenseBuilder.Build());
         }
     }
 }

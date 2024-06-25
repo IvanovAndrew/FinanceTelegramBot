@@ -8,14 +8,10 @@ namespace StateMachine
         private readonly ExpenseBuilder _expenseBuilder;
         private readonly ILogger _logger;
     
-        public IExpenseInfoState PreviousState { get; private set; }
-    
-        internal EnterDescriptionState(IExpenseInfoState previousState, ExpenseBuilder expenseBuilder, ILogger logger)
+        internal EnterDescriptionState(ExpenseBuilder expenseBuilder, ILogger logger)
         {
             _expenseBuilder = expenseBuilder;
             _logger = logger;
-
-            PreviousState = previousState;
         }
 
         public bool UserAnswerIsRequired => true;
@@ -30,11 +26,23 @@ namespace StateMachine
             await Task.Run(() => _expenseBuilder.Description = message.Text);
         }
 
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            if (_expenseBuilder.SubCategory != null)
+            {
+                return stateFactory.CreateEnterTheSubcategoryState(_expenseBuilder, _expenseBuilder.Category!.SubCategories);
+            }
+            else
+            {
+                return stateFactory.CreateEnterTheCategoryState(_expenseBuilder);
+            }
+        }
+
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return stateFactory.CreateEnterThePriceState(_expenseBuilder, this);
+            return stateFactory.CreateEnterThePriceState(_expenseBuilder);
         }
     }
 }

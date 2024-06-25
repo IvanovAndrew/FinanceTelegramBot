@@ -1,4 +1,4 @@
-using Domain;
+﻿using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -11,15 +11,11 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
     private readonly ILogger _logger;
     private CancellationTokenSource? _cancellationTokenSource;
     
-    public IExpenseInfoState PreviousState { get; private set; }
-    
-    internal SaveExpensesFromJsonState(IExpenseInfoState previousState, List<IExpense> expenses, IExpenseRepository expenseRepository, ILogger logger)
+    internal SaveExpensesFromJsonState(List<IExpense> expenses, IExpenseRepository expenseRepository, ILogger logger)
     {
         _expenses = expenses;
         _expenseRepository = expenseRepository;
         _logger = logger;
-
-        PreviousState = previousState;
     }
 
     public bool UserAnswerIsRequired => false;
@@ -35,6 +31,11 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
         return Task.CompletedTask;
     }
 
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+    {
+        throw new NotImplementedException();
+    }
+
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
@@ -43,7 +44,7 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
 
     public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
     {
-        if (TelegramCommand.TryGetCommand(message.Text, out var _))
+        if (TelegramCommand.TryGetCommand(message.Text, out _))
         {
             Cancel();
         }

@@ -41,7 +41,7 @@ namespace StateMachine
 
             if (message.Edited)
             {
-                state = state.PreviousState;
+                state = state.MoveToPreviousState(_stateFactory);
             }
             
             await state.Handle(message, default);
@@ -50,7 +50,7 @@ namespace StateMachine
             if (newState is ILongTermOperation longOperation)
             {
                 _sentMessage[state] = await longOperation.Handle(botClient, message, default);
-                while (!_answers.TryRemove(message.ChatId, out _)) { }
+                ClearState(message.ChatId);
 
                 return _sentMessage[state];
             }

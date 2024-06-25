@@ -11,11 +11,8 @@ internal class CollectMonthStatisticState : IExpenseInfoState
     private DatePickerState _datePicker; 
     private const string DateFormat = "MMMM yyyy";
 
-    public IExpenseInfoState PreviousState { get; }
-    
-    public CollectMonthStatisticState(IExpenseInfoState previousState, DateOnly today, ILogger logger)
+    public CollectMonthStatisticState(DateOnly today, ILogger logger)
     {
-        PreviousState = previousState;
         _today = today;
         
         _datePicker = new DatePickerState(this, "Enter the month", _today, DateFormat, 
@@ -34,6 +31,9 @@ internal class CollectMonthStatisticState : IExpenseInfoState
     {
         return Task.CompletedTask;
     }
+
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) =>
+        stateFactory.CreateChooseStatisticState();
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)

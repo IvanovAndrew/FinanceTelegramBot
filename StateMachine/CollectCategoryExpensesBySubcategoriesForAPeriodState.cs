@@ -11,9 +11,8 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
     private DatePickerState _datePicker;
     private const string DateFormat = "MMMM yyyy";
 
-    public CollectCategoryExpensesBySubcategoriesForAPeriodState(IExpenseInfoState previousState, Category category, DateOnly today, ILogger logger)
+    public CollectCategoryExpensesBySubcategoriesForAPeriodState(Category category, DateOnly today, ILogger logger)
     {
-        PreviousState = previousState;
         _category = category;
         _logger = logger;
         _datePicker = new DatePickerState(this, "Choose start of the period", today, DateFormat,
@@ -21,7 +20,6 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
     }
 
     public bool UserAnswerIsRequired => true;
-    public IExpenseInfoState PreviousState { get; }
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await _datePicker.Request(botClient, chatId, cancellationToken);
@@ -31,6 +29,8 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
     {
         return Task.CompletedTask;
     }
+
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) => stateFactory.CreateEnterTypeOfCategoryStatistic(_category, this);
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)

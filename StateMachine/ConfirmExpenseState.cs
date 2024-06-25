@@ -7,18 +7,16 @@ namespace StateMachine
     class ConfirmExpenseState : IExpenseInfoState
     {
         private readonly IExpense _expense;
+        private readonly IEnumerable<Category> _categories;
         private readonly ILogger _logger;
-        public IExpenseInfoState PreviousState { get; }
         public bool UserAnswerIsRequired => true;
     
-        public ConfirmExpenseState(IExpenseInfoState previousState, IExpense expense, ILogger logger)
+        public ConfirmExpenseState(IExpense expense, IEnumerable<Category> categories, ILogger logger)
         {
             _expense = expense;
             _logger = logger;
-            PreviousState = previousState;
+            _categories = categories;
         }
-
-    
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
@@ -51,12 +49,33 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
+        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            var category = _categories.FirstOrDefault(c => c.Name == _expense.Category);
+            SubCategory? subCategory = null;
+
+            if (category != null && _expense.SubCategory != null)
+            {
+                subCategory = category.SubCategories.FirstOrDefault(c => c.Name == _expense.SubCategory);
+            }
+                
+            var expenseBuilder = new ExpenseBuilder()
+            {
+                Category = category,
+                SubCategory = subCategory,
+                Date = _expense.Date,
+                Description = _expense.Description, 
+            };
+            
+            return stateFactory.CreateEnterThePriceState(expenseBuilder);
+        }
+
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
             if (string.Equals(message.Text, "Save", StringComparison.InvariantCultureIgnoreCase))
             {
-                return stateFactory.CreateSaveState(this, _expense);
+                return stateFactory.CreateSaveState(_expense);
             }
             
             if (string.Equals(message.Text, "Cancel", StringComparison.InvariantCultureIgnoreCase))

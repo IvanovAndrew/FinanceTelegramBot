@@ -8,13 +8,11 @@ namespace StateMachine;
 class RequestJsonState : IExpenseInfoState
 {
     public bool UserAnswerIsRequired => true;
-    public IExpenseInfoState PreviousState { get; }
     private readonly ILogger _logger;
         
-    internal RequestJsonState(IExpenseInfoState previousState, ILogger logger)
+    internal RequestJsonState(ILogger logger)
     {
         _logger = logger;
-        PreviousState = previousState;
     }
         
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
@@ -28,6 +26,11 @@ class RequestJsonState : IExpenseInfoState
     public Task Handle(IMessage message, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
+    }
+
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+    {
+        return stateFactory.WayOfEnteringExpenseState();
     }
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
@@ -49,6 +52,6 @@ class RequestJsonState : IExpenseInfoState
             return stateFactory.CreateErrorWithRetryState(info, this);
         }
 
-        return stateFactory.CreateHandleJsonFileState(this, message.FileInfo!);
+        return stateFactory.CreateHandleJsonFileState(message.FileInfo!);
     }
 }
