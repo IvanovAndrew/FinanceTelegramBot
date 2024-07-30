@@ -23,12 +23,19 @@ public class ExpenseRepositoryDecorator : IExpenseRepository
         _logger = logger;
     }
 
-    public async Task SaveAll(List<IExpense> expense, CancellationToken cancellationToken)
+    public async Task<bool> SaveAll(List<IExpense> expense, CancellationToken cancellationToken)
     {
-        await _repository.SaveAll(expense, cancellationToken);
+        _logger.LogInformation($"ExpenseRepository is trying to save {expense.Count} expense(s)");
+        
+        bool result = await _repository.SaveAll(expense, cancellationToken);
+        
+        _logger.LogInformation($"ExpenseRepository has got result {result}");
+        
         // TODO maybe it makes sense to add the expense to the cache
         _logger.LogInformation("Remove all cached entries");
         _cache.Remove(CacheKeys.AllExpenses);
+
+        return result;
     }
 
     public async Task<List<IExpense>> Read(CancellationToken cancellationToken)
@@ -67,5 +74,25 @@ public class ExpenseRepositoryDecorator : IExpenseRepository
         }
 
         return items;
+    }
+}
+
+public class ExpenseRepository : IExpenseRepository
+{
+    private readonly IGoogleSpreadsheetService _spreadsheetService;
+
+    public ExpenseRepository(IGoogleSpreadsheetService spreadsheetService)
+    {
+        _spreadsheetService = spreadsheetService;
+    }
+    
+    public async Task<bool> SaveAll(List<IExpense> expenses, CancellationToken cancellationToken)
+    {
+        return await _spreadsheetService.SaveAllExpenses(expenses, cancellationToken);
+    }
+
+    public async Task<List<IExpense>> Read(CancellationToken cancellationToken)
+    {
+        return await _spreadsheetService.GetAllExpenses(cancellationToken);
     }
 }

@@ -44,39 +44,33 @@ namespace StateMachine
         public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
         {
             var savingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
-            bool saved = false;
+
+            SaveExpenseResult result;
             try
             {
                 using (_cancellationTokenSource = new CancellationTokenSource())
                 {
-                    await _expenseRepository.Save(_expense, _cancellationTokenSource.Token);
+                    var saved = await _expenseRepository.Save(_expense, _cancellationTokenSource.Token);
+                    result = saved ? SaveExpenseResult.Saved(_expense) : SaveExpenseResult.Failed(_expense, "");
                 }
-
-                saved = true;
             }
             catch (OperationCanceledException)
             {
+                result = SaveExpenseResult.Canceled(_expense);
                 _logger.LogInformation("Operation is canceled by user");
+            }
+            catch(Exception e)
+            {
+                result = SaveExpenseResult.Failed(_expense, e.Message);
+                _logger.LogInformation($"Couldn't save an expense: {e}");
             }
             finally
             {
                 _cancellationTokenSource = null;
             }
 
-            string infoMessage = string.Join($"{Environment.NewLine}", 
-                    $"Date: {_expense.Date:dd.MM.yyyy}", 
-                    $"Category: {_expense.Category}", 
-                    $"Subcategory: {_expense.SubCategory ?? string.Empty}", 
-                    $"Description: {_expense.Description ?? string.Empty}",
-                    $"Amount: {_expense.Amount}",
-                    "",
-                    saved? "Saved" : "Saving is canceled"
-                );
-
             await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
-
-            _logger.LogInformation(infoMessage);
-            return await botClient.SendTextMessageAsync(message.ChatId, infoMessage);
+            return await botClient.SendTextMessageAsync(message.ChatId, result.GetMessage());
         }
 
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,

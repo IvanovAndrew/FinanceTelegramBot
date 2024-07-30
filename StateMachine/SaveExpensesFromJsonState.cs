@@ -53,7 +53,7 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
             var savingMessage =
                 await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
 
-            bool saved = false;
+            SaveBatchExpensesResult result;
             try
             {
                 using (_cancellationTokenSource = new CancellationTokenSource())
@@ -61,11 +61,16 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
                     await _expenseRepository.SaveAll(_expenses, _cancellationTokenSource.Token);
                 }
 
-                saved = true;
+                result = SaveBatchExpensesResult.Saved(_expenses);
             }
             catch (OperationCanceledException)
             {
+                result = SaveBatchExpensesResult.Canceled(_expenses);
                 _logger.LogInformation("Operation is canceled by user");
+            }
+            catch (Exception e)
+            {
+                result = SaveBatchExpensesResult.Failed(_expenses, e.Message);
             }
             finally
             {
@@ -78,19 +83,8 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
                 sum += expense.Amount;
             }
 
-            string infoMessage = $"All expenses are saved with the following options: {Environment.NewLine}" +
-                                 string.Join($"{Environment.NewLine}",
-                                     $"Date: {_expenses[0].Date:dd.MM.yyyy}",
-                                     $"Category: {_expenses[0].Category}",
-                                     $"Total Amount: {sum}",
-                                     "",
-                                     saved ? "Saved" : "Saving is cancelled"
-                                 );
-
-            _logger.LogInformation(infoMessage);
-
             await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
-            return await botClient.SendTextMessageAsync(message.ChatId, infoMessage);
+            return await botClient.SendTextMessageAsync(message.ChatId, result.GetMessage());
         }
 
         return await botClient.SendTextMessageAsync(message.ChatId, "Canceled");

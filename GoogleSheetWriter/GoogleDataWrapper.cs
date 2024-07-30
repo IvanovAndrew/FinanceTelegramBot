@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using Domain;
+﻿using System.Globalization;
 using Google.Apis.Sheets.v4.Data;
 
 namespace GoogleSheetWriter
 {
-    internal class GoogleDataWrapper : IExpense
+    internal class GoogleDataWrapper
     {
         private readonly string[] _cellData;
         private readonly IndicesMapping _indices;
@@ -29,7 +25,10 @@ namespace GoogleSheetWriter
         public string? SubCategory => GetByIndex(_indices.SubcategoryIndex);
         public string? Description => GetByIndex(_indices.DescriptionIndex);
 
-        public Money Amount => ParseMoney(GetByIndex(_indices.RurAmountIndex), GetByIndex(_indices.AmdAmountIndex), GetByIndex(_indices.GelAmountIndex));
+        public decimal Amount => ParseAmount(GetByIndex(_indices.RurAmountIndex), GetByIndex(_indices.AmdAmountIndex), GetByIndex(_indices.GelAmountIndex));
+
+        public Currency Currency => ParseCurrency(GetByIndex(_indices.RurAmountIndex),
+            GetByIndex(_indices.AmdAmountIndex), GetByIndex(_indices.GelAmountIndex)); 
 
         private string? GetByIndex(int? index)
         {
@@ -38,32 +37,60 @@ namespace GoogleSheetWriter
             return _cellData[index.Value];
         }
 
-        private Money ParseMoney(string? rurValue, string? amdValue, string? gelValue)
+        private decimal ParseAmount(params string[] values)
+        {
+            foreach (var s in values)
+            {
+                var trimmedValue = (s?? "").Trim();
+                if (decimal.TryParse(trimmedValue, NumberStyles.Currency, _culture, out var value) && value != 0)
+                {
+                    return value;
+                }
+            }
+
+            return 0;
+        }
+        
+        private decimal Parse(params string[] values)
+        {
+            foreach (var s in values)
+            {
+                var trimmedValue = (s?? "").Trim();
+                if (decimal.TryParse(trimmedValue, NumberStyles.Currency, _culture, out var value))
+                {
+                    return value;
+                }
+            }
+
+            return -1;
+        }
+
+        private Currency ParseCurrency(string? rurValue, string? amdValue, string? gelValue)
         {
             string rur = (rurValue ?? String.Empty).Trim();
             string amd = (amdValue ?? String.Empty).Trim();
             string gel = (gelValue ?? String.Empty).Trim();
             if (string.IsNullOrEmpty(rur) && string.IsNullOrEmpty(amd) && string.IsNullOrEmpty(gel))
-                return new Money() {Currency = Currency.Amd, Amount = 0m};
+                return Currency.RUR;
 
             if (rur.Contains("Загрузка", StringComparison.CurrentCultureIgnoreCase))
             {
-                return new Money() {Currency = Currency.Rur, Amount = 0m};
+                return Currency.RUR;
             }
 
-            if (Money.TryParse(rur, Currency.Rur, _culture, out var money))
+            if (Parse(rur) != -1)
             {
-                return money;
+                return Currency.RUR;
             }
 
-            else if (Money.TryParse(amd, Currency.Amd, _culture, out money))
+            else if (Parse(amd) != -1)
             {
-                return money;
+                return Currency.AMD;
             }
             
-            else if (Money.TryParse(gel, Currency.Gel, _culture, out money))
+            else if (Parse(gel) != -1)
             {
-                return money;
+                return Currency.GEL;
             }
 
             throw new ArgumentOutOfRangeException($"Couldn't parse money from {rurValue}, {amdValue}, and {gelValue}");

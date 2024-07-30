@@ -45,7 +45,8 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
     public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
     {
         var savingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
-        bool saved = false;
+
+        SaveBatchExpensesResult result;
 
         try
         {
@@ -54,11 +55,16 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
                 await _expenseRepository.SaveAll(_expenses, _cancellationTokenSource.Token);
             }
 
-            saved = true;
+            result = SaveBatchExpensesResult.Saved(_expenses);
         }
         catch (OperationCanceledException)
         {
+            result = SaveBatchExpensesResult.Canceled(_expenses);
             _logger.LogInformation("Operation is canceled by user");
+        }
+        catch (Exception exception)
+        {
+            result = SaveBatchExpensesResult.Failed(_expenses, exception.Message);
         }
         finally
         {
@@ -68,13 +74,7 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
         await botClient.DeleteMessageAsync(message, cancellationToken);
         await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
 
-        if (!saved)
-        {
-            return await botClient.SendTextMessageAsync(message.ChatId, $"Saving is canceled");
-        }
-        
-        _logger.LogInformation($"{_expenses.Count} expenses saved");
-        return await botClient.SendTextMessageAsync(message.ChatId, $"{_expenses.Count} expenses saved");
+        return await botClient.SendTextMessageAsync(message.ChatId, result.GetMessage());
     }
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,

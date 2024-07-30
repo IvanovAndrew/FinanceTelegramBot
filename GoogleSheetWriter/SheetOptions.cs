@@ -2,9 +2,10 @@
 {
     public class SheetOptions
     {
-        public ListInfo UsualExpenses;
+        public ListInfo EveryDayExpenses;
         public ListInfo FlatInfo;
         public ListInfo BigDealInfo;
         public ListInfo CurrencyConversion;
+        public ListInfo Incomes;
     }
 }

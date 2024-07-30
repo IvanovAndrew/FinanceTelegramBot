@@ -17,7 +17,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\GoogleSheetWriter\GoogleSheetWriter.csproj" />
       <ProjectReference Include="..\StateMachine\StateMachine.csproj" />
     </ItemGroup>
 

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
-using Domain;
+﻿using System.Globalization;
 using Google.Apis.Sheets.v4.Data;
 
 namespace GoogleSheetWriter
@@ -45,9 +43,19 @@ namespace GoogleSheetWriter
             return new SheetRowFactory(indices, culture);
         }
 
-        internal IExpense CreateExpense(IList<CellData> cellData)
+        internal Expense CreateExpense(IList<CellData> cellData)
         {
-            return new GoogleDataWrapper(cellData, _indices, _culture);
+            var wrapper = new GoogleDataWrapper(cellData, _indices, _culture);
+
+            return new Expense()
+            {
+                Date = wrapper.Date.ToDateTime(default),
+                Category = wrapper.Category,
+                Subcategory = wrapper.SubCategory,
+                Description = wrapper.Description,
+                Amount = wrapper.Amount,
+                Currency = wrapper.Currency
+            };
         }
     }
 }

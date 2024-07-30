@@ -1,15 +1,13 @@
 using System.Globalization;
-using Domain;
+using System.Reflection;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
-using Infrastructure;
-using Microsoft.Extensions.Logging;
 
 namespace GoogleSheetWriter
 {
-    public class GoogleSheetWrapper : IExpenseRepository
+    public class GoogleSheetWrapper
     {
         private readonly SheetOptions _options;
         private readonly CategoryToListMappingOptions _categoryMapping;
@@ -17,22 +15,20 @@ namespace GoogleSheetWriter
         private readonly string _spreadsheetId;
         private GoogleCredential _credential;
         private readonly CultureInfo _cultureInfo = new("ru-RU");
-        private readonly ILogger _logger;
         private const int BatchSize = 500;
         private char FirstExcelColumn = 'A';
         private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
         public GoogleSheetWrapper(SheetOptions options, CategoryToListMappingOptions mappingOptions,
-            string applicationName, string spreadsheetId, ILogger<GoogleSheetWrapper> logger)
+            string applicationName, string spreadsheetId)
         {
             _options = options;
             _categoryMapping = mappingOptions;
             _applicationName = applicationName;
             _spreadsheetId = spreadsheetId;
-            _logger = logger;
         }
 
-        public async Task SaveAll(List<IExpense> expenses, CancellationToken cancellationToken)
+        public async Task SaveAll(List<Expense> expenses, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
@@ -41,7 +37,7 @@ namespace GoogleSheetWriter
                 listName = _categoryMapping.DefaultCategory;
             }
 
-            ListInfo listInfo = _options.UsualExpenses;
+            ListInfo listInfo = _options.EveryDayExpenses;
             if (listName == _options.FlatInfo.ListName)
             {
                 listInfo = _options.FlatInfo;
@@ -56,7 +52,6 @@ namespace GoogleSheetWriter
             }
 
             await _semaphore.WaitAsync(TimeSpan.FromMinutes(1), cancellationToken);
-            _logger.LogDebug("Semaphore is taken");
             try
             {
                 int row = await GetNumberFilledRows(service, listInfo.ListName, cancellationToken) + 1;
@@ -84,11 +79,10 @@ namespace GoogleSheetWriter
             finally
             {
                 _semaphore.Release();
-                _logger.LogDebug("Semaphore is realized");
             }
         }
 
-        private List<IList<object>> FillExcelRows(List<IExpense> expenses, ListInfo listInfo, int firstRow)
+        private List<IList<object>> FillExcelRows(List<Expense> expenses, ListInfo listInfo, int firstRow)
         {
             var result = new List<IList<object>>(expenses.Count);
 
@@ -103,19 +97,17 @@ namespace GoogleSheetWriter
                     excelRowValues.Add(null);
                 }
 
-                var money = expense.Amount;
-
-                if (listInfo.YearColumn != "")
+                if (!string.IsNullOrEmpty(listInfo.YearColumn))
                 {
                     excelRowValues[listInfo.YearColumn[0] - FirstExcelColumn] = $"=YEAR({listInfo.DateColumn}{row})";
                 }
 
-                if (listInfo.MonthColumn != "")
+                if (!string.IsNullOrEmpty(listInfo.MonthColumn))
                 {
                     excelRowValues[listInfo.MonthColumn[0] - FirstExcelColumn] = $"=MONTH({listInfo.DateColumn}{row})";
                 }
 
-                if (listInfo.DateColumn != "")
+                if (!string.IsNullOrEmpty(listInfo.DateColumn))
                 {
                     excelRowValues[listInfo.DateColumn[0] - FirstExcelColumn] = expense.Date.ToString("dd.MM.yyyy");
                 }
@@ -127,7 +119,7 @@ namespace GoogleSheetWriter
 
                 if (!string.IsNullOrEmpty(listInfo.SubCategoryColumn))
                 {
-                    excelRowValues[listInfo.SubCategoryColumn[0] - FirstExcelColumn] = expense.SubCategory;
+                    excelRowValues[listInfo.SubCategoryColumn[0] - FirstExcelColumn] = expense.Subcategory;
                 }
 
                 if (!string.IsNullOrEmpty(listInfo.DescriptionColumn))
@@ -138,19 +130,19 @@ namespace GoogleSheetWriter
                 if (!string.IsNullOrEmpty(listInfo.AmountRurColumn))
                 {
                     excelRowValues[listInfo.AmountRurColumn[0] - FirstExcelColumn] =
-                        money.Currency == Currency.Rur ? money.Amount : "";
+                        expense.Currency == Currency.RUR ? expense.Amount : "";
                 }
 
                 if (!string.IsNullOrEmpty(listInfo.AmountAmdColumn))
                 {
                     excelRowValues[listInfo.AmountAmdColumn[0] - FirstExcelColumn] =
-                        money.Currency == Currency.Amd ? money.Amount : "";
+                        expense.Currency == Currency.AMD ? expense.Amount : "";
                 }
                 
                 if (!string.IsNullOrEmpty(listInfo.AmountGelColumn))
                 {
                     excelRowValues[listInfo.AmountGelColumn[0] - FirstExcelColumn] =
-                        money.Currency == Currency.Gel ? money.Amount : "";
+                        expense.Currency == Currency.GEL ? expense.Amount : "";
                 }
 
                 while (excelRowValues[^1] == null)
@@ -166,12 +158,13 @@ namespace GoogleSheetWriter
 
         private async Task<SheetsService> InitializeService(CancellationToken cancellationToken)
         {
-            await using (var stream =
-                new FileStream("servicekey.json", FileMode.Open, FileAccess.Read))
+            var assembly = Assembly.GetExecutingAssembly();
+            
+            using (Stream stream = assembly.GetManifestResourceStream("GoogleSheetWriter.servicekey.json"))
+            using (StreamReader reader = new StreamReader(stream))
             {
-                // The file token.json stores the user's access and refresh tokens, and is created
-                // automatically when the authorization flow completes for the first time.
-                _credential = await GoogleCredential.FromStreamAsync(stream, cancellationToken);
+                string serviceKey = await reader.ReadToEndAsync();
+                _credential = GoogleCredential.FromJson(serviceKey);
             }
 
             // Create Google Sheets API service.
@@ -219,22 +212,22 @@ namespace GoogleSheetWriter
             return i;
         }
 
-        public async Task<List<IExpense>> Read(CancellationToken cancellationToken)
+        public async Task<List<Expense>> Read(CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
-            var result = new List<IExpense>();
-            foreach (var list in new []{_options.UsualExpenses, _options.FlatInfo, _options.BigDealInfo, _options.CurrencyConversion})
+            var result = new List<Expense>();
+            foreach (var list in new []{_options.EveryDayExpenses, _options.FlatInfo, _options.BigDealInfo, _options.CurrencyConversion})
             {
                 result.AddRange(
-                    await GetRows(service, list, _logger, cancellationToken)
+                    await GetRows(service, list, cancellationToken)
                     );
             }
 
             return result;
         }
 
-        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, ILogger logger, CancellationToken cancellationToken)
+        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, CancellationToken cancellationToken)
         {
             List<Expense> expenses = new();
 
@@ -247,8 +240,8 @@ namespace GoogleSheetWriter
 
             while (fromRangeRow < lastFilledRow)
             {
-                logger.LogInformation(
-                    $"{info.ListName}. Range is {fromRangeRow}:{toRangeRow}. Last filled row is {lastFilledRow}");
+                // logger.LogInformation(
+                //     $"{info.ListName}. Range is {fromRangeRow}:{toRangeRow}. Last filled row is {lastFilledRow}");
                 var request = service.Spreadsheets.Get(_spreadsheetId);
                 request.IncludeGridData = true;
                 request.Ranges = $"{info.ListName}!{info.DateColumn}{fromRangeRow}:{info.AmountGelColumn}{toRangeRow}";
@@ -265,22 +258,12 @@ namespace GoogleSheetWriter
                         if (cellData.Values == null) continue;
                         if (new[] {"Дата", "Год", "", null}.Contains(cellData.Values[0].FormattedValue)) continue;
 
-                        var expenseInfo = factory.CreateExpense(cellData.Values);
+                        var expense = factory.CreateExpense(cellData.Values);
 
-                        expenses.Add(
-                            new Expense
-                            {
-                                Date = expenseInfo.Date,
-                                Category = expenseInfo.Category,
-                                SubCategory = expenseInfo.SubCategory,
-                                Description = expenseInfo.Description,
-                                Amount = expenseInfo.Amount
-                            });
-
+                        expenses.Add(expense);
                         i++;
                     }
                 }
-
 
                 fromRangeRow += BatchSize;
                 toRangeRow += BatchSize;

@@ -2,8 +2,8 @@
 {
     public class Currency
     {
-        private readonly string Name;
-        private readonly string Symbol;
+        public readonly string Name;
+        public readonly string Symbol;
 
         public static Currency Rur = new("RUR", "₽");
         public static Currency Amd = new("AMD", "֏");
@@ -15,6 +15,6 @@
             Symbol = symbol;
         }
 
-        public override string ToString() => Symbol;
+        public override string ToString() => Name;
     }
 }
