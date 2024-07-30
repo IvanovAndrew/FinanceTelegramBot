@@ -32,7 +32,7 @@ namespace TelegramBot
             services.AddScoped<ICurrencyParser, CurrencyParser>();
 
             services.AddSingleton<IGoogleSpreadsheetService, GoogleSpreadsheetService>(s =>
-                ActivatorUtilities.CreateInstance<GoogleSpreadsheetService>(s, "https://googlespreadsheetexpenses.azurewebsites.net/api"));
+                ActivatorUtilities.CreateInstance<GoogleSpreadsheetService>(s, _configuration.GetSection("GoogleSpreadsheet")["Url"]));
 
             // Register the core service
             services.AddScoped<ExpenseRepository>();
