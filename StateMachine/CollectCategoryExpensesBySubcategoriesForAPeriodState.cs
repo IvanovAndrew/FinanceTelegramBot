@@ -47,7 +47,7 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
         {
             var firstDayOfMonth = dateFrom.FirstDayOfMonth();
             var expenseAggregator = new ExpensesAggregator<string>(
-                e => e.SubCategory ?? string.Empty, true, sortAsc: false);
+                e => e.SubCategory ?? string.Empty, false, sortAsc: true);
 
             var specification = new MultipleSpecification(
                 new ExpenseLaterThanSpecification(firstDayOfMonth),
