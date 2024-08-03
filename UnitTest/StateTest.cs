@@ -462,6 +462,7 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("/start");
         lastMessage = await botEngine.Proceed("outcome");
         lastMessage = await botEngine.Proceed("From check");
+        lastMessage = await botEngine.Proceed("json");
         
         // Assert
         CollectionAssert.AreEquivalent("Paste json file", lastMessage.Text);
@@ -497,6 +498,7 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("/start");
         lastMessage = await botEngine.Proceed("outcome");
         lastMessage = await botEngine.Proceed("From check");
+        lastMessage = await botEngine.Proceed("json");
         lastMessage = await botEngine.ProceedFile(telegramFile);
         
         // Assert
@@ -532,6 +534,7 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("/start");
         lastMessage = await botEngine.Proceed("outcome");
         lastMessage = await botEngine.Proceed("From check");
+        lastMessage = await botEngine.Proceed("json");
         lastMessage = await botEngine.ProceedFile(telegramFile);
         
         // Assert
@@ -572,7 +575,8 @@ public class StateTest
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
         await botEngine.Proceed("For a day");
-        var lastMessage = await botEngine.Proceed("23 July 2023");
+        await botEngine.Proceed("23 July 2023");
+        var lastMessage = await botEngine.Proceed("All");
 
         // Assert
         StringAssert.Contains("23 July 2023", lastMessage.Text);
@@ -660,7 +664,8 @@ public class StateTest
         await botEngine.Proceed("Statistics");
         await botEngine.Proceed("For a day");
         await botEngine.Proceed("Another day");
-        var lastMessage = await botEngine.Proceed("22 July 2023");
+        await botEngine.Proceed("22 July 2023");
+        var lastMessage = await botEngine.Proceed("All");
         
         // Assert
         StringAssert.Contains("22 July 2023", lastMessage.Text);
@@ -748,7 +753,8 @@ public class StateTest
         await botEngine.Proceed("Statistics");
         await botEngine.Proceed("For a month");
         await botEngine.Proceed("Another month");
-        var lastMessage = await botEngine.Proceed("May 2023");
+        await botEngine.Proceed("May 2023");
+        var lastMessage = await botEngine.Proceed("All");
         
 
         // Assert
@@ -795,7 +801,8 @@ public class StateTest
         await botEngine.Proceed("For a category");
         await botEngine.Proceed("Food");
         await botEngine.Proceed("By period");
-        var lastMessage = await botEngine.Proceed("July 2022");
+        await botEngine.Proceed("July 2022");
+        var lastMessage = await botEngine.Proceed("All");
         
 
         // Assert
@@ -843,7 +850,8 @@ public class StateTest
         await botEngine.Proceed("Food");
         await botEngine.Proceed("By period");
         await botEngine.Proceed("Another");
-        var lastMessage = await botEngine.Proceed("January 2022");
+        await botEngine.Proceed("January 2022");
+        var lastMessage = await botEngine.Proceed("All");
         
 
         // Assert
@@ -890,7 +898,8 @@ public class StateTest
         await botEngine.Proceed("For a category");
         await botEngine.Proceed("Food");
         await botEngine.Proceed("Subcategory");
-        var lastMessage = await botEngine.Proceed("July 2022");
+        await botEngine.Proceed("July 2022");
+        var lastMessage = await botEngine.Proceed("AMD");
         
 
         // Assert
@@ -941,7 +950,8 @@ public class StateTest
         await botEngine.Proceed("Food");
         await botEngine.Proceed("Subcategory");
         await botEngine.Proceed("Another");
-        var lastMessage = await botEngine.Proceed("March 2022");
+        await botEngine.Proceed("March 2022");
+        var lastMessage = await botEngine.Proceed("All");
         
 
         // Assert
@@ -991,7 +1001,8 @@ public class StateTest
         await botEngine.Proceed("Food");
         await botEngine.Proceed("Subcategory by period");
         await botEngine.Proceed("Snacks");
-        var lastMessage = await botEngine.Proceed("July 2022");
+        await botEngine.Proceed("July 2022");
+        var lastMessage = await botEngine.Proceed("All");
         
 
         // Assert
@@ -1040,7 +1051,8 @@ public class StateTest
         await botEngine.Proceed("Subcategory by period");
         await botEngine.Proceed("Snacks");
         await botEngine.Proceed("Another period");
-        var lastMessage = await botEngine.Proceed("January 2022");
+        await botEngine.Proceed("January 2022");
+        var lastMessage = await botEngine.Proceed("All");
         
 
         // Assert
@@ -1053,7 +1065,7 @@ public class StateTest
 
     private StateFactory CreateStateFactory(Category[] categories, IFnsService fnsService, IExpenseRepository expenseRepository, IDateTimeService dateTimeService, ILogger<StateFactory> logger)
     {
-        return new StateFactory(dateTimeService, new MoneyParser(new CurrencyParser()), categories, fnsService, expenseRepository, logger);
+        return new StateFactory(dateTimeService, categories, fnsService, expenseRepository, logger);
     }
 
     private BotEngine CreateBotEngine(Category[] categories, IFnsService fnsService, IExpenseRepository expenseRepository, IDateTimeService dateTimeService)

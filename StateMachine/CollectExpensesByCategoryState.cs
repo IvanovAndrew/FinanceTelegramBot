@@ -33,7 +33,7 @@ namespace StateMachine
 
         public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            throw new InvalidCastException();
+            throw new InvalidOperationException();
         }
 
         public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
@@ -74,7 +74,7 @@ namespace StateMachine
             
             if (TelegramCommand.TryGetCommand(message.Text, out _))
             {
-                Cancel();
+                await Cancel();
                 text = "Canceled";
             }
             else

@@ -32,10 +32,18 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
     {
         using HttpClient httpClient = new HttpClient();
 
-        string jsonContent = JsonConvert.SerializeObject(expenseFilter);
+        string jsonContent = JsonConvert.SerializeObject(
+            new
+            {
+                expenseFilter.DateFrom,
+                expenseFilter.DateTo,
+                expenseFilter.Category,
+                expenseFilter.Subcategory,
+                Currency = expenseFilter.Currency?.Name,
+            });
         var content = new StringContent(jsonContent, Encoding.UTF8,  MediaTypeNames.Application.Json);
         
-        _logger.LogInformation($"Getting expenses. Json is {content}");
+        _logger.LogInformation($"Getting expenses. Json is {await content.ReadAsStringAsync(cancellationToken)}");
         var response = await httpClient.PostAsync(GetExpensesUrl, content, cancellationToken);
 
         if (response.StatusCode == HttpStatusCode.OK)

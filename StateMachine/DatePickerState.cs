@@ -2,38 +2,34 @@
 
 namespace StateMachine;
 
-internal class DatePickerState : IExpenseInfoState
+internal class DatePickerState : IChainState
 {
+    private readonly FilterUpdateStrategy<DateOnly> _update;
     protected readonly string Text;
     protected readonly DateOnly Today;
     protected readonly string DateFormat;
     private readonly DateOnly[] _options;
     private readonly string _customOptionTitle;
-    private IExpenseInfoState _parentState;
     private const string CallbackCustom = "custom";
 
-    internal DatePickerState(IExpenseInfoState parentState, string text, DateOnly today, string dateFormat, DateOnly[] options, string customOptionTitle) : this(text, today, dateFormat, parentState)
+    internal DatePickerState(FilterUpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat, DateOnly[] options, string customOptionTitle) : this(update, text, today, dateFormat)
     {
+        _update = update;
         Text = text;
         DateFormat = dateFormat;
         _options = options;
         _customOptionTitle = customOptionTitle;
-        _parentState = parentState;
     }
     
-    protected DatePickerState(string text, DateOnly today, string dateFormat, IExpenseInfoState parentState)
+    protected DatePickerState(FilterUpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat)
     {
+        _update = update;
         Text = text;
         Today = today;
         DateFormat = dateFormat;
         _options = Array.Empty<DateOnly>();
         _customOptionTitle = string.Empty;
-        _parentState = parentState;
     }
-    
-    public bool UserAnswerIsRequired => true;
-    
-
     
     public virtual async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
@@ -62,31 +58,25 @@ internal class DatePickerState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
+    public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
-        return Task.FromResult(0);
-    }
-
-    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
-    {
-        return _parentState.MoveToPreviousState(stateFactory);
-    }
-
-    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
-        CancellationToken cancellationToken)
-    {
-        if (message.Text == CallbackCustom)
+        if (DateOnly.TryParseExact(message.Text, DateFormat, out var selectedMonth))
         {
-            return new CustomDatePickerState(Text, Today, DateFormat, _parentState);
+            _update.Update(selectedMonth);
+            return ChainStatus.Success();
+        }
+        else if (message.Text == CallbackCustom)
+        {
+            return ChainStatus.Retry(new CustomDatePickerState(_update, Text, Today, DateFormat));
         }
 
-        return _parentState;
+        return ChainStatus.Retry(this);
     }
 }
 
 internal class CustomDatePickerState : DatePickerState
 {
-    protected internal CustomDatePickerState(string text, DateOnly today, string dateFormat, IExpenseInfoState parentState) : base(text, today, dateFormat, parentState)
+    protected internal CustomDatePickerState(FilterUpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat) : base(update, text, today, dateFormat)
     {
     }
 

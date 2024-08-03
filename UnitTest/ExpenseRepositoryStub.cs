@@ -18,6 +18,17 @@ public class ExpenseRepositoryStub : IExpenseRepository
 
     public Task<List<IExpense>> Read(ExpenseFilter expenseFilter, CancellationToken cancellationToken)
     {
-        return Task.Run(() => _savedExpenses);
+        var result = 
+            _savedExpenses.Where(expense =>
+                    (expenseFilter.DateFrom == null || expenseFilter.DateFrom.Value <= expense.Date) &&
+                    (expenseFilter.DateTo == null || expense.Date <= expenseFilter.DateTo.Value) &&
+                    (expenseFilter.Category == null || expenseFilter.Category == expense.Category) &&
+                    (expenseFilter.Subcategory == null || expenseFilter.Subcategory == expense.SubCategory) &&
+                    (expenseFilter.Currency == null || expenseFilter.Currency == expense.Amount.Currency)
+
+                )
+                .ToList();
+
+        return Task.FromResult(result);
     }
 }

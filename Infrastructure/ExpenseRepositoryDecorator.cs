@@ -40,7 +40,10 @@ public class ExpenseRepositoryDecorator : IExpenseRepository
 
     public async Task<List<IExpense>> Read(ExpenseFilter expenseFilter, CancellationToken cancellationToken)
     {
-        if (!_cache.TryGetValue(CacheKeys.AllExpenses, out List<IExpense> items))
+        var cacheKey =
+            $"DateFrom={expenseFilter.DateFrom};DateTo={expenseFilter.DateTo};Category={expenseFilter.Category};Subcategory={expenseFilter.Subcategory};Currency={expenseFilter.Currency?.Name}";
+        
+        if (!_cache.TryGetValue(cacheKey, out List<IExpense> items))
         {
             SemaphoreSlim mylock = _locks.GetOrAdd(CacheKeys.AllExpenses, k => new SemaphoreSlim(1, 1));
             await mylock.WaitAsync();

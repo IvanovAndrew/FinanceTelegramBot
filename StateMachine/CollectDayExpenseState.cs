@@ -8,26 +8,33 @@ namespace StateMachine
     {
         public bool UserAnswerIsRequired => true;
         private readonly DateOnly _today;
-        private readonly ILogger _logger;
+        
         private readonly string _dateFormat = "dd MMMM yyyy";
-        private DatePickerState _datePicker;
-    
+        private readonly StateChain _stateChain;
+        private readonly ExpenseFilter _expenseFilter;
+        private readonly ILogger _logger;
+
         public CollectDayExpenseState(DateOnly today, ILogger logger)
         {
             _today = today;
-            _logger = logger;
+            _expenseFilter = new ExpenseFilter();
 
-            _datePicker = new DatePickerState(this, "Enter the day", today, _dateFormat,
-                new[] { _today, _today.AddDays(-1) }, "Another day");
+            _stateChain = new StateChain(this, 
+                new DatePickerState(FilterUpdateStrategy<DateOnly>.FillDate(_expenseFilter), "Enter the day", today, _dateFormat,
+                new[] { _today, _today.AddDays(-1) }, "Another day"), 
+                new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_expenseFilter)));
+            
+            _logger = logger;
         }
     
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            return await _datePicker.Request(botClient, chatId, cancellationToken);
+            return await _stateChain.Request(botClient, chatId, cancellationToken);
         }
 
         public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
+            _stateChain.Handle(message, cancellationToken);
             return Task.CompletedTask;
         }
 
@@ -37,33 +44,22 @@ namespace StateMachine
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
-            var nextState = _datePicker.ToNextState(message, stateFactory, cancellationToken);
+            var nextState = _stateChain.ToNextState();
 
-            if (nextState is DatePickerState datePickerState)
+            if (nextState == this)
             {
-                _datePicker = datePickerState;
-                return this;
-            }
-            
-            if (DateOnly.TryParseExact(message.Text, _dateFormat, out var selectedDay))
-            {
-                var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc:false);
-                var expenseFilter = new ExpenseFilter
-                {
-                    DateFrom = selectedDay,
-                    DateTo = selectedDay
-                };
-                
-                return stateFactory.GetExpensesState(this, expenseFilter,
-                    expenseAggregator, 
+                var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc: false);
+
+                return stateFactory.GetExpensesState(this, _expenseFilter,
+                    expenseAggregator,
                     s => s,
                     new TableOptions()
                     {
-                        Title = selectedDay.ToString(_dateFormat),
+                        Title = _expenseFilter.DateTo.Value.ToString(_dateFormat),
                         FirstColumnName = "Category"
                     });
             }
-            
+
             return this;
         }
     }

@@ -1,3 +1,4 @@
+using Domain;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
@@ -6,13 +7,11 @@ namespace StateMachine
     class EnterPriceState : IExpenseInfoState
     {
         private readonly ExpenseBuilder _expenseBuilder;
-        private readonly IMoneyParser _moneyParser;
         private readonly ILogger _logger;
     
-        internal EnterPriceState(ExpenseBuilder expenseBuilder, IMoneyParser moneyParser, ILogger logger)
+        internal EnterPriceState(ExpenseBuilder expenseBuilder, ILogger logger)
         {
             _expenseBuilder = expenseBuilder;
-            _moneyParser = moneyParser;
             _logger = logger;
         }
 
@@ -27,7 +26,7 @@ namespace StateMachine
         {
             await Task.Run(() =>
             {
-                if (_moneyParser.TryParse(message.Text, out var money))
+                if (Money.TryParse(message.Text, out var money))
                 {
                     _expenseBuilder.Sum = money;
                 }
@@ -36,7 +35,6 @@ namespace StateMachine
 
         public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) =>stateFactory.CreateEnterDescriptionState(_expenseBuilder);
 
-        // TODO side effect
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {

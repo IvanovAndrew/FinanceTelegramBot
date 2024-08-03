@@ -53,7 +53,7 @@ namespace StateMachine
                 {
                     _expenseBuilder.Date = date;
                 }
-            });
+            }, cancellationToken);
         }
 
         public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)

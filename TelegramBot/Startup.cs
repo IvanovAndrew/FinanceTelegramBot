@@ -28,9 +28,6 @@ namespace TelegramBot
             services.AddSingleton<CategoryOptions>();
         
             
-            services.AddScoped<IMoneyParser, MoneyParser>(s => ActivatorUtilities.CreateInstance<MoneyParser>(s, s.GetRequiredService<ICurrencyParser>()));
-            services.AddScoped<ICurrencyParser, CurrencyParser>();
-
             services.AddSingleton<IGoogleSpreadsheetService, GoogleSpreadsheetService>(s =>
                 ActivatorUtilities.CreateInstance<GoogleSpreadsheetService>(s, _configuration.GetSection("GoogleSpreadsheet")["Url"]));
 
@@ -47,7 +44,6 @@ namespace TelegramBot
             
             services.AddScoped<IStateFactory, StateFactory>(s => ActivatorUtilities.CreateInstance<StateFactory>(s,
                 s.GetRequiredService<IDateTimeService>(),
-                s.GetRequiredService<IMoneyParser>(),
                 s.GetRequiredService<CategoryOptions>().Categories,
                 s.GetRequiredService<IExpenseRepository>()));
             

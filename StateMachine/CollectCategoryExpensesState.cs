@@ -8,25 +8,32 @@ internal class CollectCategoryExpensesState : IExpenseInfoState
 {
     private readonly Category _category;
     private readonly ILogger _logger;
-    private IExpenseInfoState _datePicker;
+    private readonly ExpenseFilter _expenseFilter;
     private const string DateFormat = "MMMM yyyy";
+    private readonly StateChain _stateChain;
 
     public CollectCategoryExpensesState(DateOnly today, Category category, ILogger logger)
     {
         _category = category;
         _logger = logger;
-        _datePicker = new DatePickerState(this, "Enter the start period", today, DateFormat,
-            new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }, "Another");
+        _expenseFilter = new ExpenseFilter(){Category = _category.Name};
+
+        _stateChain = new StateChain(this,
+            new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_expenseFilter), "Enter the start period",
+                today, DateFormat,
+                new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }, "Another"),
+            new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_expenseFilter)));
     }
 
     public bool UserAnswerIsRequired => true;
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
-        return await _datePicker.Request(botClient, chatId, cancellationToken);
+        return await _stateChain.Request(botClient, chatId, cancellationToken);
     }
 
     public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
+        _stateChain.Handle(message, cancellationToken);
         return Task.CompletedTask;
     }
 
@@ -36,27 +43,14 @@ internal class CollectCategoryExpensesState : IExpenseInfoState
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
-        var nextState = _datePicker.MoveToNextState(message, stateFactory, cancellationToken);
+        var nextState = _stateChain.ToNextState();
 
-        if (nextState is DatePickerState datePickerState)
-        {
-            _datePicker = datePickerState;
-            return this;
-        }
-
-        if (DateOnly.TryParseExact(message.Text, DateFormat, out var monthFrom))
+        if (nextState == this)
         {
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
                 e => e.Date.LastDayOfMonth(), false, sortAsc: true);
 
-            var specification =
-                new ExpenseFilter()
-                {
-                    DateFrom = monthFrom,
-                    Category = _category.Name
-                };
-
-            return stateFactory.GetExpensesState(this, specification, expenseAggregator,
+            return stateFactory.GetExpensesState(this, _expenseFilter, expenseAggregator,
                 s => s.ToString(DateFormat),
                 new TableOptions()
                 {

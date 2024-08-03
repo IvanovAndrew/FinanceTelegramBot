@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Domain
 {
@@ -25,6 +26,34 @@ namespace Domain
             }
 
             money = null;
+            return false;
+        }
+        
+        public static bool TryParse(string? text, [NotNullWhen(true)] out Money? money)
+        {
+            money = null;
+        
+            Regex amountRegex = new Regex(@"((\d+\s?)+\.?\d*)");
+
+            var str = text.Replace(",", ".");
+            Match match = amountRegex.Match(str);
+        
+            if (!match.Success) return false;
+
+            var numberPart = match.Groups[0].Value;
+
+            Currency? currency;
+            if (!Currency.TryParse(str.Replace(numberPart, ""), out currency))
+            {
+                return false;
+            }
+
+            if (decimal.TryParse(numberPart.Replace(" ", ""), out var amount))
+            {
+                money = new Money { Amount = amount, Currency = currency };
+                return true;
+            }
+
             return false;
         }
     

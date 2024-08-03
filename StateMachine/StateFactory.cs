@@ -7,20 +7,18 @@ namespace StateMachine
     public class StateFactory : IStateFactory
     {
         private readonly IDateTimeService _dateTimeService;
-        private readonly IMoneyParser _moneyParser;
         private readonly IEnumerable<Category> _categories;
         private readonly IFnsService _fnsService;
         private readonly IExpenseRepository _expenseRepository;
         private readonly ILogger<StateFactory> _logger;
     
-        public StateFactory(IDateTimeService dateTimeService, IMoneyParser moneyParser, IEnumerable<Category> categories, IFnsService fnsService, 
+        public StateFactory(IDateTimeService dateTimeService, IEnumerable<Category> categories, IFnsService fnsService, 
             IExpenseRepository expenseRepository, ILogger<StateFactory> logger)
         {
             _dateTimeService = dateTimeService;
             _categories = categories;
             _fnsService = fnsService;
             _expenseRepository = expenseRepository;
-            _moneyParser = moneyParser;
             _logger = logger;
         }
 
@@ -76,7 +74,7 @@ namespace StateMachine
 
         public IExpenseInfoState CreateEnterThePriceState(ExpenseBuilder expenseBuilder)
         {
-            return new EnterPriceState(expenseBuilder, _moneyParser, _logger);
+            return new EnterPriceState(expenseBuilder, _logger);
         }
 
         public IExpenseInfoState CreateConfirmState(IExpense expense)
