@@ -18,8 +18,7 @@ class EnterTheWayState : IExpenseInfoState
         var keyboard = TelegramKeyboard.FromButtons(new[]
         {
             new TelegramButton{Text = "By myself", CallbackData = "user"},
-            new TelegramButton{Text = "From check", CallbackData = "json"},
-            new TelegramButton{Text = "From qr", CallbackData = "rawqr"},
+            new TelegramButton{Text = "From check", CallbackData = "check"},
         });
         
         return await botClient.SendTextMessageAsync(
@@ -29,7 +28,7 @@ class EnterTheWayState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public Task Handle(IMessage message, CancellationToken cancellationToken)
+    public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }
@@ -42,10 +41,9 @@ class EnterTheWayState : IExpenseInfoState
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
-        if (message.Text == "json") return stateFactory.CreateRequestPasteJsonState();
         if (message.Text == "user") return stateFactory.CreateEnterTheDateState(this, false);
-        if (message.Text == "rawqr") return stateFactory.CreateEnterRawQrState();
+        if (message.Text == "check") return stateFactory.CreateCheckInfoState();
 
-        throw new BotStateException(new []{"json", "user", "rawqr"}, message.Text);
+        throw new BotStateException(new []{"user", "check"}, message.Text);
     }
 }

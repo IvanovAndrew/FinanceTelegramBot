@@ -23,7 +23,7 @@ namespace StateMachine
             return await botClient.SendTextMessageAsync(chatId, "Enter the price", cancellationToken: cancellationToken);
         }
 
-        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
             await Task.Run(() =>
             {

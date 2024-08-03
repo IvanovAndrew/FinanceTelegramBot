@@ -31,7 +31,7 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public Task Handle(IMessage message, CancellationToken cancellationToken)
+        public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
             var handle = () =>
             {

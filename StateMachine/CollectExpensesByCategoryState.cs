@@ -6,7 +6,7 @@ namespace StateMachine
 {
     internal class CollectExpensesByCategoryState<T> : IExpenseInfoState, ILongTermOperation
     {
-        private readonly ISpecification<IExpense> _specification;
+        private readonly ExpenseFilter _expenseFilter;
         private readonly ExpensesAggregator<T> _expensesAggregator;
         private readonly TableOptions _tableOptions;
         private readonly IExpenseRepository _expenseRepository;
@@ -15,13 +15,13 @@ namespace StateMachine
         private CancellationTokenSource? _cancellationTokenSource;
         private readonly IExpenseInfoState _previousState;
 
-        public CollectExpensesByCategoryState(IExpenseInfoState previousState, ISpecification<IExpense> specification, ExpensesAggregator<T> expensesAggregator,
+        public CollectExpensesByCategoryState(IExpenseInfoState previousState, ExpenseFilter expenseFilter, ExpensesAggregator<T> expensesAggregator,
             Func<T, string> firstColumnName,
             TableOptions tableOptions,
             IExpenseRepository expenseRepository, ILogger logger)
         {
             _previousState = previousState;
-            _specification = specification;
+            _expenseFilter = expenseFilter;
             _expensesAggregator = expensesAggregator;
             _firstColumnName = firstColumnName;
             _tableOptions = tableOptions;
@@ -36,7 +36,7 @@ namespace StateMachine
             throw new InvalidCastException();
         }
 
-        public Task Handle(IMessage message, CancellationToken cancellationToken)
+        public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
             // TODO move logic to here
             return Task.CompletedTask;
@@ -86,11 +86,9 @@ namespace StateMachine
                     List<IExpense> expenses;
                     using (_cancellationTokenSource = new CancellationTokenSource())
                     {
-                        expenses = await _expenseRepository.Read(_cancellationTokenSource.Token);
+                        expenses = await _expenseRepository.Read(_expenseFilter, _cancellationTokenSource.Token);
                     }
                     
-                    expenses = expenses.Where(expense => _specification.IsSatisfied(expense)).ToList();
-
                     _logger.LogInformation($"{expenses.Count} expenses satisfy the requirements");
                     
                     if (expenses.Any())

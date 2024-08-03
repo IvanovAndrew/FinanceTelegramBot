@@ -27,7 +27,7 @@ internal class CollectMonthStatisticState : IExpenseInfoState
         return _datePicker.Request(botClient, chatId, cancellationToken);
     }
 
-    public Task Handle(IMessage message, CancellationToken cancellationToken)
+    public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }
@@ -50,10 +50,14 @@ internal class CollectMonthStatisticState : IExpenseInfoState
         {
             var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc:false);
 
-            var specification =
-                new ExpenseFromDateRangeSpecification(selectedMonth.FirstDayOfMonth(), selectedMonth.LastDayOfMonth());
+            var expenseFilter =
+                new ExpenseFilter()
+                {
+                    DateFrom = selectedMonth.FirstDayOfMonth(),
+                    DateTo = selectedMonth.LastDayOfMonth()
+                };
         
-            return stateFactory.GetExpensesState(this, specification, expenseAggregator, s => s,
+            return stateFactory.GetExpensesState(this, expenseFilter, expenseAggregator, s => s,
                 new TableOptions(){Title = selectedMonth.ToString(DateFormat), FirstColumnName = "Category"});
         }
 

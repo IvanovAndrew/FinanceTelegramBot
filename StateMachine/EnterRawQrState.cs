@@ -22,13 +22,13 @@ public class EnterRawQrState : IExpenseInfoState
         return await botClient.SendTextMessageAsync(chatId, "Enter the string you get after QR reading", cancellationToken: cancellationToken);
     }
 
-    public async Task Handle(IMessage message, CancellationToken cancellationToken)
+    public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         _check = await _fnsService.GetCheck(message.Text);
     }
 
     public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) =>
-        stateFactory.WayOfEnteringExpenseState();
+        stateFactory.CreateCheckInfoState();
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)

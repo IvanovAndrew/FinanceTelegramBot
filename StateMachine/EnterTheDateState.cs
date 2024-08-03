@@ -45,7 +45,7 @@ namespace StateMachine
                 cancellationToken: cancellationToken);
         }
 
-        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
             await Task.Run(() =>
             {

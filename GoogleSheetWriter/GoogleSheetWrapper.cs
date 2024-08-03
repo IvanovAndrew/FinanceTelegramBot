@@ -4,6 +4,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
+using Microsoft.Extensions.Logging;
 
 namespace GoogleSheetWriter
 {
@@ -13,6 +14,7 @@ namespace GoogleSheetWriter
         private readonly CategoryToListMappingOptions _categoryMapping;
         private readonly string _applicationName;
         private readonly string _spreadsheetId;
+        private readonly ILogger<GoogleSheetWrapper> _logger;
         private GoogleCredential _credential;
         private readonly CultureInfo _cultureInfo = new("ru-RU");
         private const int BatchSize = 500;
@@ -20,12 +22,13 @@ namespace GoogleSheetWriter
         private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
         public GoogleSheetWrapper(SheetOptions options, CategoryToListMappingOptions mappingOptions,
-            string applicationName, string spreadsheetId)
+            string applicationName, string spreadsheetId, ILogger<GoogleSheetWrapper> logger)
         {
             _options = options;
             _categoryMapping = mappingOptions;
             _applicationName = applicationName;
             _spreadsheetId = spreadsheetId;
+            _logger = logger;
         }
 
         public async Task SaveAll(List<Expense> expenses, CancellationToken cancellationToken)
@@ -212,7 +215,7 @@ namespace GoogleSheetWriter
             return i;
         }
 
-        public async Task<List<Expense>> Read(CancellationToken cancellationToken)
+        public async Task<List<Expense>> Read(ExpenseSearchOption expenseSearchOptions, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
@@ -220,23 +223,30 @@ namespace GoogleSheetWriter
             foreach (var list in new []{_options.EveryDayExpenses, _options.FlatInfo, _options.BigDealInfo, _options.CurrencyConversion})
             {
                 result.AddRange(
-                    await GetRows(service, list, cancellationToken)
+                    await GetRows(service, list, expenseSearchOptions, cancellationToken)
                     );
             }
 
             return result;
         }
 
-        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, CancellationToken cancellationToken)
+        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, ExpenseSearchOption expenseSearchOptions, CancellationToken cancellationToken)
         {
             List<Expense> expenses = new();
 
             var factory = SheetRowFactory.FromListInfo(info, _cultureInfo);
 
             int fromRangeRow = 1;
-            int toRangeRow = BatchSize;
+            if (expenseSearchOptions.DateFrom != null &&
+                info.YearToFirstExcelRow.TryGetValue(expenseSearchOptions.DateFrom.Value.Year, out var rowNumber))
+            {
+                fromRangeRow = rowNumber;
+            }
+            
+            int toRangeRow = fromRangeRow + BatchSize - 1;
             
             int lastFilledRow = await GetNumberFilledRows(service, info.ListName, cancellationToken);
+            _logger.LogInformation($"List: {info.ListName} FromRange {fromRangeRow} Last Filled Row = {lastFilledRow}");
 
             while (fromRangeRow < lastFilledRow)
             {
@@ -248,7 +258,6 @@ namespace GoogleSheetWriter
                 var response = await request.ExecuteAsync(cancellationToken);
                 var sheet = response.Sheets.First(s => s.Properties.Title == info.ListName);
 
-                int i = 0;
                 foreach (var data in sheet.Data)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -260,8 +269,10 @@ namespace GoogleSheetWriter
 
                         var expense = factory.CreateExpense(cellData.Values);
 
-                        expenses.Add(expense);
-                        i++;
+                        if (expenseSearchOptions.IsSatisfied(expense))
+                        {
+                            expenses.Add(expense);
+                        }
                     }
                 }
 

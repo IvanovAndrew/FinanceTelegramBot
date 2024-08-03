@@ -32,7 +32,7 @@ class HandleJsonState : IExpenseInfoState
         return await botClient.SendTextMessageAsync(chatId, "File downloaded", cancellationToken: cancellationToken);
     }
 
-    public async Task Handle(IMessage message, CancellationToken cancellationToken)
+    public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         await Task.Run(() => _expenses = new ExpenseJsonParser().Parse(FileInfo.Content!.Text, "Еда", Currency.Rur));
     }

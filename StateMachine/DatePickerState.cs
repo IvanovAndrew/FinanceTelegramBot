@@ -62,7 +62,7 @@ internal class DatePickerState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public Task Handle(IMessage message, CancellationToken cancellationToken)
+    public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         return Task.FromResult(0);
     }

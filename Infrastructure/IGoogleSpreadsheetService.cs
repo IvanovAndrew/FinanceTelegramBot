@@ -3,13 +3,14 @@ using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text;
 using Domain;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Infrastructure;
 
 public interface IGoogleSpreadsheetService
 {
-    public Task<List<IExpense>> GetAllExpenses(CancellationToken cancellationToken);
+    public Task<List<IExpense>> GetExpenses(ExpenseFilter expenseFilter, CancellationToken cancellationToken);
     public Task<bool> SaveExpense(IExpense expense, CancellationToken cancellationToken);
     public Task<bool> SaveAllExpenses(List<IExpense> expenses, CancellationToken cancellationToken);
 }
@@ -17,30 +18,35 @@ public interface IGoogleSpreadsheetService
 public class GoogleSpreadsheetService : IGoogleSpreadsheetService
 {
     private readonly string _baseUrl;
-    private string GetAllExpensesUrl => $"{_baseUrl}/GetAllExpenses"; 
+    private readonly ILogger<IGoogleSpreadsheetService> _logger;
+    private string GetExpensesUrl => $"{_baseUrl}/GetAllExpenses"; 
     private string SaveExpenseUrl => $"{_baseUrl}/SaveExpense"; 
     private string SaveAllExpensesUrl => $"{_baseUrl}/SaveAllExpenses"; 
-    public GoogleSpreadsheetService(string url)
+    public GoogleSpreadsheetService(string url, ILogger<IGoogleSpreadsheetService> logger)
     {
         _baseUrl = url;
+        _logger = logger;
     }
     
-    public async Task<List<IExpense>> GetAllExpenses(CancellationToken cancellationToken)
+    public async Task<List<IExpense>> GetExpenses(ExpenseFilter expenseFilter, CancellationToken cancellationToken)
     {
-        using (HttpClient httpClient = new HttpClient())
+        using HttpClient httpClient = new HttpClient();
+
+        string jsonContent = JsonConvert.SerializeObject(expenseFilter);
+        var content = new StringContent(jsonContent, Encoding.UTF8,  MediaTypeNames.Application.Json);
+        
+        _logger.LogInformation($"Getting expenses. Json is {content}");
+        var response = await httpClient.PostAsync(GetExpensesUrl, content, cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.OK)
         {
-            var response = await httpClient.GetAsync(GetAllExpensesUrl, cancellationToken);
+            var expensesString = await response.Content.ReadAsStringAsync(cancellationToken);
+            var dtos = JsonConvert.DeserializeObject<List<GoogleSpreadsheetExpenseDto>>(expensesString);
 
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                var expensesString = await response.Content.ReadAsStringAsync(cancellationToken);
-                var dtos = JsonConvert.DeserializeObject<List<GoogleSpreadsheetExpenseDto>>(expensesString);
-
-                if (dtos == null)
-                    return new List<IExpense>();
+            if (dtos == null)
+                return new List<IExpense>();
                 
-                return dtos.Select(c => GoogleSpreadsheetExpenseDto.ToExpense(c)).ToList();
-            }
+            return dtos.Select(c => GoogleSpreadsheetExpenseDto.ToExpense(c)).ToList();
         }
 
         return new List<IExpense>();
@@ -51,6 +57,7 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         using HttpClient httpClient = new HttpClient();
         var jsonContent = JsonContent.Create(GoogleSpreadsheetExpenseDto.FromExpense(expense));
 
+        _logger.LogInformation($"Save an expense. Json is {jsonContent?.Value}");
         var response = await httpClient.PostAsync(SaveExpenseUrl, jsonContent, cancellationToken);
         if (response.StatusCode == HttpStatusCode.OK)
         {

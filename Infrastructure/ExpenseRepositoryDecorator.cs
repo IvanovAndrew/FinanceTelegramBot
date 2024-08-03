@@ -38,7 +38,7 @@ public class ExpenseRepositoryDecorator : IExpenseRepository
         return result;
     }
 
-    public async Task<List<IExpense>> Read(CancellationToken cancellationToken)
+    public async Task<List<IExpense>> Read(ExpenseFilter expenseFilter, CancellationToken cancellationToken)
     {
         if (!_cache.TryGetValue(CacheKeys.AllExpenses, out List<IExpense> items))
         {
@@ -49,7 +49,7 @@ public class ExpenseRepositoryDecorator : IExpenseRepository
                 if (!_cache.TryGetValue(CacheKeys.AllExpenses, out List<IExpense> cachedItems))
                 {
                     _logger.LogInformation("Loading expenses from the repository");
-                    cachedItems = await _repository.Read(cancellationToken);
+                    cachedItems = await _repository.Read(expenseFilter, cancellationToken);
             
                     var cacheEntryOptions = new MemoryCacheEntryOptions()
                         .SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
@@ -91,8 +91,8 @@ public class ExpenseRepository : IExpenseRepository
         return await _spreadsheetService.SaveAllExpenses(expenses, cancellationToken);
     }
 
-    public async Task<List<IExpense>> Read(CancellationToken cancellationToken)
+    public async Task<List<IExpense>> Read(ExpenseFilter expenseFilter, CancellationToken cancellationToken)
     {
-        return await _spreadsheetService.GetAllExpenses(cancellationToken);
+        return await _spreadsheetService.GetExpenses(expenseFilter, cancellationToken);
     }
 }

@@ -23,7 +23,7 @@ class RequestJsonState : IExpenseInfoState
             cancellationToken: cancellationToken);
     }
 
-    public Task Handle(IMessage message, CancellationToken cancellationToken)
+    public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }

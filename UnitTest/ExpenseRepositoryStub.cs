@@ -16,7 +16,7 @@ public class ExpenseRepositoryStub : IExpenseRepository
         return true;
     }
 
-    public Task<List<IExpense>> Read(CancellationToken cancellationToken)
+    public Task<List<IExpense>> Read(ExpenseFilter expenseFilter, CancellationToken cancellationToken)
     {
         return Task.Run(() => _savedExpenses);
     }

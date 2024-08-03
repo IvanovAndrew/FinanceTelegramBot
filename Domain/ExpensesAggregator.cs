@@ -45,7 +45,7 @@
                 _currencyToIndex[currency] = i++;
             }
 
-            _sumBy = sumBy;
+            _sumBy = sumBy?? throw new ArgumentNullException(nameof(sumBy));
         }
 
         public List<ExpenseInfo<T>> Rows => _rows;

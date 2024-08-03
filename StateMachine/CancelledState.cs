@@ -19,7 +19,7 @@ namespace StateMachine
             return botClient.SendTextMessageAsync(chatId, "Canceled");
         }
 
-        public Task Handle(IMessage message, CancellationToken cancellationToken)
+        public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }

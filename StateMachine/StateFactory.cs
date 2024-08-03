@@ -109,9 +109,9 @@ namespace StateMachine
             return new CancelledState( _logger);
         }
 
-        public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, ISpecification<IExpense> specification, ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions)
+        public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, ExpenseFilter expenseFilter, ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions)
         {
-            return new CollectExpensesByCategoryState<T>(previousState, specification, expensesAggregator, firstColumnName, tableOptions, _expenseRepository, _logger);
+            return new CollectExpensesByCategoryState<T>(previousState, expenseFilter, expensesAggregator, firstColumnName, tableOptions, _expenseRepository, _logger);
         }
 
         public IExpenseInfoState CreateEnterTypeOfCategoryStatistic(Category category, IExpenseInfoState previousState)
@@ -152,6 +152,11 @@ namespace StateMachine
         public IExpenseInfoState CreateEnterRawQrState()
         {
             return new EnterRawQrState(_fnsService, _logger);
+        }
+
+        public IExpenseInfoState CreateCheckInfoState()
+        {
+            return new CheckInfoState();
         }
     }
 }

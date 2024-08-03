@@ -32,7 +32,7 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
         return _datePicker.Request(botClient, chatId, cancellationToken);
     }
 
-    public Task Handle(IMessage message, CancellationToken cancellationToken)
+    public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }
@@ -59,11 +59,14 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
                 e => e.Date.LastDayOfMonth(), true, sortAsc: false);
 
-            var specification = new MultipleSpecification(
-                new ExpenseLaterThanSpecification(firstDayOfMonth),
-                new ExpenseFromCategoryAndSubcategorySpecification(_category, _subCategory));
+            var expenseFilter = new ExpenseFilter()
+            {
+                DateFrom = firstDayOfMonth, 
+                Category = _category.Name,
+                Subcategory = _subCategory.Name
+            };
 
-            return stateFactory.GetExpensesState(this, specification,
+            return stateFactory.GetExpensesState(this, expenseFilter,
                 expenseAggregator,
                 s => s.ToString(DateFormat),
                 new TableOptions()

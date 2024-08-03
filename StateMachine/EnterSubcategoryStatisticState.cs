@@ -26,7 +26,7 @@ internal class EnterSubcategoryStatisticState : IExpenseInfoState
         return await botClient.SendTextMessageAsync(chatId, "Choose a subcategory", keyboard: buttons, cancellationToken: cancellationToken);
     }
 
-    public async Task Handle(IMessage message, CancellationToken cancellationToken)
+    public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         await Task.Run(() => _subCategory = _category.SubCategories.FirstOrDefault(c => c.Name == message.Text));
     }

@@ -24,11 +24,35 @@ public class GoogleSheetAzureFunction
         HttpRequestData req,
         FunctionContext executionContext, CancellationToken cancellationToken)
     {
+        _logger.LogInformation($"Received a request body: {req.Body}");
+        
+        var request = await req.ReadAsStringAsync();
+        _logger.LogInformation($"Received a string: {request}");
+
         var response = HttpResponseData.CreateResponse(req);
+        
         try
         {
+            ExpenseSearchOption options;
+
+            if (!string.IsNullOrEmpty(request))
+            {
+                options = JsonConvert.DeserializeObject<ExpenseSearchOption>(request) ?? new ExpenseSearchOption();
+            }
+            else
+            {
+                options = new ExpenseSearchOption();
+            }
+            
+            _logger.LogInformation($"Options are: " +
+                                   $"{(options.DateFrom != null? "DateFrom = " + options.DateFrom.Value : "")} " +
+                                   $"{(options.DateTo != null? "Date To = " + options.DateTo.Value : "")} " + 
+                                   $"{(!string.IsNullOrEmpty(options.Category)? "Category is " + options.Category : "")} " + 
+                                   $"{(!string.IsNullOrEmpty(options.SubCategory)? "Subcategory is " + options.SubCategory : "")} " +
+                                   $"{(options.Currency != null? "Currency is " + options.Currency : "")}");
+            
             _logger.LogInformation("Collecting expenses");
-            var expenses = await _googleSheetWrapper.Read(cancellationToken);
+            var expenses = await _googleSheetWrapper.Read(options, cancellationToken);
             _logger.LogInformation($"All {expenses.Count} expenses are successfully read");
             
             await response.WriteAsJsonAsync(expenses, cancellationToken: cancellationToken);

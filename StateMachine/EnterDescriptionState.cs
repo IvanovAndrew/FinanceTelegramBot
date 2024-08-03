@@ -21,7 +21,7 @@ namespace StateMachine
             return await botClient.SendTextMessageAsync(chatId, "Write a description", cancellationToken: cancellationToken);
         }
 
-        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
             await Task.Run(() => _expenseBuilder.Description = message.Text);
         }

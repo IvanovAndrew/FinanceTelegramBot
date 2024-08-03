@@ -273,7 +273,7 @@ public class StateTest
         await botEngine.Proceed("20000 amd");
         var lastMessage = await botEngine.Proceed("Save");
 
-        var savedExpenses = await expenseRepository.Read(default);
+        var savedExpenses = await expenseRepository.Read(new ExpenseFilter(), default);
         var savedExpense = savedExpenses.First();
         
         // Assert
@@ -351,7 +351,7 @@ public class StateTest
         await botEngine.Proceed("10000 amd");
         var lastMessage = await botEngine.Proceed("Save");
 
-        var savedExpenses = await expenseRepository.Read(default);
+        var savedExpenses = await expenseRepository.Read(new ExpenseFilter(), default);
         var savedExpense = savedExpenses.First();
         
         // Assert
@@ -400,7 +400,7 @@ public class StateTest
 
         await Task.WhenAll(savingTask, cancellingTask);
 
-        var savedExpenses = await expenseRepository.Read(default);
+        var savedExpenses = await expenseRepository.Read(new ExpenseFilter(), default);
         
         // Assert
         Assert.That(savedExpenses.Count, Is.EqualTo(0));

@@ -15,5 +15,7 @@
         public string AmountRurColumn;
         public string AmountAmdColumn;
         public string AmountGelColumn;
+
+        public Dictionary<int, int> YearToFirstExcelRow = new();
     }
 }

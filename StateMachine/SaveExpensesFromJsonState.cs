@@ -25,7 +25,7 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
         throw new InvalidOperationException();
     }
 
-    public Task Handle(IMessage message, CancellationToken cancellationToken)
+    public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         // TODO move calculation logic to here
         return Task.CompletedTask;

@@ -23,7 +23,7 @@ namespace StateMachine
             return await _state.Request(botClient, chatId, cancellationToken: cancellationToken);
         }
 
-        public async Task Handle(IMessage message, CancellationToken cancellationToken)
+        public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
             await _state.Handle(message, cancellationToken);
         }

@@ -25,7 +25,7 @@ namespace StateMachine
             throw new InvalidOperationException();
         }
 
-        public Task Handle(IMessage message, CancellationToken cancellationToken)
+        public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
             if (TelegramCommand.TryGetCommand(message.Text, out _))
             {

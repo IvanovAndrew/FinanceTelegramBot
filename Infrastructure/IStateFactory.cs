@@ -24,7 +24,7 @@ public interface IStateFactory
     IExpenseInfoState CreateErrorWithRetryState(string warning, IExpenseInfoState state);
     IExpenseInfoState CreateCancelState();
 
-    IExpenseInfoState GetExpensesState<T>(IExpenseInfoState expenseInfoState, ISpecification<IExpense> specification,
+    IExpenseInfoState GetExpensesState<T>(IExpenseInfoState expenseInfoState, ExpenseFilter expenseFilter,
         ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions);
     IExpenseInfoState CreateEnterTypeOfCategoryStatistic(Category category, IExpenseInfoState previousState);
 
@@ -39,4 +39,5 @@ public interface IStateFactory
     IExpenseInfoState CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(Category category);
     IExpenseInfoState EnterSubcategoryStatisticState(IExpenseInfoState previousState, Category category);
     IExpenseInfoState CreateEnterRawQrState();
+    IExpenseInfoState CreateCheckInfoState();
 }

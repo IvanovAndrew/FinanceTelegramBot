@@ -26,7 +26,7 @@ namespace StateMachine
             return await _datePicker.Request(botClient, chatId, cancellationToken);
         }
 
-        public Task Handle(IMessage message, CancellationToken cancellationToken)
+        public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }
@@ -48,8 +48,13 @@ namespace StateMachine
             if (DateOnly.TryParseExact(message.Text, _dateFormat, out var selectedDay))
             {
                 var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc:false);
-                var specification = new ExpenseForTheDateSpecification(selectedDay);
-                return stateFactory.GetExpensesState(this, specification,
+                var expenseFilter = new ExpenseFilter
+                {
+                    DateFrom = selectedDay,
+                    DateTo = selectedDay
+                };
+                
+                return stateFactory.GetExpensesState(this, expenseFilter,
                     expenseAggregator, 
                     s => s,
                     new TableOptions()

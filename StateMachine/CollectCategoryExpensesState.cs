@@ -25,7 +25,7 @@ internal class CollectCategoryExpensesState : IExpenseInfoState
         return await _datePicker.Request(botClient, chatId, cancellationToken);
     }
 
-    public Task Handle(IMessage message, CancellationToken cancellationToken)
+    public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }
@@ -50,11 +50,11 @@ internal class CollectCategoryExpensesState : IExpenseInfoState
                 e => e.Date.LastDayOfMonth(), false, sortAsc: true);
 
             var specification =
-                new MultipleSpecification(
-                    new ExpenseLaterThanSpecification(monthFrom),
-                    new ExpenseFromCategorySpecification(_category)
-                );
-
+                new ExpenseFilter()
+                {
+                    DateFrom = monthFrom,
+                    Category = _category.Name
+                };
 
             return stateFactory.GetExpensesState(this, specification, expenseAggregator,
                 s => s.ToString(DateFormat),
