@@ -18,7 +18,7 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
         
         _expenseFilter = new ExpenseFilter();
         _stateChain = new StateChain(this,
-            new CategorySubcategoryPicker(FilterUpdateStrategy<string>.FillCategory(_expenseFilter), FilterUpdateStrategy<string>.FillSubcategory(_expenseFilter),  categories, logger),
+            new CategoryPicker(FilterUpdateStrategy<string>.FillCategory(_expenseFilter), categories, logger),
             new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_expenseFilter),
                 "Choose start of the period", today, DateFormat,
                 new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }, "Another"),
