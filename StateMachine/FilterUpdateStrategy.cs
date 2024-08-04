@@ -13,7 +13,7 @@ internal abstract class FilterUpdateStrategy<T>
     }
 
     internal static FilterUpdateStrategy<DateOnly> FillMonthRange(ExpenseFilter expenseFilter) =>
-        new ExpensesFromADayStrategy(expenseFilter);
+        new ExpensesFromAMonthRangeStrategy(expenseFilter);
 
     internal static FilterUpdateStrategy<DateOnly> FillMonthFrom(ExpenseFilter expenseFilter) =>
         new ExpensesFromAMonthStrategy(expenseFilter);
@@ -40,15 +40,16 @@ internal class ExpensesOneDayStrategy : FilterUpdateStrategy<DateOnly>
     }
 }
 
-internal class ExpensesFromADayStrategy : FilterUpdateStrategy<DateOnly>
+internal class ExpensesFromAMonthRangeStrategy : FilterUpdateStrategy<DateOnly>
 {
-    public ExpensesFromADayStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
+    public ExpensesFromAMonthRangeStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
     {
     }
 
     internal override void Update(DateOnly day)
     {
         ExpenseFilter.DateFrom = day.FirstDayOfMonth();
+        ExpenseFilter.DateTo = day.LastDayOfMonth();
     }
 }
 
@@ -61,7 +62,6 @@ internal class ExpensesFromAMonthStrategy : FilterUpdateStrategy<DateOnly>
     internal override void Update(DateOnly day)
     {
         ExpenseFilter.DateFrom = day.FirstDayOfMonth();
-        ExpenseFilter.DateTo = day.LastDayOfMonth();
     }
 }
 

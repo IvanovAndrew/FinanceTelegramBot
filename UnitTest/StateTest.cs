@@ -1001,7 +1001,8 @@ public class StateTest
         await botEngine.Proceed("Food");
         await botEngine.Proceed("Subcategory by period");
         await botEngine.Proceed("Snacks");
-        await botEngine.Proceed("July 2022");
+        await botEngine.Proceed("Another period");
+        await botEngine.Proceed("July 2023");
         var lastMessage = await botEngine.Proceed("All");
         
 
