@@ -47,11 +47,6 @@ namespace StateMachine
             return new CreateStatisticTypeState(_logger);
         }
 
-        public IExpenseInfoState CreateCategoryForStatisticState()
-        {
-            return new EnterCategoryForStatisticState(_categories, _logger);
-        }
-
         public IExpenseInfoState CreateCollectDayExpenseState()
         {
             return new CollectDayExpenseState(_dateTimeService.Today(), _logger);
@@ -112,11 +107,6 @@ namespace StateMachine
             return new CollectExpensesByCategoryState<T>(previousState, expenseFilter, expensesAggregator, firstColumnName, tableOptions, _expenseRepository, _logger);
         }
 
-        public IExpenseInfoState CreateEnterTypeOfCategoryStatistic(Category category, IExpenseInfoState previousState)
-        {
-            return new EnterTypeOfCategoryStatisticState(category, _dateTimeService.Today(), previousState, _logger);
-        }
-
         public IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses)
         {
             return new SaveAllExpensesState(expenses, _expenseRepository, _logger);
@@ -127,24 +117,19 @@ namespace StateMachine
             return new CollectMonthStatisticState(_dateTimeService.Today(), _logger);
         }
 
-        public IExpenseInfoState CreateCollectCategoryExpensesByMonthsState(Category category)
+        public IExpenseInfoState CreateCollectCategoryExpensesByMonthsState()
         {
-            return new CollectCategoryExpensesState(_dateTimeService.Today(), category, _logger);
+            return new CollectCategoryExpensesState(_categories, _dateTimeService.Today(), _logger);
         }
         
-        public IExpenseInfoState CreateCollectSubcategoryExpensesByMonthsState(Category category, SubCategory subCategory)
+        public IExpenseInfoState CreateCollectSubcategoryExpensesByMonthsState()
         {
-            return new CollectSubCategoryExpensesByMonthsState(_dateTimeService.Today(), category, subCategory, _logger);
+            return new CollectSubcategoryExpensesByMonthsState(_categories, _dateTimeService.Today(), _logger);
         }
 
-        public IExpenseInfoState CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(Category category)
+        public IExpenseInfoState CreateCollectSubcategoriesForAPeriodState()
         {
-            return new CollectCategoryExpensesBySubcategoriesForAPeriodState(category, _dateTimeService.Today(), _logger);
-        }
-
-        public IExpenseInfoState EnterSubcategoryStatisticState(IExpenseInfoState previousState, Category category)
-        {
-            return new EnterSubcategoryStatisticState(category, previousState, _logger);
+            return new CollectCategoryExpensesBySubcategoriesForAPeriodState(_categories, _dateTimeService.Today(), _logger);
         }
 
         public IExpenseInfoState CreateEnterRawQrState()

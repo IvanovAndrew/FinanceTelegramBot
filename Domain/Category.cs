@@ -6,7 +6,7 @@ namespace Domain
     {
         public string Name { get; init; }
         public string? ShortName { get; init; }
-        public SubCategory[] SubCategories { get; set; } = Array.Empty<SubCategory>();
+        public SubCategory[] Subcategories { get; set; } = Array.Empty<SubCategory>();
 
         public Category()
         {

@@ -10,7 +10,6 @@ public interface IStateFactory
     IExpenseInfoState CreateRequestPasteJsonState();
     IExpenseInfoState CreateEnterTheDateState(IExpenseInfoState previousState, bool askCustomDate = false);
     IExpenseInfoState CreateChooseStatisticState();
-    IExpenseInfoState CreateCategoryForStatisticState();
     IExpenseInfoState CreateCollectDayExpenseState();
     IExpenseInfoState CreateEnterTheCategoryState(ExpenseBuilder expenseBuilder);
 
@@ -26,18 +25,15 @@ public interface IStateFactory
 
     IExpenseInfoState GetExpensesState<T>(IExpenseInfoState expenseInfoState, ExpenseFilter expenseFilter,
         ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions);
-    IExpenseInfoState CreateEnterTypeOfCategoryStatistic(Category category, IExpenseInfoState previousState);
 
-    IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses);
     IExpenseInfoState CreateCollectMonthStatisticState();
 
     IExpenseInfoState
-        CreateCollectCategoryExpensesByMonthsState(Category category);
+        CreateCollectCategoryExpensesByMonthsState();
 
-    IExpenseInfoState CreateCollectSubcategoryExpensesByMonthsState(Category category, SubCategory subCategory);
+    IExpenseInfoState CreateCollectSubcategoryExpensesByMonthsState();
 
-    IExpenseInfoState CreateCollectCategoryExpensesBySubcategoriesForAPeriodState(Category category);
-    IExpenseInfoState EnterSubcategoryStatisticState(IExpenseInfoState previousState, Category category);
+    IExpenseInfoState CreateCollectSubcategoriesForAPeriodState();
     IExpenseInfoState CreateEnterRawQrState();
     IExpenseInfoState CreateCheckInfoState();
 }

@@ -15,25 +15,18 @@ internal class StateChain
         _chain = chain;
     }
 
-    public bool UserAnswerIsRequired { get; }
-
-    public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
+    internal async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await _chain[Current].Request(botClient, chatId, cancellationToken);
     }
 
-    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+    internal MoveStatus MoveToPreviousState()
     {
-        if (Current > 0)
-        {
-            Current--;
-            return null;
-        }
-
-        return _originalState;
+        Current--;
+        return Current >= 0 ? MoveStatus.InsideChainStatus() : MoveStatus.OutOfChainStatus();
     }
 
-    public IExpenseInfoState? ToNextState()
+    internal MoveStatus ToNextState()
     {
         if (_chainStatus.CanMoveNext)
         {
@@ -46,13 +39,13 @@ internal class StateChain
         
         if (Current < _chain.Length)
         {
-            return null;
+            return MoveStatus.InsideChainStatus();
         }
 
-        return _originalState;
+        return MoveStatus.OutOfChainStatus();
     }
 
-    public void Handle(IMessage message, CancellationToken cancellationToken)
+    internal void Handle(IMessage message, CancellationToken cancellationToken)
     {
         _chainStatus = _chain[Current].HandleInternal(message, cancellationToken);
     }

@@ -4,10 +4,8 @@ using Microsoft.Extensions.Logging;
 
 namespace StateMachine;
 
-internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
+internal class CollectSubcategoryExpensesByMonthsState : IExpenseInfoState
 {
-    private readonly Category _category;
-    private readonly SubCategory _subCategory;
     private readonly DateOnly _today;
     private readonly ILogger _logger;
 
@@ -15,15 +13,13 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
     private readonly ExpenseFilter _expenseFilter;
     private string DateFormat = "MMMM yyyy";
 
-    public CollectSubCategoryExpensesByMonthsState(DateOnly today, Category category, SubCategory subCategory, ILogger logger)
+    public CollectSubcategoryExpensesByMonthsState(IEnumerable<Category> categories, DateOnly today, ILogger logger)
     {
         _today = today;
-        _category = category;
-        _subCategory = subCategory;
-
-        _expenseFilter = new ExpenseFilter() { Category = _category.Name, Subcategory = _subCategory.Name };
+        _expenseFilter = new ExpenseFilter();
         
-        _chainState = new StateChain(this, 
+        _chainState = new StateChain(this,
+            new CategorySubcategoryPicker(FilterUpdateStrategy<string>.FillCategory(_expenseFilter), FilterUpdateStrategy<string>.FillSubcategory(_expenseFilter), categories, logger),
             new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_expenseFilter), "Enter the start period", _today, DateFormat,
             new[] { _today.AddYears(-1), _today.AddMonths(-6), _today.AddMonths(-1) }, "Another period"), 
             new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_expenseFilter)));
@@ -46,7 +42,7 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
 
     public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
     {
-        return stateFactory.EnterSubcategoryStatisticState(this, _category);
+        return stateFactory.CreateChooseStatisticState();
     }
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
@@ -54,7 +50,7 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
     {
         var nextState = _chainState.ToNextState();
 
-        if (nextState == this)
+        if (nextState.IsOutOfChain)
         {
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
                 e => e.Date.LastDayOfMonth(), true, sortAsc: false);
@@ -64,8 +60,8 @@ internal class CollectSubCategoryExpensesByMonthsState : IExpenseInfoState
                 s => s.ToString(DateFormat),
                 new TableOptions()
                 {
-                    Title = $"Category: {_category.Name}. {Environment.NewLine}" +
-                            $"Subcategory: {_subCategory.Name}. {Environment.NewLine}" +
+                    Title = $"Category: {_expenseFilter.Category}. {Environment.NewLine}" +
+                            $"Subcategory: {_expenseFilter.Subcategory}. {Environment.NewLine}" +
                             $"Expenses from {_expenseFilter.DateFrom.Value.ToString(DateFormat)}",
                     FirstColumnName = "Month"
                 });

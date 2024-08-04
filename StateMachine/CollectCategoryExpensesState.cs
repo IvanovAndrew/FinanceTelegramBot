@@ -6,19 +6,18 @@ namespace StateMachine;
 
 internal class CollectCategoryExpensesState : IExpenseInfoState
 {
-    private readonly Category _category;
     private readonly ILogger _logger;
     private readonly ExpenseFilter _expenseFilter;
     private const string DateFormat = "MMMM yyyy";
     private readonly StateChain _stateChain;
 
-    public CollectCategoryExpensesState(DateOnly today, Category category, ILogger logger)
+    public CollectCategoryExpensesState(IEnumerable<Category> categories, DateOnly today, ILogger logger)
     {
-        _category = category;
         _logger = logger;
-        _expenseFilter = new ExpenseFilter(){Category = _category.Name};
+        _expenseFilter = new ExpenseFilter();
 
         _stateChain = new StateChain(this,
+            new CategoryPicker(FilterUpdateStrategy<string>.FillCategory(_expenseFilter), categories, _logger), 
             new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_expenseFilter), "Enter the start period",
                 today, DateFormat,
                 new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }, "Another"),
@@ -38,14 +37,14 @@ internal class CollectCategoryExpensesState : IExpenseInfoState
     }
 
     public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) =>
-        stateFactory.CreateEnterTypeOfCategoryStatistic(_category, this);
+        stateFactory.CreateChooseStatisticState();
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
-        var nextState = _stateChain.ToNextState();
+        var moveStatus = _stateChain.ToNextState();
 
-        if (nextState == this)
+        if (moveStatus.IsOutOfChain)
         {
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
                 e => e.Date.LastDayOfMonth(), false, sortAsc: true);
@@ -54,7 +53,7 @@ internal class CollectCategoryExpensesState : IExpenseInfoState
                 s => s.ToString(DateFormat),
                 new TableOptions()
                 {
-                    Title = $"Category: {_category.Name}",
+                    Title = $"Category: {_expenseFilter.Category}",
                     FirstColumnName = "Month"
                 });
         }

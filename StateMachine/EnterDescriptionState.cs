@@ -30,7 +30,7 @@ namespace StateMachine
         {
             if (_expenseBuilder.SubCategory != null)
             {
-                return stateFactory.CreateEnterTheSubcategoryState(_expenseBuilder, _expenseBuilder.Category!.SubCategories);
+                return stateFactory.CreateEnterTheSubcategoryState(_expenseBuilder, _expenseBuilder.Category!.Subcategories);
             }
             else
             {

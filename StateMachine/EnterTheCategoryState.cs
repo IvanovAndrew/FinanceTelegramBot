@@ -60,9 +60,9 @@ namespace StateMachine
             var categoryDomain = _expenseBuilder.Category;
             if (categoryDomain != null)
             {
-                if (categoryDomain.SubCategories.Any())
+                if (categoryDomain.Subcategories.Any())
                 {
-                    return stateFactory.CreateEnterTheSubcategoryState(_expenseBuilder,  categoryDomain.SubCategories);
+                    return stateFactory.CreateEnterTheSubcategoryState(_expenseBuilder,  categoryDomain.Subcategories);
                 }
                 else
                 {

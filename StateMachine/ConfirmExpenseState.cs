@@ -56,7 +56,7 @@ namespace StateMachine
 
             if (category != null && _expense.SubCategory != null)
             {
-                subCategory = category.SubCategories.FirstOrDefault(c => c.Name == _expense.SubCategory);
+                subCategory = category.Subcategories.FirstOrDefault(c => c.Name == _expense.SubCategory);
             }
                 
             var expenseBuilder = new ExpenseBuilder()

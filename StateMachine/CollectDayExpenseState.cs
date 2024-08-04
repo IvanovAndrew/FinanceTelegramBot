@@ -46,7 +46,7 @@ namespace StateMachine
         {
             var nextState = _stateChain.ToNextState();
 
-            if (nextState == this)
+            if (nextState.IsOutOfChain)
             {
                 var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc: false);
 

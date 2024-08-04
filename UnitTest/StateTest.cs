@@ -20,7 +20,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -49,7 +49,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -78,7 +78,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -110,7 +110,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -143,7 +143,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -176,7 +176,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -215,7 +215,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -252,7 +252,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -295,7 +295,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -328,7 +328,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -373,7 +373,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -407,7 +407,7 @@ public class StateTest
     }
     
     [Test]
-    public async Task ThereAreThreeOptionsInStatisticsState()
+    public async Task ThereAreFiveOptionsInStatisticsState()
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
@@ -417,7 +417,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -433,7 +433,7 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("statistics");
 
         // Assert
-        CollectionAssert.AreEquivalent(new []{"For a day", "For a month", "For a category"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
+        CollectionAssert.AreEquivalent(new []{"Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
     }
     
     [Test]
@@ -447,7 +447,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -481,7 +481,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -517,7 +517,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -552,7 +552,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -574,7 +574,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("For a day");
+        await botEngine.Proceed("Day expenses (by categories)");
         await botEngine.Proceed("23 July 2023");
         var lastMessage = await botEngine.Proceed("All");
 
@@ -597,7 +597,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -619,7 +619,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        var response = await botEngine.Proceed("For a day");
+        var response = await botEngine.Proceed("Day expenses (by categories)");
         
 
         // Assert
@@ -640,7 +640,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -662,7 +662,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("For a day");
+        await botEngine.Proceed("Day expenses (by categories)");
         await botEngine.Proceed("Another day");
         await botEngine.Proceed("22 July 2023");
         var lastMessage = await botEngine.Proceed("All");
@@ -686,7 +686,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -708,7 +708,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        var response = await botEngine.Proceed("For a month");
+        var response = await botEngine.Proceed("Month expenses (by categories)");
         
 
         // Assert
@@ -729,7 +729,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -751,7 +751,7 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("For a month");
+        await botEngine.Proceed("Month expenses (by categories)");
         await botEngine.Proceed("Another month");
         await botEngine.Proceed("May 2023");
         var lastMessage = await botEngine.Proceed("All");
@@ -776,7 +776,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -798,9 +798,8 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("For a category");
+        await botEngine.Proceed("Category expenses (by months)");
         await botEngine.Proceed("Food");
-        await botEngine.Proceed("By period");
         await botEngine.Proceed("July 2022");
         var lastMessage = await botEngine.Proceed("All");
         
@@ -824,7 +823,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -846,9 +845,8 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("For a category");
+        await botEngine.Proceed("Category expenses (by months)");
         await botEngine.Proceed("Food");
-        await botEngine.Proceed("By period");
         await botEngine.Proceed("Another");
         await botEngine.Proceed("January 2022");
         var lastMessage = await botEngine.Proceed("All");
@@ -873,7 +871,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -895,9 +893,8 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("For a category");
+        await botEngine.Proceed("Subcategory expenses (overall)");
         await botEngine.Proceed("Food");
-        await botEngine.Proceed("Subcategory");
         await botEngine.Proceed("July 2022");
         var lastMessage = await botEngine.Proceed("AMD");
         
@@ -924,7 +921,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -946,9 +943,8 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("For a category");
+        await botEngine.Proceed("Subcategory expenses (overall)");
         await botEngine.Proceed("Food");
-        await botEngine.Proceed("Subcategory");
         await botEngine.Proceed("Another");
         await botEngine.Proceed("March 2022");
         var lastMessage = await botEngine.Proceed("All");
@@ -975,7 +971,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -997,9 +993,8 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("For a category");
+        await botEngine.Proceed("Subcategory expenses (by months)");
         await botEngine.Proceed("Food");
-        await botEngine.Proceed("Subcategory by period");
         await botEngine.Proceed("Snacks");
         await botEngine.Proceed("Another period");
         await botEngine.Proceed("July 2023");
@@ -1025,7 +1020,7 @@ public class StateTest
             new()
             {
                 Name = "Food",
-                SubCategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
+                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
             },
             new()
             {
@@ -1047,9 +1042,8 @@ public class StateTest
         // Act
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("For a category");
+        await botEngine.Proceed("Subcategory expenses (by months)");
         await botEngine.Proceed("Food");
-        await botEngine.Proceed("Subcategory by period");
         await botEngine.Proceed("Snacks");
         await botEngine.Proceed("Another period");
         await botEngine.Proceed("January 2022");

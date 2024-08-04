@@ -21,9 +21,11 @@ namespace StateMachine
             var keyboard = 
                 TelegramKeyboard.FromButtons(new []
                 {
-                    new TelegramButton { Text = "For a day", CallbackData = "statisticByDay"},
-                    new TelegramButton { Text = "For a month", CallbackData = "statisticByMonth"}, 
-                    new TelegramButton { Text = "For a category", CallbackData = "statisticByCategory"} 
+                    new TelegramButton { Text = "Day expenses (by categories)", CallbackData = "statisticByDay"},
+                    new TelegramButton { Text = "Month expenses (by categories)", CallbackData = "statisticByMonth"}, 
+                    new TelegramButton { Text = "Category expenses (by months)", CallbackData = "statisticByCategory"}, 
+                    new TelegramButton { Text = "Subcategory expenses (overall)", CallbackData = "statisticBySubcategory"}, 
+                    new TelegramButton { Text = "Subcategory expenses (by months)", CallbackData = "statisticBySubcategoryByMonth"}, 
                 });
         
             return await botClient.SendTextMessageAsync(
@@ -48,9 +50,11 @@ namespace StateMachine
         {
             if (message.Text == "statisticByDay") return stateFactory.CreateCollectDayExpenseState();
             if (message.Text == "statisticByMonth") return stateFactory.CreateCollectMonthStatisticState();
-            if (message.Text == "statisticByCategory") return stateFactory.CreateCategoryForStatisticState();
+            if (message.Text == "statisticByCategory") return stateFactory.CreateCollectCategoryExpensesByMonthsState();
+            if (message.Text == "statisticBySubcategory") return stateFactory.CreateCollectSubcategoriesForAPeriodState();
+            if (message.Text == "statisticBySubcategoryByMonth") return stateFactory.CreateCollectSubcategoryExpensesByMonthsState();
 
-            throw new BotStateException(new []{"statisticByDay", "statisticByMonth", "statisticByCategory"}, message.Text);
+            throw new BotStateException(new []{"statisticByDay", "statisticByMonth", "statisticByCategory", "statisticBySubcategory", "statisticBySubcategoryByMonth"}, message.Text);
         }
     }
 }

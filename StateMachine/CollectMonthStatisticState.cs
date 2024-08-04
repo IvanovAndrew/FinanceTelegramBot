@@ -40,8 +40,8 @@ internal class CollectMonthStatisticState : IExpenseInfoState
 
     public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
     {
-        var previousState = _stateChain.MoveToPreviousState(stateFactory);
-        return previousState == this ? stateFactory.CreateChooseStatisticState() : previousState;
+        var previousState = _stateChain.MoveToPreviousState();
+        return previousState.IsOutOfChain ? stateFactory.CreateChooseStatisticState() : this;
     }
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
@@ -49,7 +49,7 @@ internal class CollectMonthStatisticState : IExpenseInfoState
     {
         var nextState = _stateChain.ToNextState();
 
-        if (nextState == this)
+        if (nextState.IsOutOfChain)
         {
             var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc:false);
 

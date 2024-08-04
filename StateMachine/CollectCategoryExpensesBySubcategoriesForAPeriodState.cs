@@ -6,23 +6,19 @@ namespace StateMachine;
 
 internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseInfoState
 {
-    private readonly Category _category;
-    
     private const string DateFormat = "MMMM yyyy";
     private readonly ExpenseFilter _expenseFilter;
     private readonly StateChain _stateChain;
     
     private readonly ILogger _logger;
 
-    public CollectCategoryExpensesBySubcategoriesForAPeriodState(Category category, DateOnly today, ILogger logger)
+    public CollectCategoryExpensesBySubcategoriesForAPeriodState(IEnumerable<Category> categories, DateOnly today, ILogger logger)
     {
-        _category = category;
         _logger = logger;
         
-        _expenseFilter = new ExpenseFilter(){Category = _category.Name};
-
-
+        _expenseFilter = new ExpenseFilter();
         _stateChain = new StateChain(this,
+            new CategorySubcategoryPicker(FilterUpdateStrategy<string>.FillCategory(_expenseFilter), FilterUpdateStrategy<string>.FillSubcategory(_expenseFilter),  categories, logger),
             new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_expenseFilter),
                 "Choose start of the period", today, DateFormat,
                 new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }, "Another"),
@@ -42,13 +38,13 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
         return Task.CompletedTask;
     }
 
-    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) => stateFactory.CreateEnterTypeOfCategoryStatistic(_category, this);
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) => stateFactory.CreateChooseStatisticState();
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
-        var nextState = _stateChain.ToNextState();
-        if (nextState == this)
+        var moveStatus = _stateChain.ToNextState();
+        if (moveStatus.IsOutOfChain)
         {
             var expenseAggregator = new ExpensesAggregator<string>(
                 e => e.SubCategory ?? string.Empty, false, sortAsc: true);
@@ -58,7 +54,7 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
                 s => s,
                 new TableOptions()
                 {
-                    Title = $"Category: {_category.Name}. {Environment.NewLine}" +
+                    Title = $"Category: {_expenseFilter.Category}. {Environment.NewLine}" +
                             $"Expenses from {_expenseFilter.DateFrom.Value.ToString(DateFormat)}",
                     FirstColumnName = "Subcategory",
                 });

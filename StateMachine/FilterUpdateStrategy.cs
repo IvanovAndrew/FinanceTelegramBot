@@ -23,6 +23,12 @@ internal abstract class FilterUpdateStrategy<T>
 
     public static FilterUpdateStrategy<Currency> FillCurrency(ExpenseFilter expenseFilter) =>
         new ExpensesByCurrencyStrategy(expenseFilter);
+    
+    public static FilterUpdateStrategy<string> FillCategory(ExpenseFilter expenseFilter) =>
+        new ExpensesByCategoryStrategy(expenseFilter);
+    
+    public static FilterUpdateStrategy<string> FillSubcategory(ExpenseFilter expenseFilter) =>
+        new ExpensesBySubcategoryStrategy(expenseFilter);
 
     internal abstract void Update(T day);
 }
@@ -77,3 +83,26 @@ internal class ExpensesByCurrencyStrategy : FilterUpdateStrategy<Currency>
     }
 }
 
+internal class ExpensesByCategoryStrategy : FilterUpdateStrategy<string>
+{
+    public ExpensesByCategoryStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
+    {
+    }
+
+    internal override void Update(string category)
+    {
+        ExpenseFilter.Category = category;
+    }
+}
+
+internal class ExpensesBySubcategoryStrategy : FilterUpdateStrategy<string>
+{
+    public ExpensesBySubcategoryStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
+    {
+    }
+
+    internal override void Update(string subcategory)
+    {
+        ExpenseFilter.Subcategory = subcategory;
+    }
+}
