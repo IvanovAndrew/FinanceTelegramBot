@@ -13,8 +13,8 @@ public class ExpenseSearchOption
     {
         return (DateFrom == null || DateFrom.Value <= expense.Date) &&
                (DateTo == null || expense.Date <= DateTo.Value) &&
-               (string.IsNullOrEmpty(Category) || expense.Category == Category) &&
-               (string.IsNullOrEmpty(SubCategory) || expense.Category == SubCategory) &&
+               (string.IsNullOrEmpty(Category) || string.Equals(expense.Category, Category, StringComparison.InvariantCultureIgnoreCase)) &&
+               (string.IsNullOrEmpty(SubCategory) || string.Equals(expense.Subcategory, SubCategory, StringComparison.InvariantCultureIgnoreCase)) &&
                (Currency == null || expense.Currency == Currency);
     }
 }
