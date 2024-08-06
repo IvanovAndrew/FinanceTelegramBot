@@ -53,7 +53,7 @@ internal class CollectSubcategoryExpensesByMonthsState : IExpenseInfoState
         if (nextState.IsOutOfChain)
         {
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
-                e => e.Date.LastDayOfMonth(), true, sortAsc: false);
+                e => e.Date.LastDayOfMonth(), sortByMoney:false, sortAsc: true);
 
             return stateFactory.GetExpensesState(this, _expenseFilter,
                 expenseAggregator,
