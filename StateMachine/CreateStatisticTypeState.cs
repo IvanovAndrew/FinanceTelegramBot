@@ -26,7 +26,7 @@ namespace StateMachine
                     new TelegramButton { Text = "Category expenses (by months)", CallbackData = "statisticByCategory"}, 
                     new TelegramButton { Text = "Subcategory expenses (overall)", CallbackData = "statisticBySubcategory"}, 
                     new TelegramButton { Text = "Subcategory expenses (by months)", CallbackData = "statisticBySubcategoryByMonth"}, 
-                });
+                }, chunkSize:2);
         
             return await botClient.SendTextMessageAsync(
                 chatId: chatId,
