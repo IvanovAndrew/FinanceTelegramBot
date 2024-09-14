@@ -59,7 +59,7 @@ namespace StateMachine
         {
             _fillCategory = fillCategory;
             _fillSubcategory = fillSubcategory;
-            _categories = categories.Where(c => c.Subcategories.Length > 0).ToList();
+            _categories = categories.ToList();
             _logger = logger;
         }
         
@@ -90,7 +90,6 @@ namespace StateMachine
                 text: infoMessage,
                 keyboard: keyboard,
                 cancellationToken: cancellationToken);
-
         }
 
         public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)
@@ -102,6 +101,11 @@ namespace StateMachine
                 {
                     _chosenCategory = categoryDomain;
                     _fillCategory(categoryDomain);
+
+                    if (!categoryDomain.Subcategories.Any())
+                    {
+                        return ChainStatus.Success();
+                    }
                 }
             }
             else

@@ -96,12 +96,12 @@ public class StateTest
         lastMessage = await botEngine.Proceed("By myself");
         
         // Assert
-        CollectionAssert.AreEquivalent(new []{"Today", "Yesterday", "Other"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
+        CollectionAssert.AreEquivalent(new []{"Today", "Yesterday", "Another day"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
     }
     
     [TestCase("today")]
     [TestCase("yesterday")]
-    public async Task AfterEnteringDateWeChooseACategory(string answer)
+    public async Task AfterEnteringDateWeChooseACategory(string date)
     {
         // Arrange
         var telegramBot = new TelegramBotMock();
@@ -126,7 +126,7 @@ public class StateTest
         await botEngine.Proceed("/start");
         await botEngine.Proceed("outcome");
         await botEngine.Proceed("By myself");
-        var lastMessage = await botEngine.Proceed(answer);
+        var lastMessage = await botEngine.Proceed(date);
         
         // Assert
         Assert.That(lastMessage.Text, Is.EqualTo("Enter the category"));
@@ -619,7 +619,7 @@ public class StateTest
         await botEngine.Proceed("/start");
         await botEngine.Proceed("Statistics");
         await botEngine.Proceed("Day expenses (by categories)");
-        await botEngine.Proceed("23 July 2023");
+        await botEngine.Proceed("Yesterday");
         var lastMessage = await botEngine.Proceed("All");
 
         // Assert
@@ -668,8 +668,8 @@ public class StateTest
 
         // Assert
         var buttons = response.TelegramKeyboard?.Buttons?.SelectMany(c => c.Select(_ => _.Text));
-        CollectionAssert.Contains(buttons, "24 July 2023");
-        CollectionAssert.Contains(buttons, "23 July 2023");
+        CollectionAssert.Contains(buttons, "Today");
+        CollectionAssert.Contains(buttons, "Yesterday");
         CollectionAssert.Contains(buttons, "Another day");
     }
     
@@ -757,8 +757,8 @@ public class StateTest
 
         // Assert
         var buttons = response.TelegramKeyboard?.Buttons?.SelectMany(c => c.Select(_ => _.Text));
-        CollectionAssert.Contains(buttons, "July 2023");
-        CollectionAssert.Contains(buttons, "June 2023");
+        CollectionAssert.Contains(buttons, "This month");
+        CollectionAssert.Contains(buttons, "Previous month");
         CollectionAssert.Contains(buttons, "Another month");
     }
     

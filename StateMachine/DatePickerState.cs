@@ -1,4 +1,5 @@
 ﻿using Infrastructure;
+using Microsoft.Extensions.Logging;
 
 namespace StateMachine;
 
@@ -8,11 +9,12 @@ internal class DatePickerState : IChainState
     protected readonly string Text;
     protected readonly DateOnly Today;
     protected readonly string DateFormat;
-    private readonly DateOnly[] _options;
+    private readonly Dictionary<DateOnly, string> _options;
     private readonly string _customOptionTitle;
+    private readonly ILogger _logger;
     private const string CallbackCustom = "custom";
 
-    internal DatePickerState(UpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat, DateOnly[] options, string customOptionTitle) : this(update, text, today, dateFormat)
+    internal DatePickerState(UpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat, Dictionary<DateOnly, string> options, string customOptionTitle, ILogger logger) : this(update, text, today, dateFormat, logger)
     {
         _update = update;
         Text = text;
@@ -21,27 +23,28 @@ internal class DatePickerState : IChainState
         _customOptionTitle = customOptionTitle;
     }
     
-    protected DatePickerState(UpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat)
+    protected DatePickerState(UpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat, ILogger logger)
     {
         _update = update;
         Text = text;
         Today = today;
         DateFormat = dateFormat;
-        _options = Array.Empty<DateOnly>();
+        _options = new Dictionary<DateOnly, string>();
         _customOptionTitle = string.Empty;
+        _logger = logger;
     }
     
     public virtual async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
-        var buttons = new TelegramButton[_options.Length + 1];
+        var buttons = new TelegramButton[_options.Count + 1];
 
-        for (int i = 0; i < _options.Length; i++)
+        int i = 0;
+        foreach (var (date, alias) in _options)
         {
-            var dateString = _options[i].ToString(DateFormat);
-            buttons[i] = new TelegramButton() { Text = dateString, CallbackData = dateString };
+            buttons[i++] = new TelegramButton() { Text = alias, CallbackData = date.ToString(DateFormat) };
         }
 
-        buttons[_options.Length] = new TelegramButton { Text = _customOptionTitle, CallbackData = CallbackCustom };
+        buttons[i] = new TelegramButton { Text = _customOptionTitle, CallbackData = CallbackCustom };
 
         int chunkSize = 3;
         if (buttons.Length == 4)
@@ -67,16 +70,18 @@ internal class DatePickerState : IChainState
         }
         else if (message.Text == CallbackCustom)
         {
-            return ChainStatus.Retry(new CustomDatePickerState(_update, Text, Today, DateFormat));
+            return ChainStatus.Retry(new CustomDatePickerState(_update, Text, Today, DateFormat, _logger));
         }
 
+        _logger.LogWarning($"Couldn't parse {message.Text} as a date");
+        
         return ChainStatus.Retry(this);
     }
 }
 
 internal class CustomDatePickerState : DatePickerState
 {
-    protected internal CustomDatePickerState(UpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat) : base(update, text, today, dateFormat)
+    protected internal CustomDatePickerState(UpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat, ILogger logger) : base(update, text, today, dateFormat, logger)
     {
     }
 

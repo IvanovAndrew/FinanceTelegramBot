@@ -19,7 +19,7 @@ internal class CollectCategoryExpensesState : StateWithChainsBase
             new CategoryPicker(c => _financeFilter.Category = c.Name, categories, _logger), 
             new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_financeFilter), "Enter the start period",
                 today, DateFormat,
-                new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }, "Another"),
+                new DateOnly[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }.ToDictionary(d => d, d => d.ToString(DateFormat)), "Another", logger),
             new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_financeFilter)));
     }
 

@@ -13,10 +13,11 @@ class EnterIncomeState : StateWithChainsBase
     {
         _income = new Income();
         StateChain = new StateChain(
-            new DatePickerState(new UpdateIncomeDateStrategy(_income), "Enter the date", today, "dd.MM.yyyy", new []{today, today.AddDays(-1)}, "Another date"),
+            new DatePickerState(new UpdateIncomeDateStrategy(_income), "Enter the date", today, "dd.MM.yyyy", 
+                new Dictionary<DateOnly, string>(){[today] = "Today", [today.AddDays(-1)] = "Yesterday"}, "Another date", logger),
             new IncomeCategoryPicker(category => _income.Category = category.Name, incomeCategories),
             new DescriptionPicker(description => _income.Description = description),
-            new AmountPicker(amount => _income.Amount = amount)
+            new AmountPicker(amount => _income.Amount = amount, "income")
         );
         _logger = logger;
     }

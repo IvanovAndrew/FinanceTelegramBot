@@ -20,7 +20,7 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : StateWith
             new CategoryPicker(c => _financeFilter.Category = c.Name, categories, logger),
             new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_financeFilter),
                 "Choose start of the period", today, DateFormat,
-                new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }, "Another"),
+                new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }.ToDictionary(d => d, d => d.ToString(DateFormat)), "Another", logger),
             new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_financeFilter))
         );
     }

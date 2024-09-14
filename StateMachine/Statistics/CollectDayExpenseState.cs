@@ -19,7 +19,7 @@ namespace StateMachine
 
             StateChain = new StateChain(
                 new DatePickerState(FilterUpdateStrategy<DateOnly>.FillDate(_financeFilter), "Enter the day", today, _dateFormat,
-                new[] { _today, _today.AddDays(-1) }, "Another day"), 
+                new Dictionary<DateOnly, string>() { [_today] = "Today", [_today.AddDays(-1)] = "Yesterday" }, "Another day", logger), 
                 new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_financeFilter)));
             
             _logger = logger;

@@ -13,10 +13,10 @@ class EnterOutcomeManuallyState : StateWithChainsBase
         _expenseBuilder = new ExpenseBuilder();
         StateChain = new StateChain
         (
-            new DatePickerState(new UpdateOutcomeDateStrategy(_expenseBuilder), "Enter the date", today, "dd.MM.YYYY", new []{today, today.AddDays(-1)}, "Another day"),
+            new DatePickerState(new UpdateOutcomeDateStrategy(_expenseBuilder), "Enter the date", today, "dd.MM.yyyy", new Dictionary<DateOnly, string>(){[today] = "Today", [today.AddDays(-1)] = "Yesterday"}, "Another day", logger),
             new CategorySubcategoryPicker(c => _expenseBuilder.Category = c, sc => _expenseBuilder.SubCategory = sc, categories, logger),
             new DescriptionPicker(d => _expenseBuilder.Description = d),
-            new AmountPicker(m => _expenseBuilder.Sum = m)
+            new AmountPicker(m => _expenseBuilder.Sum = m, "price")
         );
     }
     

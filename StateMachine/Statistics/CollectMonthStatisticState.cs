@@ -19,7 +19,13 @@ internal class CollectMonthStatisticState : StateWithChainsBase
         
         StateChain = new StateChain( 
             new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthRange(_financeFilter), "Enter the month", _today, DateFormat, 
-                new[] { _today, _today.AddMonths(-1) }, "Another month"), 
+                new Dictionary<DateOnly, string>
+                {
+                    [_today] = "This month",
+                    [_today.AddMonths(-1)] = "Previous month",
+                }, 
+                "Another month", 
+                logger), 
             new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_financeFilter))); 
         _logger = logger;
     }

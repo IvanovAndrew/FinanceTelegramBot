@@ -20,7 +20,7 @@ internal class CollectSubcategoryExpensesByMonthsState : StateWithChainsBase
         StateChain = new StateChain(
             new CategorySubcategoryPicker(c => _financeFilter.Category = c.Name, sc => _financeFilter.Subcategory = sc.Name, categories, logger),
             new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_financeFilter), "Enter the start period", _today, DateFormat,
-            new[] { _today.AddYears(-1), _today.AddMonths(-6), _today.AddMonths(-1) }, "Another period"), 
+            new[] { _today.AddYears(-1), _today.AddMonths(-6), _today.AddMonths(-1) }.ToDictionary(d => d, d => d.ToString(DateFormat)), "Another period", logger), 
             new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_financeFilter)));
         
         _logger = logger;
