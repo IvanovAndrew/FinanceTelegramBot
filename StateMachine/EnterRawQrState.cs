@@ -7,8 +7,8 @@ namespace StateMachine;
 public class EnterRawQrState : IExpenseInfoState
 {
     private readonly IFnsService _fnsService;
-    private readonly ILogger _logger;
     private FnsResponse? _check;
+    private readonly ILogger _logger;
     
     public EnterRawQrState(IFnsService fnsService, ILogger logger)
     {
@@ -22,9 +22,9 @@ public class EnterRawQrState : IExpenseInfoState
         return await botClient.SendTextMessageAsync(chatId, "Enter the string you get after QR reading", cancellationToken: cancellationToken);
     }
 
-    public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)
+    public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
-        _check = await _fnsService.GetCheck(message.Text);
+        return Task.CompletedTask;
     }
 
     public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) =>
@@ -33,28 +33,6 @@ public class EnterRawQrState : IExpenseInfoState
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
-        if (_check == null)
-        {
-            return stateFactory.CreateErrorWithRetryState("Couldn't download the receipt", this);
-        }
-
-        var expenses = _check.Data?.Json?.Items?.Select(i => (IExpense) new Expense()
-        {
-            Amount = new Money
-            {
-                Amount = i.Sum / 100m,
-                Currency = Currency.Rur
-            },
-            Date = DateOnly.FromDateTime(_check.Data.Json.DateTime),
-            Description = i.Name,
-            Category = "Еда"
-        })?.ToList()?? new List<IExpense>();
-        
-        if (!expenses.Any())
-        {
-            return stateFactory.CreateErrorWithRetryState("The receipt doesn't contain any expenses", this);
-        }
-
-        return stateFactory.CreateSaveExpensesFromJsonState(expenses);
+        return stateFactory.CreateRequestFnsDataState(message.Text);
     }
 }

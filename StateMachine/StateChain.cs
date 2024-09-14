@@ -4,14 +4,12 @@ namespace StateMachine;
 
 internal class StateChain
 {
-    private readonly IExpenseInfoState _originalState;
     private readonly IChainState[] _chain;
     private int Current = 0;
     private ChainStatus _chainStatus;
 
-    internal StateChain(IExpenseInfoState originalState, params IChainState[] chain)
+    internal StateChain(params IChainState[] chain)
     {
-        _originalState = originalState;
         _chain = chain;
     }
 

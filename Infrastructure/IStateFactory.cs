@@ -36,4 +36,6 @@ public interface IStateFactory
     IExpenseInfoState CreateCollectSubcategoriesForAPeriodState();
     IExpenseInfoState CreateEnterRawQrState();
     IExpenseInfoState CreateCheckInfoState();
+    IExpenseInfoState CreateCheckByRequisitesState();
+    IExpenseInfoState CreateRequestFnsDataState(string messageText);
 }
