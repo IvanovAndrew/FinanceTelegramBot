@@ -9,11 +9,11 @@ public interface IFinanseRepository
         SaveAllOutcomes(new List<IExpense>() { expense }, cancellationToken);
 
     Task<bool> SaveAllOutcomes(List<IExpense> expenses, CancellationToken cancellationToken);
-    Task<List<IExpense>> ReadOutcomes(FinanseFilter finanseFilter, CancellationToken cancellationToken);
-    Task<List<IIncome>> ReadIncomes(FinanseFilter finanseFilter, CancellationToken cancellationToken);
+    Task<List<IExpense>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
+    Task<List<IIncome>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
 }
 
-public class FinanseFilter
+public class FinanceFilter
 {
     public DateOnly? DateFrom { get; set; }
     public DateOnly? DateTo { get; set; }

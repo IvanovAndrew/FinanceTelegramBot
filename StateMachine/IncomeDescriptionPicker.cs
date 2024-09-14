@@ -2,11 +2,11 @@
 
 namespace StateMachine;
 
-class IncomeDescription : IChainState
+class DescriptionPicker : IChainState
 {
     private readonly Action<string> _update;
 
-    internal IncomeDescription(Action<string> update)
+    internal DescriptionPicker(Action<string> update)
     {
         _update = update?? throw new ArgumentNullException(nameof(update));
     }

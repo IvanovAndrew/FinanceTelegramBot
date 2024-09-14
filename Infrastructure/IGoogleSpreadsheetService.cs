@@ -11,8 +11,8 @@ namespace Infrastructure;
 public interface IGoogleSpreadsheetService
 {
     public Task<bool> SaveIncome(IIncome income, CancellationToken cancellationToken);
-    public Task<List<IIncome>> GetIncomes(FinanseFilter finanseFilter, CancellationToken cancellationToken);
-    public Task<List<IExpense>> GetExpenses(FinanseFilter finanseFilter, CancellationToken cancellationToken);
+    public Task<List<IIncome>> GetIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
+    public Task<List<IExpense>> GetExpenses(FinanceFilter financeFilter, CancellationToken cancellationToken);
     public Task<bool> SaveExpense(IExpense expense, CancellationToken cancellationToken);
     public Task<bool> SaveAllExpenses(List<IExpense> expenses, CancellationToken cancellationToken);
 }
@@ -44,17 +44,17 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         return response.StatusCode == HttpStatusCode.OK;
     }
 
-    public async Task<List<IIncome>> GetIncomes(FinanseFilter finanseFilter, CancellationToken cancellationToken)
+    public async Task<List<IIncome>> GetIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         using HttpClient httpClient = new HttpClient();
 
         string jsonContent = JsonConvert.SerializeObject(
             new
             {
-                finanseFilter.DateFrom,
-                finanseFilter.DateTo,
-                finanseFilter.Category,
-                Currency = finanseFilter.Currency?.Name,
+                financeFilter.DateFrom,
+                financeFilter.DateTo,
+                financeFilter.Category,
+                Currency = financeFilter.Currency?.Name,
             });
         var content = new StringContent(jsonContent, Encoding.UTF8,  MediaTypeNames.Application.Json);
         
@@ -75,18 +75,18 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         return new List<IIncome>();
     }
 
-    public async Task<List<IExpense>> GetExpenses(FinanseFilter finanseFilter, CancellationToken cancellationToken)
+    public async Task<List<IExpense>> GetExpenses(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         using HttpClient httpClient = new HttpClient();
 
         string jsonContent = JsonConvert.SerializeObject(
             new
             {
-                finanseFilter.DateFrom,
-                finanseFilter.DateTo,
-                finanseFilter.Category,
-                finanseFilter.Subcategory,
-                Currency = finanseFilter.Currency?.Name,
+                financeFilter.DateFrom,
+                financeFilter.DateTo,
+                financeFilter.Category,
+                financeFilter.Subcategory,
+                Currency = financeFilter.Currency?.Name,
             });
         using var content = new StringContent(jsonContent, Encoding.UTF8,  MediaTypeNames.Application.Json);
         

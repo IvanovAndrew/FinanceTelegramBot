@@ -23,15 +23,15 @@ public class FinanseRepositoryStub : IFinanseRepository
         return true;
     }
 
-    public Task<List<IExpense>> ReadOutcomes(FinanseFilter finanseFilter, CancellationToken cancellationToken)
+    public Task<List<IExpense>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         var result = 
             _savedExpenses.Where(expense =>
-                    (finanseFilter.DateFrom == null || finanseFilter.DateFrom.Value <= expense.Date) &&
-                    (finanseFilter.DateTo == null || expense.Date <= finanseFilter.DateTo.Value) &&
-                    (finanseFilter.Category == null || finanseFilter.Category == expense.Category) &&
-                    (finanseFilter.Subcategory == null || finanseFilter.Subcategory == expense.SubCategory) &&
-                    (finanseFilter.Currency == null || finanseFilter.Currency == expense.Amount.Currency)
+                    (financeFilter.DateFrom == null || financeFilter.DateFrom.Value <= expense.Date) &&
+                    (financeFilter.DateTo == null || expense.Date <= financeFilter.DateTo.Value) &&
+                    (financeFilter.Category == null || financeFilter.Category == expense.Category) &&
+                    (financeFilter.Subcategory == null || financeFilter.Subcategory == expense.SubCategory) &&
+                    (financeFilter.Currency == null || financeFilter.Currency == expense.Amount.Currency)
 
                 )
                 .ToList();
@@ -39,14 +39,14 @@ public class FinanseRepositoryStub : IFinanseRepository
         return Task.FromResult(result);
     }
 
-    public Task<List<IIncome>> ReadIncomes(FinanseFilter finanseFilter, CancellationToken cancellationToken)
+    public Task<List<IIncome>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         var result = 
             _savedIncomes.Where(expense =>
-                    (finanseFilter.DateFrom == null || finanseFilter.DateFrom.Value <= expense.Date) &&
-                    (finanseFilter.DateTo == null || expense.Date <= finanseFilter.DateTo.Value) &&
-                    (finanseFilter.Category == null || finanseFilter.Category == expense.Category) &&
-                    (finanseFilter.Currency == null || finanseFilter.Currency == expense.Amount.Currency)
+                    (financeFilter.DateFrom == null || financeFilter.DateFrom.Value <= expense.Date) &&
+                    (financeFilter.DateTo == null || expense.Date <= financeFilter.DateTo.Value) &&
+                    (financeFilter.Category == null || financeFilter.Category == expense.Category) &&
+                    (financeFilter.Currency == null || financeFilter.Currency == expense.Amount.Currency)
 
                 )
                 .ToList();

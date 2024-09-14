@@ -24,7 +24,7 @@ internal class StateChain
         return Current >= 0 ? MoveStatus.InsideChainStatus() : MoveStatus.OutOfChainStatus();
     }
 
-    internal MoveStatus ToNextState()
+    internal MoveStatus MoveToNextState()
     {
         if (_chainStatus.CanMoveNext)
         {

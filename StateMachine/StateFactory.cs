@@ -48,11 +48,6 @@ namespace StateMachine
             return new RequestJsonState(_logger);
         }
 
-        public IExpenseInfoState CreateEnterTheDateState(IExpenseInfoState previousState, bool askCustomDate = false)
-        {
-            return new EnterTheDateState(_dateTimeService, _logger, previousState, askCustomDate);
-        }
-
         public IExpenseInfoState CreateChooseStatisticState()
         {
             return new CreateStatisticTypeState(_logger);
@@ -61,26 +56,6 @@ namespace StateMachine
         public IExpenseInfoState CreateCollectDayExpenseState()
         {
             return new CollectDayExpenseState(_dateTimeService.Today(), _logger);
-        }
-
-        public IExpenseInfoState CreateEnterTheCategoryState(ExpenseBuilder expenseBuilder)
-        {
-            return new EnterTheCategoryState(expenseBuilder, _categories, _logger);
-        }
-
-        public IExpenseInfoState CreateEnterTheSubcategoryState(ExpenseBuilder expenseBuilder, SubCategory[] subCategories)
-        {
-            return new EnterSubcategoryState(expenseBuilder, subCategories, _logger);
-        }
-
-        public IExpenseInfoState CreateEnterDescriptionState(ExpenseBuilder expenseBuilder)
-        {
-            return new EnterDescriptionState(expenseBuilder, _logger);
-        }
-
-        public IExpenseInfoState CreateEnterThePriceState(ExpenseBuilder expenseBuilder)
-        {
-            return new EnterPriceState(expenseBuilder, _logger);
         }
 
         public IExpenseInfoState CreateConfirmState(IExpense expense)
@@ -123,9 +98,9 @@ namespace StateMachine
             return new CancelledState( _logger);
         }
 
-        public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, FinanseFilter finanseFilter, ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions)
+        public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, FinanceFilter financeFilter, ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions)
         {
-            return new CollectExpensesByCategoryState<T>(previousState, finanseFilter, expensesAggregator, firstColumnName, tableOptions, _finanseRepository, _logger);
+            return new CollectExpensesByCategoryState<T>(previousState, financeFilter, expensesAggregator, firstColumnName, tableOptions, _finanseRepository, _logger);
         }
 
         public IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses)
@@ -176,6 +151,11 @@ namespace StateMachine
         public IExpenseInfoState CreateEnterIncomeState()
         {
             return new EnterIncomeState(_dateTimeService.Today(), _incomeCategories, _logger);
+        }
+
+        public IExpenseInfoState CreateEnterOutcomeManuallyState()
+        {
+            return new EnterOutcomeManuallyState(_dateTimeService.Today(), _categories, _logger);
         }
     }
 }

@@ -93,7 +93,8 @@ namespace StateMachine
                 Description = _item.Description, 
             };
             
-            return stateFactory.CreateEnterThePriceState(expenseBuilder);
+            return stateFactory.CreateEnterOutcomeManuallyState();
+            
         }
 
         protected override IExpenseInfoState ToSaveState(IStateFactory stateFactory)

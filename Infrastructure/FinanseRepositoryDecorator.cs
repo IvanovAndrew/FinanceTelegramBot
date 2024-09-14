@@ -54,10 +54,10 @@ public class FinanseRepositoryDecorator : IFinanseRepository
         return result;
     }
 
-    public async Task<List<IExpense>> ReadOutcomes(FinanseFilter finanseFilter, CancellationToken cancellationToken)
+    public async Task<List<IExpense>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         var cacheKey =
-            $"DateFrom={finanseFilter.DateFrom};DateTo={finanseFilter.DateTo};Category={finanseFilter.Category};Subcategory={finanseFilter.Subcategory};Currency={finanseFilter.Currency?.Name}";
+            $"DateFrom={financeFilter.DateFrom};DateTo={financeFilter.DateTo};Category={financeFilter.Category};Subcategory={financeFilter.Subcategory};Currency={financeFilter.Currency?.Name}";
         
         if (!_cache.TryGetValue(cacheKey, out List<IExpense> items))
         {
@@ -68,7 +68,7 @@ public class FinanseRepositoryDecorator : IFinanseRepository
                 if (!_cache.TryGetValue(CacheKeys.AllExpenses, out List<IExpense> cachedItems))
                 {
                     _logger.LogInformation("Loading expenses from the repository");
-                    cachedItems = await _repository.ReadOutcomes(finanseFilter, cancellationToken);
+                    cachedItems = await _repository.ReadOutcomes(financeFilter, cancellationToken);
             
                     var cacheEntryOptions = new MemoryCacheEntryOptions()
                         .SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
@@ -95,10 +95,10 @@ public class FinanseRepositoryDecorator : IFinanseRepository
         return items;
     }
 
-    public async Task<List<IIncome>> ReadIncomes(FinanseFilter finanseFilter, CancellationToken cancellationToken)
+    public async Task<List<IIncome>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         var cacheKey =
-            $"DateFrom={finanseFilter.DateFrom};DateTo={finanseFilter.DateTo};Category={finanseFilter.Category};Subcategory={finanseFilter.Subcategory};Currency={finanseFilter.Currency?.Name}";
+            $"DateFrom={financeFilter.DateFrom};DateTo={financeFilter.DateTo};Category={financeFilter.Category};Subcategory={financeFilter.Subcategory};Currency={financeFilter.Currency?.Name}";
         
         if (!_cache.TryGetValue(cacheKey, out List<IIncome> items))
         {
@@ -109,7 +109,7 @@ public class FinanseRepositoryDecorator : IFinanseRepository
                 if (!_cache.TryGetValue(CacheKeys.AllExpenses, out List<IIncome> cachedItems))
                 {
                     _logger.LogInformation("Loading incomes from the repository");
-                    cachedItems = await _repository.ReadIncomes(finanseFilter, cancellationToken);
+                    cachedItems = await _repository.ReadIncomes(financeFilter, cancellationToken);
             
                     var cacheEntryOptions = new MemoryCacheEntryOptions()
                         .SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
@@ -156,13 +156,13 @@ public class FinanseRepository : IFinanseRepository
         return await _spreadsheetService.SaveAllExpenses(expenses, cancellationToken);
     }
 
-    public async Task<List<IExpense>> ReadOutcomes(FinanseFilter finanseFilter, CancellationToken cancellationToken)
+    public async Task<List<IExpense>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
-        return await _spreadsheetService.GetExpenses(finanseFilter, cancellationToken);
+        return await _spreadsheetService.GetExpenses(financeFilter, cancellationToken);
     }
 
-    public async Task<List<IIncome>> ReadIncomes(FinanseFilter finanseFilter, CancellationToken cancellationToken)
+    public async Task<List<IIncome>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
-        return await _spreadsheetService.GetIncomes(finanseFilter, cancellationToken);
+        return await _spreadsheetService.GetIncomes(financeFilter, cancellationToken);
     }
 }

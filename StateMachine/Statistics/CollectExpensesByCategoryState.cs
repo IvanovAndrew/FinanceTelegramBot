@@ -6,7 +6,7 @@ namespace StateMachine
 {
     internal class CollectExpensesByCategoryState<T> : IExpenseInfoState, ILongTermOperation
     {
-        private readonly FinanseFilter _finanseFilter;
+        private readonly FinanceFilter _financeFilter;
         private readonly ExpensesAggregator<T> _expensesAggregator;
         private readonly TableOptions _tableOptions;
         private readonly IFinanseRepository _finanseRepository;
@@ -15,13 +15,13 @@ namespace StateMachine
         private CancellationTokenSource? _cancellationTokenSource;
         private readonly IExpenseInfoState _previousState;
 
-        public CollectExpensesByCategoryState(IExpenseInfoState previousState, FinanseFilter finanseFilter, ExpensesAggregator<T> expensesAggregator,
+        public CollectExpensesByCategoryState(IExpenseInfoState previousState, FinanceFilter financeFilter, ExpensesAggregator<T> expensesAggregator,
             Func<T, string> firstColumnName,
             TableOptions tableOptions,
             IFinanseRepository finanseRepository, ILogger logger)
         {
             _previousState = previousState;
-            _finanseFilter = finanseFilter;
+            _financeFilter = financeFilter;
             _expensesAggregator = expensesAggregator;
             _firstColumnName = firstColumnName;
             _tableOptions = tableOptions;
@@ -86,7 +86,7 @@ namespace StateMachine
                     List<IExpense> expenses;
                     using (_cancellationTokenSource = new CancellationTokenSource())
                     {
-                        expenses = await _finanseRepository.ReadOutcomes(_finanseFilter, _cancellationTokenSource.Token);
+                        expenses = await _finanseRepository.ReadOutcomes(_financeFilter, _cancellationTokenSource.Token);
                     }
                     
                     _logger.LogInformation($"{expenses.Count} expenses satisfy the requirements");
