@@ -85,6 +85,107 @@ namespace GoogleSheetWriter
             }
         }
 
+        public async Task SaveIncome(Income income, CancellationToken cancellationToken)
+        {
+            var service = await InitializeService(cancellationToken);
+            
+            ListInfo listInfo = _options.Incomes;
+
+            await _semaphore.WaitAsync(TimeSpan.FromMinutes(1), cancellationToken);
+            try
+            {
+                int row = await GetNumberFilledRows(service, listInfo.ListName, cancellationToken) + 1;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
+                string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountGelColumn}{row}";
+
+                var excelRowValues = FillExcelRows(income, listInfo, row);
+
+                var valueRange = new ValueRange
+                {
+                    Range = range,
+                    MajorDimension = "ROWS",
+                    Values = excelRowValues
+                };
+
+                SpreadsheetsResource.ValuesResource.UpdateRequest request =
+                    service.Spreadsheets.Values.Update(valueRange, _spreadsheetId, range);
+                request.ValueInputOption =
+                    SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+
+                await request.ExecuteAsync(cancellationToken);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        private List<IList<object>> FillExcelRows(Income income, ListInfo listInfo, int firstRow)
+        {
+            var excelRowValues = new List<object>();
+            var row = firstRow;
+
+            for (int j = 0; j < 10; j++)
+            {
+                excelRowValues.Add(null);
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.YearColumn))
+            {
+                excelRowValues[listInfo.YearColumn[0] - FirstExcelColumn] = $"=YEAR({listInfo.DateColumn}{row})";
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.MonthColumn))
+            {
+                excelRowValues[listInfo.MonthColumn[0] - FirstExcelColumn] = $"=MONTH({listInfo.DateColumn}{row})";
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.DateColumn))
+            {
+                excelRowValues[listInfo.DateColumn[0] - FirstExcelColumn] = income.Date.ToString("dd.MM.yyyy");
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.CategoryColumn))
+            {
+                excelRowValues[listInfo.CategoryColumn[0] - FirstExcelColumn] = income.Category;
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.DescriptionColumn))
+            {
+                excelRowValues[listInfo.DescriptionColumn[0] - FirstExcelColumn] = income.Description;
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.AmountRurColumn))
+            {
+                excelRowValues[listInfo.AmountRurColumn[0] - FirstExcelColumn] =
+                    income.Currency == Currency.RUR ? income.Amount : "";
+            }
+
+            if (!string.IsNullOrEmpty(listInfo.AmountAmdColumn))
+            {
+                excelRowValues[listInfo.AmountAmdColumn[0] - FirstExcelColumn] =
+                    income.Currency == Currency.AMD ? income.Amount : "";
+            }
+            
+            if (!string.IsNullOrEmpty(listInfo.AmountGelColumn))
+            {
+                excelRowValues[listInfo.AmountGelColumn[0] - FirstExcelColumn] =
+                    income.Currency == Currency.GEL ? income.Amount : "";
+            }
+
+            while (excelRowValues[^1] == null)
+            {
+                excelRowValues.RemoveAt(excelRowValues.Count - 1);
+            }
+
+            var result = new List<IList<object>>();
+            result.Add(excelRowValues);
+
+            return result;
+        }
+        
         private List<IList<object>> FillExcelRows(List<Expense> expenses, ListInfo listInfo, int firstRow)
         {
             var result = new List<IList<object>>(expenses.Count);
@@ -215,7 +316,7 @@ namespace GoogleSheetWriter
             return i;
         }
 
-        public async Task<List<Expense>> Read(ExpenseSearchOption expenseSearchOptions, CancellationToken cancellationToken)
+        public async Task<List<Expense>> ReadExpenses(SearchOption searchOptions, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
@@ -223,22 +324,44 @@ namespace GoogleSheetWriter
             foreach (var list in new []{_options.EveryDayExpenses, _options.FlatInfo, _options.BigDealInfo, _options.CurrencyConversion})
             {
                 result.AddRange(
-                    await GetRows(service, list, expenseSearchOptions, cancellationToken)
+                    await GetRows(service, list, searchOptions, cancellationToken)
                     );
             }
 
             return result;
         }
+        
+        public async Task<List<Income>> ReadIncomes(SearchOption searchOptions, CancellationToken cancellationToken)
+        {
+            var service = await InitializeService(cancellationToken);
 
-        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, ExpenseSearchOption expenseSearchOptions, CancellationToken cancellationToken)
+            var rows = await GetRows(service, _options.Incomes, searchOptions, cancellationToken);
+
+            var incomes = new List<Income>(rows.Count);
+            foreach (var expense in rows)
+            {
+                incomes.Add(new Income()
+                {
+                    Date = expense.Date,
+                    Category = expense.Category,
+                    Description = expense.Description,
+                    Amount = expense.Amount,
+                    Currency = expense.Currency
+                });
+            }
+
+            return incomes;
+        }
+
+        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, SearchOption searchOptions, CancellationToken cancellationToken)
         {
             List<Expense> expenses = new();
 
             var factory = SheetRowFactory.FromListInfo(info, _cultureInfo);
 
             int fromRangeRow = 1;
-            if (expenseSearchOptions.DateFrom != null &&
-                info.YearToFirstExcelRow.TryGetValue(expenseSearchOptions.DateFrom.Value.Year, out var rowNumber))
+            if (searchOptions.DateFrom != null &&
+                info.YearToFirstExcelRow.TryGetValue(searchOptions.DateFrom.Value.Year, out var rowNumber))
             {
                 fromRangeRow = rowNumber;
             }
@@ -269,7 +392,7 @@ namespace GoogleSheetWriter
 
                         var expense = factory.CreateExpense(cellData.Values);
 
-                        if (expenseSearchOptions.IsSatisfied(expense))
+                        if (searchOptions.IsSatisfied(expense))
                         {
                             expenses.Add(expense);
                         }
