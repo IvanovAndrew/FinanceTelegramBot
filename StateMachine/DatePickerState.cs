@@ -4,7 +4,7 @@ namespace StateMachine;
 
 internal class DatePickerState : IChainState
 {
-    private readonly FilterUpdateStrategy<DateOnly> _update;
+    private readonly UpdateStrategy<DateOnly> _update;
     protected readonly string Text;
     protected readonly DateOnly Today;
     protected readonly string DateFormat;
@@ -12,7 +12,7 @@ internal class DatePickerState : IChainState
     private readonly string _customOptionTitle;
     private const string CallbackCustom = "custom";
 
-    internal DatePickerState(FilterUpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat, DateOnly[] options, string customOptionTitle) : this(update, text, today, dateFormat)
+    internal DatePickerState(UpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat, DateOnly[] options, string customOptionTitle) : this(update, text, today, dateFormat)
     {
         _update = update;
         Text = text;
@@ -21,7 +21,7 @@ internal class DatePickerState : IChainState
         _customOptionTitle = customOptionTitle;
     }
     
-    protected DatePickerState(FilterUpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat)
+    protected DatePickerState(UpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat)
     {
         _update = update;
         Text = text;
@@ -76,7 +76,7 @@ internal class DatePickerState : IChainState
 
 internal class CustomDatePickerState : DatePickerState
 {
-    protected internal CustomDatePickerState(FilterUpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat) : base(update, text, today, dateFormat)
+    protected internal CustomDatePickerState(UpdateStrategy<DateOnly> update, string text, DateOnly today, string dateFormat) : base(update, text, today, dateFormat)
     {
     }
 

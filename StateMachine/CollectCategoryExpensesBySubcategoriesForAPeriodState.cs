@@ -7,7 +7,7 @@ namespace StateMachine;
 internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseInfoState
 {
     private const string DateFormat = "MMMM yyyy";
-    private readonly ExpenseFilter _expenseFilter;
+    private readonly FinanseFilter _finanseFilter;
     private readonly StateChain _stateChain;
     
     private readonly ILogger _logger;
@@ -16,13 +16,13 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
     {
         _logger = logger;
         
-        _expenseFilter = new ExpenseFilter();
-        _stateChain = new StateChain(this,
-            new CategoryPicker(FilterUpdateStrategy<string>.FillCategory(_expenseFilter), categories, logger),
-            new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_expenseFilter),
+        _finanseFilter = new FinanseFilter();
+        _stateChain = new StateChain(
+            new CategoryPicker(FilterUpdateStrategy<string>.FillCategory(_finanseFilter), categories, logger),
+            new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_finanseFilter),
                 "Choose start of the period", today, DateFormat,
                 new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }, "Another"),
-            new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_expenseFilter))
+            new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_finanseFilter))
         );
     }
 
@@ -49,13 +49,13 @@ internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : IExpenseI
             var expenseAggregator = new ExpensesAggregator<string>(
                 e => e.SubCategory ?? string.Empty, false, sortAsc: true);
 
-            return stateFactory.GetExpensesState(this, _expenseFilter,
+            return stateFactory.GetExpensesState(this, _finanseFilter,
                 expenseAggregator,
                 s => s,
                 new TableOptions()
                 {
-                    Title = $"Category: {_expenseFilter.Category}. {Environment.NewLine}" +
-                            $"Expenses from {_expenseFilter.DateFrom.Value.ToString(DateFormat)}",
+                    Title = $"Category: {_finanseFilter.Category}. {Environment.NewLine}" +
+                            $"Expenses from {_finanseFilter.DateFrom.Value.ToString(DateFormat)}",
                     FirstColumnName = "Subcategory",
                 });
             

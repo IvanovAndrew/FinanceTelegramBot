@@ -10,19 +10,19 @@ internal class CollectSubcategoryExpensesByMonthsState : IExpenseInfoState
     private readonly ILogger _logger;
 
     private readonly StateChain _chainState;
-    private readonly ExpenseFilter _expenseFilter;
+    private readonly FinanseFilter _finanseFilter;
     private string DateFormat = "MMMM yyyy";
 
     public CollectSubcategoryExpensesByMonthsState(IEnumerable<Category> categories, DateOnly today, ILogger logger)
     {
         _today = today;
-        _expenseFilter = new ExpenseFilter();
+        _finanseFilter = new FinanseFilter();
         
-        _chainState = new StateChain(this,
-            new CategorySubcategoryPicker(FilterUpdateStrategy<string>.FillCategory(_expenseFilter), FilterUpdateStrategy<string>.FillSubcategory(_expenseFilter), categories, logger),
-            new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_expenseFilter), "Enter the start period", _today, DateFormat,
+        _chainState = new StateChain(
+            new CategorySubcategoryPicker(FilterUpdateStrategy<string>.FillCategory(_finanseFilter), FilterUpdateStrategy<string>.FillSubcategory(_finanseFilter), categories, logger),
+            new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_finanseFilter), "Enter the start period", _today, DateFormat,
             new[] { _today.AddYears(-1), _today.AddMonths(-6), _today.AddMonths(-1) }, "Another period"), 
-            new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_expenseFilter)));
+            new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_finanseFilter)));
         
         _logger = logger;
     }
@@ -55,14 +55,14 @@ internal class CollectSubcategoryExpensesByMonthsState : IExpenseInfoState
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
                 e => e.Date.LastDayOfMonth(), sortByMoney:false, sortAsc: true);
 
-            return stateFactory.GetExpensesState(this, _expenseFilter,
+            return stateFactory.GetExpensesState(this, _finanseFilter,
                 expenseAggregator,
                 s => s.ToString(DateFormat),
                 new TableOptions()
                 {
-                    Title = $"Category: {_expenseFilter.Category}. {Environment.NewLine}" +
-                            $"Subcategory: {_expenseFilter.Subcategory}. {Environment.NewLine}" +
-                            $"Expenses from {_expenseFilter.DateFrom.Value.ToString(DateFormat)}",
+                    Title = $"Category: {_finanseFilter.Category}. {Environment.NewLine}" +
+                            $"Subcategory: {_finanseFilter.Subcategory}. {Environment.NewLine}" +
+                            $"Expenses from {_finanseFilter.DateFrom.Value.ToString(DateFormat)}",
                     FirstColumnName = "Month"
                 });
         }

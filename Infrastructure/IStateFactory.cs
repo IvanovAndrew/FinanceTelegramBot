@@ -17,13 +17,15 @@ public interface IStateFactory
     IExpenseInfoState CreateEnterDescriptionState(ExpenseBuilder expenseBuilder);
     IExpenseInfoState CreateEnterThePriceState(ExpenseBuilder expenseBuilder);
     IExpenseInfoState CreateConfirmState(IExpense expense);
+    IExpenseInfoState CreateConfirmState(IIncome income);
     IExpenseInfoState CreateSaveState(IExpense expense);
+    IExpenseInfoState CreateSaveState(IIncome expense);
     IExpenseInfoState CreateSaveExpensesFromJsonState(List<IExpense> expenses);
     IExpenseInfoState CreateHandleJsonFileState(ITelegramFileInfo fileInfo);
     IExpenseInfoState CreateErrorWithRetryState(string warning, IExpenseInfoState state);
     IExpenseInfoState CreateCancelState();
 
-    IExpenseInfoState GetExpensesState<T>(IExpenseInfoState expenseInfoState, ExpenseFilter expenseFilter,
+    IExpenseInfoState GetExpensesState<T>(IExpenseInfoState expenseInfoState, FinanseFilter finanseFilter,
         ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions);
 
     IExpenseInfoState CreateCollectMonthStatisticState();
@@ -38,4 +40,5 @@ public interface IStateFactory
     IExpenseInfoState CreateCheckInfoState();
     IExpenseInfoState CreateCheckByRequisitesState();
     IExpenseInfoState CreateRequestFnsDataState(string messageText);
+    IExpenseInfoState CreateEnterIncomeState();
 }

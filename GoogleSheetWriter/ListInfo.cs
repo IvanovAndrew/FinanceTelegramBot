@@ -17,5 +17,20 @@
         public string AmountGelColumn;
 
         public Dictionary<int, int> YearToFirstExcelRow = new();
+
+        public override string ToString()
+        {
+            return string.Join($", {System.Environment.NewLine}",
+                $"Category = {Category}",
+                $"YearColumn = {YearColumn}",
+                $"MonthColumn = {MonthColumn}",
+                $"DateColumn = {DateColumn}",
+                $"CategoryColumn = {CategoryColumn}",
+                $"SubCategoryColumn = {SubCategoryColumn}",
+                $"DescriptionColumn = {DescriptionColumn}",
+                $"AmountRurColumn = {AmountRurColumn}",
+                $"AmountAmdColumn = {AmountAmdColumn}",
+                $"AmountGelColumn = {AmountGelColumn}");
+        }
     }
 }

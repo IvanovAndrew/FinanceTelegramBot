@@ -7,21 +7,21 @@ namespace StateMachine;
 internal class CollectCategoryExpensesState : IExpenseInfoState
 {
     private readonly ILogger _logger;
-    private readonly ExpenseFilter _expenseFilter;
+    private readonly FinanseFilter _finanseFilter;
     private const string DateFormat = "MMMM yyyy";
     private readonly StateChain _stateChain;
 
     public CollectCategoryExpensesState(IEnumerable<Category> categories, DateOnly today, ILogger logger)
     {
         _logger = logger;
-        _expenseFilter = new ExpenseFilter();
+        _finanseFilter = new FinanseFilter();
 
-        _stateChain = new StateChain(this,
-            new CategoryPicker(FilterUpdateStrategy<string>.FillCategory(_expenseFilter), categories, _logger), 
-            new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_expenseFilter), "Enter the start period",
+        _stateChain = new StateChain(
+            new CategoryPicker(FilterUpdateStrategy<string>.FillCategory(_finanseFilter), categories, _logger), 
+            new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthFrom(_finanseFilter), "Enter the start period",
                 today, DateFormat,
                 new[] { today.AddYears(-1), today.AddMonths(-6), today.AddMonths(-1) }, "Another"),
-            new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_expenseFilter)));
+            new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_finanseFilter)));
     }
 
     public bool UserAnswerIsRequired => true;
@@ -49,11 +49,11 @@ internal class CollectCategoryExpensesState : IExpenseInfoState
             var expenseAggregator = new ExpensesAggregator<DateOnly>(
                 e => e.Date.LastDayOfMonth(), false, sortAsc: true);
 
-            return stateFactory.GetExpensesState(this, _expenseFilter, expenseAggregator,
+            return stateFactory.GetExpensesState(this, _finanseFilter, expenseAggregator,
                 s => s.ToString(DateFormat),
                 new TableOptions()
                 {
-                    Title = $"Category: {_expenseFilter.Category}",
+                    Title = $"Category: {_finanseFilter.Category}",
                     FirstColumnName = "Month"
                 });
         }

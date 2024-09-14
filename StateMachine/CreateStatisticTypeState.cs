@@ -54,7 +54,7 @@ namespace StateMachine
             if (message.Text == "statisticBySubcategory") return stateFactory.CreateCollectSubcategoriesForAPeriodState();
             if (message.Text == "statisticBySubcategoryByMonth") return stateFactory.CreateCollectSubcategoryExpensesByMonthsState();
 
-            throw new BotStateException(new []{"statisticByDay", "statisticByMonth", "statisticByCategory", "statisticBySubcategory", "statisticBySubcategoryByMonth"}, message.Text);
+            throw new BotStateException(new []{"balance", "statisticByDay", "statisticByMonth", "statisticByCategory", "statisticBySubcategory", "statisticBySubcategoryByMonth"}, message.Text);
         }
     }
 }

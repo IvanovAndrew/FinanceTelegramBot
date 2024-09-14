@@ -3,106 +3,124 @@ using Infrastructure;
 
 namespace StateMachine;
 
-internal abstract class FilterUpdateStrategy<T>
+internal abstract class UpdateStrategy<T>
 {
-    protected readonly ExpenseFilter ExpenseFilter;
+    internal abstract void Update(T day);
+}
 
-    protected FilterUpdateStrategy(ExpenseFilter expenseFilter)
+internal class UpdateIncomeDateStrategy : UpdateStrategy<DateOnly>
+{
+    private readonly Income _income;
+
+    internal UpdateIncomeDateStrategy(Income income)
     {
-        ExpenseFilter = expenseFilter;
+        _income = income;
+    }
+    
+    internal override void Update(DateOnly day)
+    {
+        _income.Date = day;
+    }
+}
+
+internal abstract class FilterUpdateStrategy<T> : UpdateStrategy<T>
+{
+    protected readonly FinanseFilter FinanseFilter;
+
+    protected FilterUpdateStrategy(FinanseFilter finanseFilter)
+    {
+        FinanseFilter = finanseFilter;
     }
 
-    internal static FilterUpdateStrategy<DateOnly> FillMonthRange(ExpenseFilter expenseFilter) =>
-        new ExpensesFromAMonthRangeStrategy(expenseFilter);
+    internal static FilterUpdateStrategy<DateOnly> FillMonthRange(FinanseFilter finanseFilter) =>
+        new ExpensesFromAMonthRangeStrategy(finanseFilter);
 
-    internal static FilterUpdateStrategy<DateOnly> FillMonthFrom(ExpenseFilter expenseFilter) =>
-        new ExpensesFromAMonthStrategy(expenseFilter);
+    internal static FilterUpdateStrategy<DateOnly> FillMonthFrom(FinanseFilter finanseFilter) =>
+        new ExpensesFromAMonthStrategy(finanseFilter);
 
-    internal static FilterUpdateStrategy<DateOnly> FillDate(ExpenseFilter expenseFilter) =>
-        new ExpensesOneDayStrategy(expenseFilter);
+    internal static FilterUpdateStrategy<DateOnly> FillDate(FinanseFilter finanseFilter) =>
+        new ExpensesOneDayStrategy(finanseFilter);
 
-    public static FilterUpdateStrategy<Currency> FillCurrency(ExpenseFilter expenseFilter) =>
-        new ExpensesByCurrencyStrategy(expenseFilter);
+    public static FilterUpdateStrategy<Currency> FillCurrency(FinanseFilter finanseFilter) =>
+        new ExpensesByCurrencyStrategy(finanseFilter);
     
-    public static FilterUpdateStrategy<string> FillCategory(ExpenseFilter expenseFilter) =>
-        new ExpensesByCategoryStrategy(expenseFilter);
+    public static FilterUpdateStrategy<string> FillCategory(FinanseFilter finanseFilter) =>
+        new ExpensesByCategoryStrategy(finanseFilter);
     
-    public static FilterUpdateStrategy<string> FillSubcategory(ExpenseFilter expenseFilter) =>
-        new ExpensesBySubcategoryStrategy(expenseFilter);
-
-    internal abstract void Update(T day);
+    public static FilterUpdateStrategy<string> FillSubcategory(FinanseFilter finanseFilter) =>
+        new ExpensesBySubcategoryStrategy(finanseFilter);
 }
 
 internal class ExpensesOneDayStrategy : FilterUpdateStrategy<DateOnly>
 {
-    public ExpensesOneDayStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
+    public ExpensesOneDayStrategy(FinanseFilter finanseFilter) : base(finanseFilter)
     {
     }
 
     internal override void Update(DateOnly day)
     {
-        ExpenseFilter.DateFrom = day;
-        ExpenseFilter.DateTo = day;
+        FinanseFilter.DateFrom = day;
+        FinanseFilter.DateTo = day;
     }
 }
 
 internal class ExpensesFromAMonthRangeStrategy : FilterUpdateStrategy<DateOnly>
 {
-    public ExpensesFromAMonthRangeStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
+    public ExpensesFromAMonthRangeStrategy(FinanseFilter finanseFilter) : base(finanseFilter)
     {
     }
 
     internal override void Update(DateOnly day)
     {
-        ExpenseFilter.DateFrom = day.FirstDayOfMonth();
-        ExpenseFilter.DateTo = day.LastDayOfMonth();
+        FinanseFilter.DateFrom = day.FirstDayOfMonth();
+        FinanseFilter.DateTo = day.LastDayOfMonth();
     }
 }
 
 internal class ExpensesFromAMonthStrategy : FilterUpdateStrategy<DateOnly>
 {
-    public ExpensesFromAMonthStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
+    public ExpensesFromAMonthStrategy(FinanseFilter finanseFilter) : base(finanseFilter)
     {
     }
 
     internal override void Update(DateOnly day)
     {
-        ExpenseFilter.DateFrom = day.FirstDayOfMonth();
+        FinanseFilter.DateFrom = day.FirstDayOfMonth();
     }
 }
 
 internal class ExpensesByCurrencyStrategy : FilterUpdateStrategy<Currency>
 {
-    protected internal ExpensesByCurrencyStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
+    protected internal ExpensesByCurrencyStrategy(FinanseFilter finanseFilter) : base(finanseFilter)
     {
     }
 
     internal override void Update(Currency day)
     {
-        ExpenseFilter.Currency = day;
+        FinanseFilter.Currency = day;
     }
 }
 
 internal class ExpensesByCategoryStrategy : FilterUpdateStrategy<string>
 {
-    public ExpensesByCategoryStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
+    public ExpensesByCategoryStrategy(FinanseFilter finanseFilter) : base(finanseFilter)
     {
     }
 
     internal override void Update(string category)
     {
-        ExpenseFilter.Category = category;
+        FinanseFilter.Category = category;
     }
 }
 
 internal class ExpensesBySubcategoryStrategy : FilterUpdateStrategy<string>
 {
-    public ExpensesBySubcategoryStrategy(ExpenseFilter expenseFilter) : base(expenseFilter)
+    public ExpensesBySubcategoryStrategy(FinanseFilter finanseFilter) : base(finanseFilter)
     {
     }
 
     internal override void Update(string subcategory)
     {
-        ExpenseFilter.Subcategory = subcategory;
+        FinanseFilter.Subcategory = subcategory;
     }
 }

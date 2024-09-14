@@ -8,6 +8,17 @@ namespace StateMachine
     {
         private readonly IDateTimeService _dateTimeService;
         private readonly IEnumerable<Category> _categories;
+        private readonly IEnumerable<IncomeCategory> _incomeCategories = new[]
+        {
+            new IncomeCategory(){Name = "Зарплата"},
+            new IncomeCategory(){Name = "Премия"},
+            new IncomeCategory(){Name = "Отпускные"},
+            new IncomeCategory(){Name = "Кэшбек"},
+            new IncomeCategory(){Name = "% на остаток"},
+            new IncomeCategory(){Name = "Аренда квартиры"},
+            new IncomeCategory(){Name = "Прочее"},
+        };
+        
         private readonly IFnsService _fnsService;
         private readonly IFinanseRepository _finanseRepository;
         private readonly ILogger<StateFactory> _logger;
@@ -160,6 +171,11 @@ namespace StateMachine
         public IExpenseInfoState CreateRequestFnsDataState(string messageText)
         {
             return new RequestFnsDataState(_fnsService, messageText, _logger);
+        }
+
+        public IExpenseInfoState CreateEnterIncomeState()
+        {
+            return new EnterIncomeState(_dateTimeService.Today(), _incomeCategories, _logger);
         }
     }
 }

@@ -8,4 +8,12 @@ namespace Domain
         public string? Description { get; init; }
         public Money Amount { get; init; }
     }
+    
+    public class Income : IIncome
+    {
+        public DateOnly Date { get; set; }
+        public string Category { get; set; }
+        public string Description { get; set; }
+        public Money Amount { get; set; }
+    }
 }

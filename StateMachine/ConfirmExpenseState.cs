@@ -4,28 +4,23 @@ using Microsoft.Extensions.Logging;
 
 namespace StateMachine
 {
-    class ConfirmExpenseState : IExpenseInfoState
+    abstract class ConfirmState<T> : IExpenseInfoState
     {
-        private readonly IExpense _expense;
-        private readonly IEnumerable<Category> _categories;
+        protected readonly T _item;
+        
         private readonly ILogger _logger;
         public bool UserAnswerIsRequired => true;
     
-        public ConfirmExpenseState(IExpense expense, IEnumerable<Category> categories, ILogger logger)
+        public ConfirmState(T item, ILogger logger)
         {
-            _expense = expense;
+            _item = item;
             _logger = logger;
-            _categories = categories;
         }
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
             string infoMessage = string.Join($"{Environment.NewLine}", 
-                $"Date: {_expense.Date:dd.MM.yyyy}", 
-                $"Category: {_expense.Category}", 
-                $"SubCategory: {_expense.SubCategory ?? string.Empty}", 
-                $"Description: {_expense.Description ?? string.Empty}",
-                $"Amount: {_expense.Amount}",
+                ItemToString(),
                 "",
                 "Would you like to save it?"
             );
@@ -49,33 +44,14 @@ namespace StateMachine
             return Task.CompletedTask;
         }
 
-        public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
-        {
-            var category = _categories.FirstOrDefault(c => c.Name == _expense.Category);
-            SubCategory? subCategory = null;
-
-            if (category != null && _expense.SubCategory != null)
-            {
-                subCategory = category.Subcategories.FirstOrDefault(c => c.Name == _expense.SubCategory);
-            }
-                
-            var expenseBuilder = new ExpenseBuilder()
-            {
-                Category = category,
-                SubCategory = subCategory,
-                Date = _expense.Date,
-                Description = _expense.Description, 
-            };
-            
-            return stateFactory.CreateEnterThePriceState(expenseBuilder);
-        }
+        public abstract IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory);
 
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
             if (string.Equals(message.Text, "Save", StringComparison.InvariantCultureIgnoreCase))
             {
-                return stateFactory.CreateSaveState(_expense);
+                return ToSaveState(stateFactory);
             }
             
             if (string.Equals(message.Text, "Cancel", StringComparison.InvariantCultureIgnoreCase))
@@ -84,6 +60,81 @@ namespace StateMachine
             }
 
             throw new BotStateException(new []{"Save", "Cancel"}, message.Text);
+        }
+
+        protected abstract IExpenseInfoState ToSaveState(IStateFactory stateFactory);
+        protected abstract string ItemToString();
+    }
+
+    class ConfirmExpenseState : ConfirmState<IExpense>
+    {
+        private readonly IEnumerable<Category> _categories;
+        
+        public ConfirmExpenseState(IExpense expense, IEnumerable<Category> categories, ILogger logger) : base(expense, logger)
+        {
+            _categories = categories;
+        }
+
+        public override IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            var category = _categories.FirstOrDefault(c => c.Name == _item.Category);
+            SubCategory? subCategory = null;
+
+            if (category != null && _item.SubCategory != null)
+            {
+                subCategory = category.Subcategories.FirstOrDefault(c => c.Name == _item.SubCategory);
+            }
+                
+            var expenseBuilder = new ExpenseBuilder()
+            {
+                Category = category,
+                SubCategory = subCategory,
+                Date = _item.Date,
+                Description = _item.Description, 
+            };
+            
+            return stateFactory.CreateEnterThePriceState(expenseBuilder);
+        }
+
+        protected override IExpenseInfoState ToSaveState(IStateFactory stateFactory)
+        {
+            return stateFactory.CreateSaveState(_item);
+        }
+
+        protected override string ItemToString()
+        {
+            return string.Join($"{Environment.NewLine}",
+                $"Date: {_item.Date:dd.MM.yyyy}",
+                $"Category: {_item.Category}",
+                $"SubCategory: {_item.SubCategory ?? string.Empty}",
+                $"Description: {_item.Description ?? string.Empty}",
+                $"Amount: {_item.Amount}");
+        }
+    }
+
+    class ConfirmIncomeState : ConfirmState<IIncome>
+    {
+        public ConfirmIncomeState(IIncome income, ILogger logger) : base(income, logger)
+        {
+        }
+
+        public override IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override IExpenseInfoState ToSaveState(IStateFactory stateFactory)
+        {
+            return stateFactory.CreateSaveState(_item);
+        }
+
+        protected override string ItemToString()
+        {
+            return string.Join($"{Environment.NewLine}",
+                $"Date: {_item.Date:dd.MM.yyyy}",
+                $"Category: {_item.Category}",
+                $"Description: {_item.Description}",
+                $"Amount: {_item.Amount}");
         }
     }
 }

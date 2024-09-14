@@ -8,4 +8,12 @@ namespace Domain
         string? Description { get; }
         Money Amount { get; }
     }
+
+    public interface IIncome
+    {
+        DateOnly Date { get; }
+        string Category { get; }
+        string? Description { get; }
+        Money Amount { get; }
+    }
 }

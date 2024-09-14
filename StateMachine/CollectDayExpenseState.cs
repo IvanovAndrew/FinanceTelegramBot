@@ -11,18 +11,18 @@ namespace StateMachine
         
         private readonly string _dateFormat = "dd MMMM yyyy";
         private readonly StateChain _stateChain;
-        private readonly ExpenseFilter _expenseFilter;
+        private readonly FinanseFilter _finanseFilter;
         private readonly ILogger _logger;
 
         public CollectDayExpenseState(DateOnly today, ILogger logger)
         {
             _today = today;
-            _expenseFilter = new ExpenseFilter();
+            _finanseFilter = new FinanseFilter();
 
-            _stateChain = new StateChain(this, 
-                new DatePickerState(FilterUpdateStrategy<DateOnly>.FillDate(_expenseFilter), "Enter the day", today, _dateFormat,
+            _stateChain = new StateChain(
+                new DatePickerState(FilterUpdateStrategy<DateOnly>.FillDate(_finanseFilter), "Enter the day", today, _dateFormat,
                 new[] { _today, _today.AddDays(-1) }, "Another day"), 
-                new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_expenseFilter)));
+                new CurrencyPicker(FilterUpdateStrategy<Currency>.FillCurrency(_finanseFilter)));
             
             _logger = logger;
         }
@@ -50,12 +50,12 @@ namespace StateMachine
             {
                 var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc: false);
 
-                return stateFactory.GetExpensesState(this, _expenseFilter,
+                return stateFactory.GetExpensesState(this, _finanseFilter,
                     expenseAggregator,
                     s => s,
                     new TableOptions()
                     {
-                        Title = _expenseFilter.DateTo.Value.ToString(_dateFormat),
+                        Title = _finanseFilter.DateTo.Value.ToString(_dateFormat),
                         FirstColumnName = "Category"
                     });
             }

@@ -7,15 +7,15 @@ namespace StateMachine;
 public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
 {
     private readonly List<IExpense> _expenses;
-    private readonly IExpenseRepository _expenseRepository;
+    private readonly IFinanseRepository _finanseRepository;
     private readonly ILogger _logger;
     private CancellationTokenSource? _cancellationTokenSource;
 
     internal SaveAllExpensesState(List<IExpense> expenses,
-        IExpenseRepository expenseRepository, ILogger logger)
+        IFinanseRepository finanseRepository, ILogger logger)
     {
         _expenses = expenses;
-        _expenseRepository = expenseRepository;
+        _finanseRepository = finanseRepository;
         _logger = logger;
     }
 
@@ -52,7 +52,7 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
         {
             using (_cancellationTokenSource = new CancellationTokenSource())
             {
-                await _expenseRepository.SaveAll(_expenses, _cancellationTokenSource.Token);
+                await _finanseRepository.SaveAllOutcomes(_expenses, _cancellationTokenSource.Token);
             }
 
             result = SaveBatchExpensesResult.Saved(_expenses);
