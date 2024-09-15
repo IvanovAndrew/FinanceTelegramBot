@@ -1,4 +1,4 @@
-﻿namespace GoogleSheetWriter;
+namespace GoogleSheetWriter;
 
 [Serializable]
 public class MoneyTransferSearchOption

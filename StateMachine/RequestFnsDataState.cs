@@ -7,34 +7,37 @@ using Microsoft.Extensions.Logging;
 
 namespace StateMachine;
 
-public class EnterRawQrState : IExpenseInfoState
+public class RequestFnsDataState : IExpenseInfoState
 {
-    private readonly IFnsService _fnsService;
-    private readonly ILogger _logger;
     private FnsResponse? _check;
-    
-    public EnterRawQrState(IFnsService fnsService, ILogger logger)
+    private readonly ILogger _logger;
+    private readonly IFnsService _fnsService;
+    private readonly string _messageText;
+
+    public RequestFnsDataState(IFnsService fnsService, string messageText, ILogger logger)
     {
         _logger = logger;
         _fnsService = fnsService;
+        _messageText = messageText;
     }
-
-    public bool UserAnswerIsRequired => true;
+    
+    public bool UserAnswerIsRequired => false;
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
-        return await botClient.SendTextMessageAsync(chatId, "Enter the string you get after QR reading", cancellationToken: cancellationToken);
+        return await botClient.SendTextMessageAsync(chatId, "Requesting FNS data...", cancellationToken: cancellationToken);
     }
 
+    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)
+    {
+        return stateFactory.CreateCheckInfoState();
+    }
+    
     public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)
     {
-        _check = await _fnsService.GetCheck(message.Text);
+        _check = await _fnsService.GetCheck(_messageText);
     }
 
-    public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory) =>
-        stateFactory.CreateCheckInfoState();
-
-    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
-        CancellationToken cancellationToken)
+    public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory, CancellationToken cancellationToken)
     {
         if (_check == null)
         {

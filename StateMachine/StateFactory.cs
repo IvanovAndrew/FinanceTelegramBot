@@ -10,17 +10,28 @@ namespace StateMachine
     {
         private readonly IDateTimeService _dateTimeService;
         private readonly IEnumerable<Category> _categories;
+        private readonly IEnumerable<IncomeCategory> _incomeCategories = new[]
+        {
+            new IncomeCategory(){Name = "Зарплата"},
+            new IncomeCategory(){Name = "Премия"},
+            new IncomeCategory(){Name = "Отпускные"},
+            new IncomeCategory(){Name = "Кэшбек"},
+            new IncomeCategory(){Name = "% на остаток"},
+            new IncomeCategory(){Name = "Аренда квартиры"},
+            new IncomeCategory(){Name = "Прочее"},
+        };
+        
         private readonly IFnsService _fnsService;
-        private readonly IExpenseRepository _expenseRepository;
+        private readonly IFinanseRepository _finanseRepository;
         private readonly ILogger<StateFactory> _logger;
     
         public StateFactory(IDateTimeService dateTimeService, IEnumerable<Category> categories, IFnsService fnsService, 
-            IExpenseRepository expenseRepository, ILogger<StateFactory> logger)
+            IFinanseRepository finanseRepository, ILogger<StateFactory> logger)
         {
             _dateTimeService = dateTimeService;
             _categories = categories;
             _fnsService = fnsService;
-            _expenseRepository = expenseRepository;
+            _finanseRepository = finanseRepository;
             _logger = logger;
         }
 
@@ -39,11 +50,6 @@ namespace StateMachine
             return new RequestJsonState(_logger);
         }
 
-        public IExpenseInfoState CreateEnterTheDateState(IExpenseInfoState previousState, bool askCustomDate = false)
-        {
-            return new EnterTheDateState(_dateTimeService, _logger, previousState, askCustomDate);
-        }
-
         public IExpenseInfoState CreateChooseStatisticState()
         {
             return new CreateStatisticTypeState(_logger);
@@ -54,39 +60,29 @@ namespace StateMachine
             return new CollectDayExpenseState(_dateTimeService.Today(), _logger);
         }
 
-        public IExpenseInfoState CreateEnterTheCategoryState(ExpenseBuilder expenseBuilder)
-        {
-            return new EnterTheCategoryState(expenseBuilder, _categories, _logger);
-        }
-
-        public IExpenseInfoState CreateEnterTheSubcategoryState(ExpenseBuilder expenseBuilder, SubCategory[] subCategories)
-        {
-            return new EnterSubcategoryState(expenseBuilder, subCategories, _logger);
-        }
-
-        public IExpenseInfoState CreateEnterDescriptionState(ExpenseBuilder expenseBuilder)
-        {
-            return new EnterDescriptionState(expenseBuilder, _logger);
-        }
-
-        public IExpenseInfoState CreateEnterThePriceState(ExpenseBuilder expenseBuilder)
-        {
-            return new EnterPriceState(expenseBuilder, _logger);
-        }
-
         public IExpenseInfoState CreateConfirmState(IExpense expense)
         {
             return new ConfirmExpenseState(expense, _categories, _logger);
         }
 
+        public IExpenseInfoState CreateConfirmState(IIncome income)
+        {
+            return new ConfirmIncomeState(income, _logger);
+        }
+
         public IExpenseInfoState CreateSaveState(IExpense expense)
         {
-            return new SaveExpenseState(expense, _expenseRepository, _logger);
+            return new SaveExpenseState(expense, _finanseRepository, _logger);
         }
         
+        public IExpenseInfoState CreateSaveState(IIncome expense)
+        {
+            return new SaveIncomeState(expense, _finanseRepository, _logger);
+        }
+
         public IExpenseInfoState CreateSaveExpensesFromJsonState(List<IExpense> expenses)
         {
-            return new SaveExpensesFromJsonState(expenses, _expenseRepository, _logger);
+            return new SaveExpensesFromJsonState(expenses, _finanseRepository, _logger);
         }
         
         public IExpenseInfoState CreateHandleJsonFileState(ITelegramFileInfo fileInfo)
@@ -104,14 +100,14 @@ namespace StateMachine
             return new CancelledState( _logger);
         }
 
-        public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, ExpenseFilter expenseFilter, ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions)
+        public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, FinanceFilter financeFilter, ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions)
         {
-            return new CollectExpensesByCategoryState<T>(previousState, expenseFilter, expensesAggregator, firstColumnName, tableOptions, _expenseRepository, _logger);
+            return new CollectExpensesByCategoryState<T>(previousState, financeFilter, expensesAggregator, firstColumnName, tableOptions, _finanseRepository, _logger);
         }
 
         public IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses)
         {
-            return new SaveAllExpensesState(expenses, _expenseRepository, _logger);
+            return new SaveAllExpensesState(expenses, _finanseRepository, _logger);
         }
 
         public IExpenseInfoState CreateCollectMonthStatisticState()
@@ -142,6 +138,26 @@ namespace StateMachine
         public IExpenseInfoState CreateCheckInfoState()
         {
             return new CheckInfoState();
+        }
+
+        public IExpenseInfoState CreateCheckByRequisitesState()
+        {
+            return new EnterCheckRequisitesState(_dateTimeService.Now(), _logger);
+        }
+
+        public IExpenseInfoState CreateRequestFnsDataState(string messageText)
+        {
+            return new RequestFnsDataState(_fnsService, messageText, _logger);
+        }
+
+        public IExpenseInfoState CreateEnterIncomeState()
+        {
+            return new EnterIncomeState(_dateTimeService.Today(), _incomeCategories, _logger);
+        }
+
+        public IExpenseInfoState CreateEnterOutcomeManuallyState()
+        {
+            return new EnterOutcomeManuallyState(_dateTimeService.Today(), _categories, _logger);
         }
     }
 }

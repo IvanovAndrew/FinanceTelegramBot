@@ -42,7 +42,7 @@ class EnterTheWayState : IExpenseInfoState
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
         CancellationToken cancellationToken)
     {
-        if (message.Text == "user") return stateFactory.CreateEnterTheDateState(this, false);
+        if (message.Text == "user") return stateFactory.CreateEnterOutcomeManuallyState();
         if (message.Text == "check") return stateFactory.CreateCheckInfoState();
 
         throw new BotStateException(new []{"user", "check"}, message.Text);

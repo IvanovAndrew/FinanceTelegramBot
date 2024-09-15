@@ -16,6 +16,14 @@ namespace Domain
 
             return new Money { Currency = one.Currency, Amount = one.Amount + two.Amount };
         }
+        
+        public static Money operator -(Money one, Money two)
+        {
+            if (one.Currency != two.Currency)
+                throw new InvalidOperationException("Money should have the same currency!");
+
+            return new Money { Currency = one.Currency, Amount = one.Amount - two.Amount };
+        }
 
         public static bool TryParse(string s, Currency currency, IFormatProvider formatProvider, [NotNullWhen(true)] out Money? money)
         {

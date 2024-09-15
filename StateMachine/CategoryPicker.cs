@@ -8,10 +8,10 @@ namespace StateMachine
     internal class CategoryPicker : IChainState
     {
         private readonly IEnumerable<Category> _categories;
-        private readonly FilterUpdateStrategy<string> _fillCategory;
+        private readonly Action<Category> _fillCategory;
         private ILogger _logger;
 
-        public CategoryPicker(FilterUpdateStrategy<string> fillCategory, IEnumerable<Category> categories, ILogger logger)
+        public CategoryPicker(Action<Category> fillCategory, IEnumerable<Category> categories, ILogger logger)
         {
             _fillCategory = fillCategory;
             _categories = categories;
@@ -38,11 +38,12 @@ namespace StateMachine
             var categoryDomain = _categories.FirstOrDefault(c => c.Name == message.Text);
             if (categoryDomain != null)
             {
-                _fillCategory.Update(categoryDomain.Name);
+                _fillCategory(categoryDomain);
                 
                 return ChainStatus.Success();
             }
 
+            _logger.LogWarning($"The category with name {message.Text} has not been found");
             return ChainStatus.Retry(this);
         }
     }
@@ -50,16 +51,16 @@ namespace StateMachine
     internal class CategorySubcategoryPicker : IChainState
     {
         private readonly List<Category> _categories;
-        private readonly FilterUpdateStrategy<string> _fillCategory;
-        private readonly FilterUpdateStrategy<string> _fillSubcategory;
+        private readonly Action<Category> _fillCategory;
+        private readonly Action<SubCategory> _fillSubcategory;
         private Category? _chosenCategory;
         private readonly ILogger _logger;
 
-        public CategorySubcategoryPicker(FilterUpdateStrategy<string> fillCategory, FilterUpdateStrategy<string> fillSubcategory, IEnumerable<Category> categories, ILogger logger)
+        public CategorySubcategoryPicker(Action<Category> fillCategory, Action<SubCategory> fillSubcategory, IEnumerable<Category> categories, ILogger logger)
         {
             _fillCategory = fillCategory;
             _fillSubcategory = fillSubcategory;
-            _categories = categories.Where(c => c.Subcategories.Length > 0).ToList();
+            _categories = categories.ToList();
             _logger = logger;
         }
         
@@ -90,7 +91,6 @@ namespace StateMachine
                 text: infoMessage,
                 keyboard: keyboard,
                 cancellationToken: cancellationToken);
-
         }
 
         public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)
@@ -101,7 +101,12 @@ namespace StateMachine
                 if (categoryDomain != null)
                 {
                     _chosenCategory = categoryDomain;
-                    _fillCategory.Update(categoryDomain.Name);
+                    _fillCategory(categoryDomain);
+
+                    if (!categoryDomain.Subcategories.Any())
+                    {
+                        return ChainStatus.Success();
+                    }
                 }
             }
             else
@@ -109,7 +114,7 @@ namespace StateMachine
                 var subcategory = _chosenCategory.Subcategories.FirstOrDefault(c => c.Name == message.Text);
                 if (subcategory != null)
                 {
-                    _fillSubcategory.Update(subcategory.Name);
+                    _fillSubcategory(subcategory);
                     return ChainStatus.Success();
                 }
             }

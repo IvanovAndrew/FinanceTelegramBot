@@ -21,6 +21,7 @@ namespace StateMachine
                 TelegramKeyboard.FromButtons(new[]
                 {
                     new TelegramButton() { Text = "Outcome", CallbackData = "startExpense" },
+                    new TelegramButton() { Text = "Income", CallbackData = "startIncome" },
                     new TelegramButton() { Text = "Statistics", CallbackData = "showExpenses" },
                 });
 
@@ -46,12 +47,10 @@ namespace StateMachine
         {
             if (message.Text == "showExpenses") return stateFactory.CreateChooseStatisticState(); 
             if (message.Text == "startExpense") return stateFactory.WayOfEnteringExpenseState();
+            if (message.Text == "startIncome") return stateFactory.CreateEnterIncomeState();
             
-            else
-            {
-                var start = stateFactory.WayOfEnteringExpenseState();
-                return start.MoveToNextState(message, stateFactory, cancellationToken);
-            }
+            var start = stateFactory.WayOfEnteringExpenseState();
+            return start.MoveToNextState(message, stateFactory, cancellationToken);
         }
     }
 }

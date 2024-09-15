@@ -1,4 +1,4 @@
-﻿using Domain;
+using Domain;
 using Infrastructure;
 using Infrastructure.Fns;
 using Infrastructure.Telegram;

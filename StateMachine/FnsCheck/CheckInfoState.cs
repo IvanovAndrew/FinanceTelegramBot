@@ -12,6 +12,7 @@ public class CheckInfoState : IExpenseInfoState
         {
             new TelegramButton{Text = "json", CallbackData = "json"},
             new TelegramButton{Text = "QR", CallbackData = "rawqr"},
+            new TelegramButton{Text = "By requisites", CallbackData = "requisites"},
         });
         
         return await botClient.SendTextMessageAsync(
@@ -35,6 +36,7 @@ public class CheckInfoState : IExpenseInfoState
     {
         if (message.Text == "json") return stateFactory.CreateRequestPasteJsonState();
         if (message.Text == "rawqr") return stateFactory.CreateEnterRawQrState();
+        if (message.Text == "requisites") return stateFactory.CreateCheckByRequisitesState();
 
         throw new BotStateException(new []{"json", "rawqr"}, message.Text);
     }
