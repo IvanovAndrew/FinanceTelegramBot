@@ -48,7 +48,7 @@ public class EnterRawQrState : IExpenseInfoState
                 Amount = i.Sum / 100m,
                 Currency = Currency.Rur
             },
-            Date = DateOnly.FromDateTime(_check.Data.Json.DateTime),
+            Date = GetDate(_check.Data.Json.DateTime),
             Description = i.Name,
             Category = "Еда"
         })?.ToList()?? new List<IExpense>();
@@ -59,5 +59,10 @@ public class EnterRawQrState : IExpenseInfoState
         }
 
         return stateFactory.CreateSaveExpensesFromJsonState(expenses);
+    }
+
+    private DateOnly GetDate(DateTime date)
+    {
+        return DateOnly.FromDateTime(date.Hour < 4? date.AddDays(-1) : date);
     }
 }
