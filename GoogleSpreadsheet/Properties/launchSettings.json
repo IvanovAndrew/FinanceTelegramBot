@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "GoogleSpreadsheet": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7227",
+      "launchBrowser": false
+    },
+    "ApplicationName": "Warrior's finance bot",
+  }
+}
