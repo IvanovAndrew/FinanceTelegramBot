@@ -4,7 +4,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SearchOption = GoogleSheetWriter.SearchOption;
 
 namespace GoogleSpreadsheet;
 
@@ -34,15 +33,15 @@ public class GoogleSheetAzureFunction
         
         try
         {
-            SearchOption options;
+            MoneyTransferSearchOption options;
 
             if (!string.IsNullOrEmpty(request))
             {
-                options = JsonConvert.DeserializeObject<SearchOption>(request) ?? new SearchOption();
+                options = JsonConvert.DeserializeObject<MoneyTransferSearchOption>(request) ?? new MoneyTransferSearchOption();
             }
             else
             {
-                options = new SearchOption();
+                options = new MoneyTransferSearchOption();
             }
             
             _logger.LogInformation($"Options are: " +
@@ -179,15 +178,15 @@ public class GoogleSheetAzureFunction
         
         try
         {
-            SearchOption options;
+            MoneyTransferSearchOption options;
 
             if (!string.IsNullOrEmpty(request))
             {
-                options = JsonConvert.DeserializeObject<SearchOption>(request) ?? new SearchOption();
+                options = JsonConvert.DeserializeObject<MoneyTransferSearchOption>(request) ?? new MoneyTransferSearchOption();
             }
             else
             {
-                options = new SearchOption();
+                options = new MoneyTransferSearchOption();
             }
             
             _logger.LogInformation($"Options are: " +

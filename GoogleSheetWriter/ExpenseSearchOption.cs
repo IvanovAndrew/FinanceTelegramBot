@@ -1,7 +1,7 @@
 ﻿namespace GoogleSheetWriter;
 
 [Serializable]
-public class ExpenseSearchOption
+public class MoneyTransferSearchOption
 {
     public DateTime? DateFrom { get; set; } = null;
     public DateTime? DateTo { get; set; } = null;

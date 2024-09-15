@@ -316,7 +316,7 @@ namespace GoogleSheetWriter
             return i;
         }
 
-        public async Task<List<Expense>> ReadExpenses(SearchOption searchOptions, CancellationToken cancellationToken)
+        public async Task<List<Expense>> ReadExpenses(MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
@@ -331,7 +331,7 @@ namespace GoogleSheetWriter
             return result;
         }
         
-        public async Task<List<Income>> ReadIncomes(SearchOption searchOptions, CancellationToken cancellationToken)
+        public async Task<List<Income>> ReadIncomes(MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
@@ -353,7 +353,7 @@ namespace GoogleSheetWriter
             return incomes;
         }
 
-        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, SearchOption searchOptions, CancellationToken cancellationToken)
+        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
         {
             List<Expense> expenses = new();
 
