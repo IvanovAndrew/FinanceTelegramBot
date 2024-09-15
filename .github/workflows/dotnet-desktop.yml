@@ -77,9 +77,13 @@ jobs:
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v1.0.2
 
-    # Run Build the project
-    - name: Build the project
-      run: dotnet build
+    # Run Build TelegramBot project
+    - name: Build TelegramBot project
+      run: dotnet build TelegramBot/TelegramBot.csproj
+
+    # Run Build GoogleSpreadsheet project
+    - name: Build GoogleSpreadsheet project
+      run: dotnet build GoogleSpreadsheet/GoogleSpreadsheet.csproj
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
