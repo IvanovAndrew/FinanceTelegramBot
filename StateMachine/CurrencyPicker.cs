@@ -1,5 +1,6 @@
 ﻿using Domain;
 using Infrastructure;
+using Infrastructure.Telegram;
 
 namespace StateMachine;
 

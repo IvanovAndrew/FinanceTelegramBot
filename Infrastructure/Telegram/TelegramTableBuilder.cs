@@ -1,6 +1,6 @@
 using Domain;
 
-namespace Infrastructure;
+namespace Infrastructure.Telegram;
 
 public class TelegramTableBuilder
 {

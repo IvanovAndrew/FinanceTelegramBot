@@ -1,6 +1,4 @@
-﻿using StateMachine;
-
-namespace Infrastructure;
+﻿namespace Infrastructure.Telegram;
 
 [Command(Text = "Cancel", Command = "/cancel", Order = 2)]
 public class CancelCommand : TelegramCommand

@@ -1,6 +1,4 @@
-﻿using StateMachine;
-
-namespace Infrastructure;
+﻿namespace Infrastructure.Telegram;
 
 [Command(Text = "Back", Command = "/back", Order = 1)]
 public class BackCommand : TelegramCommand

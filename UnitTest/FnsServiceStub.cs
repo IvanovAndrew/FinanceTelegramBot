@@ -1,4 +1,5 @@
-﻿using Infrastructure;
+﻿using Infrastructure.Fns;
+using Infrastructure.Fns.DataContract;
 
 namespace UnitTest;
 

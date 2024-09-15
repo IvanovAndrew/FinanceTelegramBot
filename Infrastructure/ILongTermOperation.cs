@@ -1,4 +1,6 @@
-﻿namespace Infrastructure;
+﻿using Infrastructure.Telegram;
+
+namespace Infrastructure;
 
 public interface ILongTermOperation
 {

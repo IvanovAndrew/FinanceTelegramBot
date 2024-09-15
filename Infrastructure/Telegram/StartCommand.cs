@@ -1,6 +1,4 @@
-﻿using StateMachine;
-
-namespace Infrastructure;
+﻿namespace Infrastructure.Telegram;
 
 [Command(Text = "Start", Command = "/start", Order = 0)]
 public class StartCommand : TelegramCommand

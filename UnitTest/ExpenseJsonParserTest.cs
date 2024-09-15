@@ -1,5 +1,5 @@
 ﻿using Domain;
-using Infrastructure;
+using Infrastructure.Fns;
 using NUnit.Framework;
 
 namespace UnitTest;

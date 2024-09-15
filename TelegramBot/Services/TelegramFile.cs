@@ -1,4 +1,4 @@
-﻿using Infrastructure;
+﻿using Infrastructure.Telegram;
 
 namespace TelegramBot.Services;
 

@@ -1,6 +1,7 @@
 using System.Net.Mime;
 using Domain;
 using Infrastructure;
+using Infrastructure.Fns;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using StateMachine;

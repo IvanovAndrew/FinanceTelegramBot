@@ -1,4 +1,4 @@
-﻿namespace StateMachine;
+﻿namespace Infrastructure.Telegram;
 
 public class CommandAttribute : Attribute
 {

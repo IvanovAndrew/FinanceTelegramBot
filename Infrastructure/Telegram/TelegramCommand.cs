@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using StateMachine;
 
-namespace Infrastructure;
+namespace Infrastructure.Telegram;
 
 public abstract class TelegramCommand
 {

@@ -1,6 +1,6 @@
 ﻿using System.Net.Mime;
-using Domain;
 using Infrastructure;
+using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
 
 namespace StateMachine;
