@@ -1,5 +1,8 @@
 ﻿using Domain;
 using Infrastructure;
+using Infrastructure.Fns;
+using Infrastructure.Fns.DataContract;
+using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
 
 namespace StateMachine;

@@ -1,5 +1,6 @@
 ﻿using Infrastructure;
 using Microsoft.Extensions.Logging;
+using StateMachine.FnsCheck;
 
 namespace StateMachine;
 

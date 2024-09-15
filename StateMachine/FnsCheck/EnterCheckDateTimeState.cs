@@ -1,8 +1,9 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using Infrastructure;
+using Infrastructure.Telegram;
 
-namespace StateMachine;
+namespace StateMachine.FnsCheck;
 
 internal class EnterCheckDateTimeState : IChainState
 {
