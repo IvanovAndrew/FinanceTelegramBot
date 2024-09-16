@@ -5,36 +5,36 @@ namespace GoogleSheetWriter
 {
     internal class GoogleDataWrapper
     {
-        private readonly string[] _cellData;
-        private readonly IndicesMapping _indices;
+        private readonly IReadOnlyDictionary<string, ICellData> _cellData;
+        private readonly ListInfo _columnNames;
         private readonly CultureInfo _culture;
 
-        internal GoogleDataWrapper(IList<CellData> cellData, IndicesMapping indices, CultureInfo culture)
+        internal GoogleDataWrapper(IReadOnlyDictionary<string, ICellData> cellData, ListInfo columnNames, CultureInfo culture)
         {
-            _cellData = cellData.Select(c => c.FormattedValue).ToArray();
-            _indices = indices;
+            _cellData = cellData;
             _culture = culture;
+            _columnNames = columnNames;
         }
 
-        public DateOnly Date => DateOnly.Parse(_cellData[_indices.DateIndex], _culture);
+        public DateOnly Date => DateOnly.TryParse(GetByColumnName(_columnNames.DateColumn), _culture, DateTimeStyles.None, out var date)? date : DateOnly.MinValue;
 
         public string Category =>
-            _indices.DefaultCategory != null ? _indices.DefaultCategory! :
-            _indices.CategoryIndex != null ? _cellData[_indices.CategoryIndex.Value] : "UNKNOWN";
+            _columnNames.Category != null ? _columnNames.Category! :
+             GetByColumnName(_columnNames.CategoryColumn)?? "UNKNOWN";
 
-        public string? SubCategory => GetByIndex(_indices.SubcategoryIndex);
-        public string? Description => GetByIndex(_indices.DescriptionIndex);
+        public string? SubCategory => GetByColumnName(_columnNames.SubCategoryColumn);
+        public string? Description => GetByColumnName(_columnNames.DescriptionColumn);
 
-        public decimal Amount => ParseAmount(GetByIndex(_indices.RurAmountIndex), GetByIndex(_indices.AmdAmountIndex), GetByIndex(_indices.GelAmountIndex));
+        public decimal Amount => ParseAmount(GetByColumnName(_columnNames.AmountRurColumn), GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn));
 
-        public Currency Currency => ParseCurrency(GetByIndex(_indices.RurAmountIndex),
-            GetByIndex(_indices.AmdAmountIndex), GetByIndex(_indices.GelAmountIndex)); 
+        public Currency Currency => ParseCurrency(GetByColumnName(_columnNames.AmountRurColumn),
+            GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn)); 
 
-        private string? GetByIndex(int? index)
+        private string? GetByColumnName(string columnName)
         {
-            if (index == null || _cellData.Length <= index.Value) return null;
+            if (string.IsNullOrEmpty(columnName) || !_cellData.TryGetValue(columnName, out var value) || !value.Filled) return null;
 
-            return _cellData[index.Value];
+            return value.Value;
         }
 
         private decimal ParseAmount(params string[] values)

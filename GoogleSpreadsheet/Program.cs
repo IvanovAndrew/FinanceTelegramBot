@@ -13,6 +13,9 @@ var host = new HostBuilder()
         string spreadsheetId = Environment.GetEnvironmentVariable("SpreadsheetID")?? string.Empty;
         string applicationName = Environment.GetEnvironmentVariable("ApplicationName")?? string.Empty;
 
+        services.AddSingleton<IGoogleService, GoogleService>(s =>
+            ActivatorUtilities.CreateInstance<GoogleService>(s, applicationName, spreadsheetId,
+                s.GetRequiredService<ILogger<GoogleService>>()));
 
         services.AddSingleton<SheetOptions>(s =>
         {
@@ -100,7 +103,6 @@ var host = new HostBuilder()
             return instance;
         });
 
-
         services.AddSingleton<CategoryToListMappingOptions>(s =>
             {
                 var instance = ActivatorUtilities.CreateInstance<CategoryToListMappingOptions>(s);
@@ -122,7 +124,7 @@ var host = new HostBuilder()
         );
 
         services.AddSingleton<GoogleSheetWrapper>(s =>
-            ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), applicationName, spreadsheetId, s.GetRequiredService<ILogger<GoogleSheetWrapper>>()));
+            ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<IGoogleService>(), s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), s.GetRequiredService<ILogger<GoogleSheetWrapper>>()));
         services.AddScoped<GoogleSheetAzureFunction>();
         services.AddScoped<AzureQueueTrigger>();
     })

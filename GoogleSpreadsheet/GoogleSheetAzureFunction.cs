@@ -204,7 +204,7 @@ public class GoogleSheetAzureFunction
         }
         catch (Exception e)
         {
-            _logger.LogError("Couldn't read an income: {e}", e);
+            _logger.LogError("Couldn't get an income: {e}", e);
             response.StatusCode = HttpStatusCode.InternalServerError;
             await response.WriteStringAsync(e.ToString(), cancellationToken);
         }

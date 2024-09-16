@@ -10,11 +10,11 @@ namespace Infrastructure;
 
 public interface IGoogleSpreadsheetService
 {
-    public Task<bool> SaveIncome(IIncome income, CancellationToken cancellationToken);
-    public Task<List<IIncome>> GetIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
-    public Task<List<IExpense>> GetExpenses(FinanceFilter financeFilter, CancellationToken cancellationToken);
-    public Task<bool> SaveExpense(IExpense expense, CancellationToken cancellationToken);
-    public Task<bool> SaveAllExpenses(List<IExpense> expenses, CancellationToken cancellationToken);
+    public Task<bool> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken);
+    public Task<List<IMoneyTransfer>> GetIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
+    public Task<List<IMoneyTransfer>> GetExpenses(FinanceFilter financeFilter, CancellationToken cancellationToken);
+    public Task<bool> SaveExpense(IMoneyTransfer expense, CancellationToken cancellationToken);
+    public Task<bool> SaveAllExpenses(List<IMoneyTransfer> expenses, CancellationToken cancellationToken);
 }
 
 public class GoogleSpreadsheetService : IGoogleSpreadsheetService
@@ -32,7 +32,7 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         _logger = logger;
     }
 
-    public async Task<bool> SaveIncome(IIncome income, CancellationToken cancellationToken)
+    public async Task<bool> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
     {
         using HttpClient httpClient = new HttpClient();
         using var jsonContent = JsonContent.Create(GoogleSpreadsheetIncomeDto.FromIncome(income));
@@ -44,7 +44,7 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         return response.StatusCode == HttpStatusCode.OK;
     }
 
-    public async Task<List<IIncome>> GetIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public async Task<List<IMoneyTransfer>> GetIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         using HttpClient httpClient = new HttpClient();
 
@@ -56,10 +56,10 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
                 financeFilter.Category,
                 Currency = financeFilter.Currency?.Name,
             });
-        var content = new StringContent(jsonContent, Encoding.UTF8,  MediaTypeNames.Application.Json);
+        using var content = new StringContent(jsonContent, Encoding.UTF8,  MediaTypeNames.Application.Json);
         
-        _logger.LogInformation($"Getting expenses. Json is {await content.ReadAsStringAsync(cancellationToken)}");
-        var response = await httpClient.PostAsJsonAsync(GetIncomesUrl, content, cancellationToken);
+        _logger.LogInformation($"Getting incomes. Json is {await content.ReadAsStringAsync(cancellationToken)}");
+        var response = await httpClient.PostAsync(GetIncomesUrl, content, cancellationToken);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
@@ -67,15 +67,15 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
             var dtos = JsonConvert.DeserializeObject<List<GoogleSpreadsheetIncomeDto>>(expensesString);
 
             if (dtos == null)
-                return new List<IIncome>();
+                return new List<IMoneyTransfer>();
                 
             return dtos.Select(c => GoogleSpreadsheetIncomeDto.ToIncome(c)).ToList();
         }
 
-        return new List<IIncome>();
+        return new List<IMoneyTransfer>();
     }
 
-    public async Task<List<IExpense>> GetExpenses(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public async Task<List<IMoneyTransfer>> GetExpenses(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         using HttpClient httpClient = new HttpClient();
 
@@ -99,15 +99,15 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
             var dtos = JsonConvert.DeserializeObject<List<GoogleSpreadsheetExpenseDto>>(expensesString);
 
             if (dtos == null)
-                return new List<IExpense>();
+                return new List<IMoneyTransfer>();
                 
             return dtos.Select(c => GoogleSpreadsheetExpenseDto.ToExpense(c)).ToList();
         }
 
-        return new List<IExpense>();
+        return new List<IMoneyTransfer>();
     }
 
-    public async Task<bool> SaveExpense(IExpense expense, CancellationToken cancellationToken)
+    public async Task<bool> SaveExpense(IMoneyTransfer expense, CancellationToken cancellationToken)
     {
         using HttpClient httpClient = new HttpClient();
         using var jsonContent = JsonContent.Create(GoogleSpreadsheetExpenseDto.FromExpense(expense));
@@ -122,14 +122,15 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         return false;
     }
 
-    public async Task<bool> SaveAllExpenses(List<IExpense> expenses, CancellationToken cancellationToken)
+    public async Task<bool> SaveAllExpenses(List<IMoneyTransfer> expenses, CancellationToken cancellationToken)
     {
         try
         {
             using HttpClient httpClient = new HttpClient();
             
             string jsonContent = JsonConvert.SerializeObject(expenses.Select(GoogleSpreadsheetExpenseDto.FromExpense).ToArray());
-            var content = new StringContent(jsonContent, Encoding.UTF8,  MediaTypeNames.Application.Json);
+            using var content = new StringContent(jsonContent, Encoding.UTF8,  MediaTypeNames.Application.Json);
+            _logger.LogInformation($"Sending json {await content.ReadAsStringAsync()}");
 
             var response = await httpClient.PostAsync(SaveAllExpensesUrl, content, cancellationToken);
 
@@ -139,6 +140,7 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         }
         catch (Exception e)
         {
+            _logger.LogError($"Couldn't sent a request. {e}");
             return false;
         }
     }
@@ -154,7 +156,7 @@ public class GoogleSpreadsheetExpenseDto
     public decimal Amount { get; set; }
     public string Currency { get; set; }
 
-    public static GoogleSpreadsheetExpenseDto FromExpense(IExpense expense)
+    public static GoogleSpreadsheetExpenseDto FromExpense(IMoneyTransfer expense)
     {
         return new GoogleSpreadsheetExpenseDto()
         {
@@ -167,7 +169,7 @@ public class GoogleSpreadsheetExpenseDto
         };
     }
 
-    public static IExpense ToExpense(GoogleSpreadsheetExpenseDto dto)
+    public static IMoneyTransfer ToExpense(GoogleSpreadsheetExpenseDto dto)
     {
         Domain.Currency currency;
         switch (int.Parse(dto.Currency))
@@ -185,7 +187,7 @@ public class GoogleSpreadsheetExpenseDto
                 throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}");
         }
 
-        return new Expense()
+        return new Outcome()
         {
             Date = DateOnly.FromDateTime(dto.Date),
             Category = dto.Category,
@@ -209,7 +211,7 @@ public class GoogleSpreadsheetIncomeDto
     public decimal Amount { get; set; }
     public string Currency { get; set; }
 
-    public static GoogleSpreadsheetIncomeDto FromIncome(IIncome income)
+    public static GoogleSpreadsheetIncomeDto FromIncome(IMoneyTransfer income)
     {
         return new GoogleSpreadsheetIncomeDto()
         {
@@ -221,7 +223,7 @@ public class GoogleSpreadsheetIncomeDto
         };
     }
 
-    public static IIncome ToIncome(GoogleSpreadsheetIncomeDto dto)
+    public static IMoneyTransfer ToIncome(GoogleSpreadsheetIncomeDto dto)
     {
         Domain.Currency currency;
         switch (int.Parse(dto.Currency))
