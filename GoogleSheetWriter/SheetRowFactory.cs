@@ -43,12 +43,13 @@ namespace GoogleSheetWriter
             return new SheetRowFactory(indices, culture);
         }
 
-        internal Expense CreateExpense(IList<CellData> cellData)
+        internal MoneyTransfer CreateMoneyTransfer(IList<CellData> cellData, bool isIncome)
         {
             var wrapper = new GoogleDataWrapper(cellData, _indices, _culture);
 
-            return new Expense()
+            return new MoneyTransfer()
             {
+                IsIncome = isIncome,
                 Date = wrapper.Date.ToDateTime(default),
                 Category = wrapper.Category,
                 Subcategory = wrapper.SubCategory,

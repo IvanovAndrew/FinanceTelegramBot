@@ -31,7 +31,7 @@ namespace GoogleSheetWriter
             _logger = logger;
         }
 
-        public async Task SaveAll(List<Expense> expenses, CancellationToken cancellationToken)
+        public async Task SaveAll(List<MoneyTransfer> expenses, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
@@ -85,7 +85,7 @@ namespace GoogleSheetWriter
             }
         }
 
-        public async Task SaveIncome(Income income, CancellationToken cancellationToken)
+        public async Task SaveIncome(MoneyTransfer income, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
             
@@ -122,7 +122,7 @@ namespace GoogleSheetWriter
             }
         }
 
-        private List<IList<object>> FillExcelRows(Income income, ListInfo listInfo, int firstRow)
+        private List<IList<object>> FillExcelRows(MoneyTransfer income, ListInfo listInfo, int firstRow)
         {
             var excelRowValues = new List<object>();
             var row = firstRow;
@@ -186,7 +186,7 @@ namespace GoogleSheetWriter
             return result;
         }
         
-        private List<IList<object>> FillExcelRows(List<Expense> expenses, ListInfo listInfo, int firstRow)
+        private List<IList<object>> FillExcelRows(List<MoneyTransfer> expenses, ListInfo listInfo, int firstRow)
         {
             var result = new List<IList<object>>(expenses.Count);
 
@@ -316,46 +316,36 @@ namespace GoogleSheetWriter
             return i;
         }
 
-        public async Task<List<Expense>> ReadExpenses(MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
+        public async Task<List<MoneyTransfer>> ReadExpenses(MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
-            var result = new List<Expense>();
+            var result = new List<MoneyTransfer>();
             foreach (var list in new []{_options.EveryDayExpenses, _options.FlatInfo, _options.BigDealInfo, _options.CurrencyConversion})
             {
                 result.AddRange(
-                    await GetRows(service, list, searchOptions, cancellationToken)
+                    await GetRows(service, list, searchOptions, false, cancellationToken)
                     );
             }
 
             return result;
         }
         
-        public async Task<List<Income>> ReadIncomes(MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
+        public async Task<List<MoneyTransfer>> ReadIncomes(MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
         {
             var service = await InitializeService(cancellationToken);
 
-            var rows = await GetRows(service, _options.Incomes, searchOptions, cancellationToken);
-
-            var incomes = new List<Income>(rows.Count);
-            foreach (var expense in rows)
-            {
-                incomes.Add(new Income()
-                {
-                    Date = expense.Date,
-                    Category = expense.Category,
-                    Description = expense.Description,
-                    Amount = expense.Amount,
-                    Currency = expense.Currency
-                });
-            }
-
-            return incomes;
+            var result = await Task.WhenAll(
+                GetRows(service, _options.Incomes, searchOptions, true, cancellationToken), 
+                GetRows(service, _options.CurrencyConversionIncome, searchOptions, true, cancellationToken)
+                );
+            
+            return result.SelectMany(c => c).ToList();
         }
 
-        private async Task<List<Expense>> GetRows(SheetsService service, ListInfo info, MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
+        private async Task<List<MoneyTransfer>> GetRows(SheetsService service, ListInfo info, MoneyTransferSearchOption searchOptions, bool isIncome, CancellationToken cancellationToken)
         {
-            List<Expense> expenses = new();
+            List<MoneyTransfer> expenses = new();
 
             var factory = SheetRowFactory.FromListInfo(info, _cultureInfo);
 
@@ -390,7 +380,7 @@ namespace GoogleSheetWriter
                         if (cellData.Values == null) continue;
                         if (new[] {"Дата", "Год", "", null}.Contains(cellData.Values[0].FormattedValue)) continue;
 
-                        var expense = factory.CreateExpense(cellData.Values);
+                        var expense = factory.CreateMoneyTransfer(cellData.Values, isIncome);
 
                         if (searchOptions.IsSatisfied(expense))
                         {

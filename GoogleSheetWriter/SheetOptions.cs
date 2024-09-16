@@ -7,5 +7,6 @@
         public ListInfo BigDealInfo;
         public ListInfo CurrencyConversion;
         public ListInfo Incomes;
+        public ListInfo CurrencyConversionIncome;
     }
 }
