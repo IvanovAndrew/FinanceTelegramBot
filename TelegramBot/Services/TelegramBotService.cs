@@ -1,5 +1,6 @@
 using Infrastructure;
 using Infrastructure.Telegram;
+using StateMachine;
 using Telegram.Bot;
 
 namespace TelegramBot.Services
@@ -16,8 +17,8 @@ namespace TelegramBot.Services
 
         public TelegramBotService(string token, long supportChatId, IDateTimeService dateTimeService)
         {
-            _token = token;
-            _supportChatId = supportChatId;
+            _token = !string.IsNullOrEmpty(token)? token : throw new WrongConfigurationBotException(nameof(token));
+            _supportChatId = supportChatId > 0? supportChatId : throw new WrongConfigurationBotException(nameof(supportChatId));
             _dateTimeService = dateTimeService;
         }
 
@@ -25,7 +26,7 @@ namespace TelegramBot.Services
         {
             if (_botClient != null) return _wrappedBot!;
 
-            _botClient = new TelegramBotClient(_token) {Timeout = TimeSpan.FromSeconds(15)};
+            _botClient = new TelegramBotClient(_token) {Timeout = TimeSpan.FromSeconds(30)};
 
             _wrappedBot = new TelegramBotClientImpl(_botClient, _dateTimeService); 
             return _wrappedBot;

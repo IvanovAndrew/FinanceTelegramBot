@@ -21,16 +21,24 @@ namespace TelegramBot
 
             services.AddLogging();
             services.AddSingleton<IDateTimeService, DateTimeService>();
+
+            var telegramToken = Environment.GetEnvironmentVariable("TELEGRAM_TOKEN");
+
+            if (!long.TryParse(Environment.GetEnvironmentVariable("TELEGRAM_SUPPORT_CHAT"), out var supportChatId))
+            {
+                supportChatId = 0;
+            }
+            
             services.AddSingleton<TelegramBotService>(s => ActivatorUtilities.CreateInstance<TelegramBotService>(s, 
-                _configuration.GetSection("Telegram")["Token"], 
-                long.Parse(_configuration.GetSection("Telegram")["SupportChatId"])));
+                telegramToken, 
+                supportChatId));
             services.AddSingleton<IFnsService, FnsService>(s =>
-                ActivatorUtilities.CreateInstance<FnsService>(s, _configuration.GetSection("Fns")["Token"]));
+                ActivatorUtilities.CreateInstance<FnsService>(s, Environment.GetEnvironmentVariable("FNS_TOKEN")));
             services.AddSingleton<CategoryOptions>();
         
             
             services.AddSingleton<IGoogleSpreadsheetService, GoogleSpreadsheetService>(s =>
-                ActivatorUtilities.CreateInstance<GoogleSpreadsheetService>(s, _configuration.GetSection("GoogleSpreadsheet")["Url"]));
+                ActivatorUtilities.CreateInstance<GoogleSpreadsheetService>(s, Environment.GetEnvironmentVariable("GOOGLESPREADSHEET_URL")));
 
             // Register the core service
             services.AddScoped<FinanceRepository>();

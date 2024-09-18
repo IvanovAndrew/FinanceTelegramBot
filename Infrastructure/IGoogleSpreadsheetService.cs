@@ -28,7 +28,7 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
     private string SaveIncomeUrl => $"{_baseUrl}/SaveIncome";
     public GoogleSpreadsheetService(string url, ILogger<IGoogleSpreadsheetService> logger)
     {
-        _baseUrl = url;
+        _baseUrl = !string.IsNullOrEmpty(url)? url : throw new GoogleSpreadsheetServiceMissingParameterException(nameof(url));
         _logger = logger;
     }
 
@@ -252,5 +252,21 @@ public class GoogleSpreadsheetIncomeDto
                 Currency = currency
             }
         };
+    }
+}
+
+public class GoogleSpreadsheetServiceException : Exception
+{
+    public GoogleSpreadsheetServiceException(string message) : base(message)
+    {
+        
+    }
+}
+
+public class GoogleSpreadsheetServiceMissingParameterException : GoogleSpreadsheetServiceException
+{
+    public GoogleSpreadsheetServiceMissingParameterException(string parameter) : base($"Parameter {parameter} is missing")
+    {
+        
     }
 }
