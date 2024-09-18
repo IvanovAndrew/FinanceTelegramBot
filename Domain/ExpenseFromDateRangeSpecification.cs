@@ -1,6 +1,6 @@
 ﻿namespace Domain;
 
-public class ExpenseFromDateRangeSpecification : ISpecification<IExpense>
+public class ExpenseFromDateRangeSpecification : ISpecification<IMoneyTransfer>
 {
     private readonly DateOnly _from;
     private readonly DateOnly _to;
@@ -10,7 +10,7 @@ public class ExpenseFromDateRangeSpecification : ISpecification<IExpense>
         _to = to;
     }
     
-    public bool IsSatisfied(IExpense item)
+    public bool IsSatisfied(IMoneyTransfer item)
     {
         return _from <= item.Date && item.Date <= _to;
     }

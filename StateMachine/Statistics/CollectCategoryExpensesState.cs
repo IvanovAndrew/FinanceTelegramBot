@@ -3,7 +3,7 @@ using Infrastructure;
 using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
 
-namespace StateMachine;
+namespace StateMachine.Statistics;
 
 internal class CollectCategoryExpensesState : StateWithChainsBase
 {
@@ -14,7 +14,7 @@ internal class CollectCategoryExpensesState : StateWithChainsBase
     public CollectCategoryExpensesState(IEnumerable<Category> categories, DateOnly today, ILogger logger)
     {
         _logger = logger;
-        _financeFilter = new FinanceFilter();
+        _financeFilter = new FinanceFilter(){Income = false};
 
         StateChain = new StateChain(
             new CategoryPicker(c => _financeFilter.Category = c.Name, categories, _logger), 

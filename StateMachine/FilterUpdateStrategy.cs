@@ -25,16 +25,16 @@ internal class UpdateIncomeDateStrategy : UpdateStrategy<DateOnly>
 
 internal class UpdateOutcomeDateStrategy : UpdateStrategy<DateOnly>
 {
-    private readonly ExpenseBuilder _expense;
+    private readonly MoneyTransferBuilder _moneyTransfer;
 
-    internal UpdateOutcomeDateStrategy(ExpenseBuilder expense)
+    internal UpdateOutcomeDateStrategy(MoneyTransferBuilder moneyTransfer)
     {
-        _expense = expense;
+        _moneyTransfer = moneyTransfer;
     }
     
     internal override void Update(DateOnly day)
     {
-        _expense.Date = day;
+        _moneyTransfer.Date = day;
     }
 }
 
@@ -110,9 +110,9 @@ internal class ExpensesByCurrencyStrategy : FilterUpdateStrategy<Currency>
     {
     }
 
-    internal override void Update(Currency day)
+    internal override void Update(Currency currency)
     {
-        FinanceFilter.Currency = day;
+        FinanceFilter.Currency = currency;
     }
 }
 

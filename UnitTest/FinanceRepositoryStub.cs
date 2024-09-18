@@ -3,19 +3,19 @@ using Infrastructure;
 
 namespace UnitTest;
 
-public class FinanseRepositoryStub : IFinanseRepository
+public class FinanceRepositoryStub : IFinanceRepository
 {
-    private readonly List<IExpense> _savedExpenses = new();
-    private readonly List<IIncome> _savedIncomes = new();
+    private readonly List<IMoneyTransfer> _savedExpenses = new();
+    private readonly List<IMoneyTransfer> _savedIncomes = new();
     public TimeSpan DelayTime { get; set; } = TimeSpan.Zero;
 
-    public Task<bool> SaveIncome(IIncome income, CancellationToken cancellationToken)
+    public Task<bool> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
     {
         _savedIncomes.Add(income);
         return Task.FromResult(true);
     }
 
-    public async Task<bool> SaveAllOutcomes(List<IExpense> expenses, CancellationToken cancellationToken)
+    public async Task<bool> SaveAllOutcomes(List<IMoneyTransfer> expenses, CancellationToken cancellationToken)
     {
         await Task.Delay(DelayTime, cancellationToken);
         _savedExpenses.AddRange(expenses);
@@ -23,7 +23,7 @@ public class FinanseRepositoryStub : IFinanseRepository
         return true;
     }
 
-    public Task<List<IExpense>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public Task<List<IMoneyTransfer>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         var result = 
             _savedExpenses.Where(expense =>
@@ -39,7 +39,7 @@ public class FinanseRepositoryStub : IFinanseRepository
         return Task.FromResult(result);
     }
 
-    public Task<List<IIncome>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public Task<List<IMoneyTransfer>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         var result = 
             _savedIncomes.Where(expense =>

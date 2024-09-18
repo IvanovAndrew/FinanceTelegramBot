@@ -3,6 +3,8 @@ using Infrastructure;
 using Infrastructure.Fns;
 using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
+using StateMachine.FnsCheck;
+using StateMachine.Statistics;
 
 namespace StateMachine
 {
@@ -22,16 +24,16 @@ namespace StateMachine
         };
         
         private readonly IFnsService _fnsService;
-        private readonly IFinanseRepository _finanseRepository;
+        private readonly IFinanceRepository _financeRepository;
         private readonly ILogger<StateFactory> _logger;
     
         public StateFactory(IDateTimeService dateTimeService, IEnumerable<Category> categories, IFnsService fnsService, 
-            IFinanseRepository finanseRepository, ILogger<StateFactory> logger)
+            IFinanceRepository financeRepository, ILogger<StateFactory> logger)
         {
             _dateTimeService = dateTimeService;
             _categories = categories;
             _fnsService = fnsService;
-            _finanseRepository = finanseRepository;
+            _financeRepository = financeRepository;
             _logger = logger;
         }
 
@@ -60,29 +62,19 @@ namespace StateMachine
             return new CollectDayExpenseState(_dateTimeService.Today(), _logger);
         }
 
-        public IExpenseInfoState CreateConfirmState(IExpense expense)
+        public IExpenseInfoState CreateConfirmState(IMoneyTransfer expense)
         {
-            return new ConfirmExpenseState(expense, _categories, _logger);
+            return new ConfirmState(expense, _logger);
         }
 
-        public IExpenseInfoState CreateConfirmState(IIncome income)
+        public IExpenseInfoState CreateSaveState(IMoneyTransfer expense)
         {
-            return new ConfirmIncomeState(income, _logger);
-        }
-
-        public IExpenseInfoState CreateSaveState(IExpense expense)
-        {
-            return new SaveExpenseState(expense, _finanseRepository, _logger);
+            return new SaveExpenseState(expense, _financeRepository, _logger);
         }
         
-        public IExpenseInfoState CreateSaveState(IIncome expense)
+        public IExpenseInfoState CreateSaveExpensesFromJsonState(List<IMoneyTransfer> expenses)
         {
-            return new SaveIncomeState(expense, _finanseRepository, _logger);
-        }
-
-        public IExpenseInfoState CreateSaveExpensesFromJsonState(List<IExpense> expenses)
-        {
-            return new SaveExpensesFromJsonState(expenses, _finanseRepository, _logger);
+            return new SaveExpensesFromJsonState(expenses, _financeRepository, _logger);
         }
         
         public IExpenseInfoState CreateHandleJsonFileState(ITelegramFileInfo fileInfo)
@@ -102,12 +94,12 @@ namespace StateMachine
 
         public IExpenseInfoState GetExpensesState<T>(IExpenseInfoState previousState, FinanceFilter financeFilter, ExpensesAggregator<T> expensesAggregator, Func<T, string> firstColumnName, TableOptions tableOptions)
         {
-            return new CollectExpensesByCategoryState<T>(previousState, financeFilter, expensesAggregator, firstColumnName, tableOptions, _finanseRepository, _logger);
+            return new CollectExpensesByCategoryState<T>(previousState, financeFilter, expensesAggregator, firstColumnName, tableOptions, _financeRepository, _logger);
         }
 
-        public IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IExpense> expenses)
+        public IExpenseInfoState CreateEnterTheCategoryForManyExpenses(List<IMoneyTransfer> expenses)
         {
-            return new SaveAllExpensesState(expenses, _finanseRepository, _logger);
+            return new SaveAllExpensesState(expenses, _financeRepository, _logger);
         }
 
         public IExpenseInfoState CreateCollectMonthStatisticState()
@@ -158,6 +150,16 @@ namespace StateMachine
         public IExpenseInfoState CreateEnterOutcomeManuallyState()
         {
             return new EnterOutcomeManuallyState(_dateTimeService.Today(), _categories, _logger);
+        }
+
+        public IExpenseInfoState CreateBalanceState()
+        {
+            return new BalanceState(_dateTimeService.Today(), _logger);
+        }
+
+        public IExpenseInfoState CreateBalanceStatisticState(FinanceFilter filter)
+        {
+            return new BalanceStatisticState(filter, _financeRepository, _logger);
         }
     }
 }

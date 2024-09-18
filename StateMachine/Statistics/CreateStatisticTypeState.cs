@@ -2,7 +2,7 @@ using Infrastructure;
 using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
 
-namespace StateMachine
+namespace StateMachine.Statistics
 {
     internal class CreateStatisticTypeState : IExpenseInfoState
     {
@@ -22,6 +22,7 @@ namespace StateMachine
             var keyboard = 
                 TelegramKeyboard.FromButtons(new []
                 {
+                    new TelegramButton { Text = "Balance", CallbackData = "balance"},
                     new TelegramButton { Text = "Day expenses (by categories)", CallbackData = "statisticByDay"},
                     new TelegramButton { Text = "Month expenses (by categories)", CallbackData = "statisticByMonth"}, 
                     new TelegramButton { Text = "Category expenses (by months)", CallbackData = "statisticByCategory"}, 
@@ -49,6 +50,7 @@ namespace StateMachine
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,
             CancellationToken cancellationToken)
         {
+            if (message.Text == "balance") return stateFactory.CreateBalanceState();
             if (message.Text == "statisticByDay") return stateFactory.CreateCollectDayExpenseState();
             if (message.Text == "statisticByMonth") return stateFactory.CreateCollectMonthStatisticState();
             if (message.Text == "statisticByCategory") return stateFactory.CreateCollectCategoryExpensesByMonthsState();

@@ -11,7 +11,7 @@ public class AggregatorTest
         var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, false);
 
         var currencies = new[] { Currency.Amd, Currency.Rur };
-        var expenses = new List<Expense>()
+        var expenses = new List<Outcome>()
         {
             new()
             {
@@ -50,7 +50,7 @@ public class AggregatorTest
         var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, false);
 
         var currencies = new[] { Currency.Amd, Currency.Rur };
-        var expenses = new List<Expense>()
+        var expenses = new List<Outcome>()
         {
             new()
             {
@@ -85,7 +85,7 @@ public class AggregatorTest
         var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, false);
 
         var currencies = new[] { Currency.Amd};
-        var expenses = new List<Expense>()
+        var expenses = new List<Outcome>()
         {
             new()
             {
@@ -123,7 +123,7 @@ public class AggregatorTest
         var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, false);
 
         var currencies = new[] { Currency.Amd, Currency.Rur, };
-        var expenses = new List<Expense>()
+        var expenses = new List<Outcome>()
         {
             new()
             {
@@ -163,7 +163,7 @@ public class AggregatorTest
         var expenseAggregator = new ExpensesAggregator<DateOnly>(e => e.Date, false, true);
 
         var currencies = new[] { Currency.Amd, Currency.Rur };
-        var expenses = new List<Expense>()
+        var expenses = new List<Outcome>()
         {
             new()
             {

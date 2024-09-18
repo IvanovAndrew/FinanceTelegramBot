@@ -9,20 +9,19 @@ class BalanceStatisticState : IExpenseInfoState, ILongTermOperation
 {
     private readonly FinanceFilter _financeFilter;
     private readonly TableOptions _tableOptions;
-    private readonly IFinanseRepository _finanseRepository;
+    private readonly IFinanceRepository _financeRepository;
     private readonly ILogger _logger;
     private CancellationTokenSource? _cancellationTokenSource;
     
-    private readonly DateOnly _today;
-
-    public BalanceStatisticState(DateOnly today, IFinanseRepository finanseRepository, ILogger<StateFactory> logger)
+    public BalanceStatisticState(FinanceFilter financeFilter, IFinanceRepository financeRepository, ILogger<StateFactory> logger)
     {
-        _today = today;
-        _logger = logger;
-        _finanseRepository = finanseRepository;
-        _financeFilter = new FinanceFilter() { Currency = Currency.Amd, DateFrom = today.FirstDayOfMonth()};
+        _financeFilter = financeFilter;
+        _financeRepository = financeRepository;
+        
         _tableOptions = new TableOptions()
-            { Title = "Balance", FirstColumnName = "Month", OtherColumns = new[] { "Income", "Outcome", "Saldo" } };
+            { Title = $"Balance from {_financeFilter.DateFrom.Value.ToString("Y")}", FirstColumnName = "Income", OtherColumns = new[] { "Outcome", "Saldo" } };
+        
+        _logger = logger;
     }
 
     public bool UserAnswerIsRequired => false;
@@ -62,12 +61,21 @@ class BalanceStatisticState : IExpenseInfoState, ILongTermOperation
         
             try
             {
-                List<IExpense> expenses;
-                List<IIncome> incomes;
+                List<IMoneyTransfer> expenses;
+                List<IMoneyTransfer> incomes;
+
+                Task<List<IMoneyTransfer>>[] tasks; 
                 using (_cancellationTokenSource = new CancellationTokenSource())
                 {
-                    expenses = await _finanseRepository.ReadOutcomes(_financeFilter, _cancellationTokenSource.Token);
-                    incomes = await _finanseRepository.ReadIncomes(_financeFilter, _cancellationTokenSource.Token);
+                    tasks = new[]
+                    {
+                        _financeRepository.ReadOutcomes(_financeFilter, _cancellationTokenSource.Token),
+                        _financeRepository.ReadIncomes(_financeFilter, _cancellationTokenSource.Token)
+                    };
+
+                    var results = await Task.WhenAll(tasks);
+                    expenses = results[0];
+                    incomes = results[1];
                 }
                 
                 _logger.LogInformation($"{expenses.Count} expenses satisfy the requirements");
@@ -75,37 +83,26 @@ class BalanceStatisticState : IExpenseInfoState, ILongTermOperation
                 
                 if (expenses.Any())
                 {
-                    
-                    Money monthExpenses = new Money() { Amount = 0, Currency = Currency.Amd }; 
+                    Money monthExpenses = new Money() { Amount = 0, Currency = _financeFilter.Currency?? Currency.Rur }; 
                     
                     foreach (var expense in expenses)
                     {
-                        if (expense.Amount.Currency != Currency.Amd)
-                            continue;
-                        
-                        if (expense.Date.LastDayOfMonth() != _today.LastDayOfMonth())
-                            continue;
-
                         monthExpenses += expense.Amount;
                     }
                     
-                    Money monthIncomes = new Money() { Amount = 0, Currency = Currency.Amd }; 
-                    foreach (var expense in incomes)
+                    Money monthIncomes = new Money() { Amount = 0, Currency = _financeFilter.Currency?? Currency.Rur }; 
+                    foreach (var income in incomes)
                     {
-                        if (expense.Amount.Currency != Currency.Amd)
+                        if (income.Amount.Currency != _financeFilter.Currency || income.Date < _financeFilter.DateFrom)
                             continue;
                         
-                        if (expense.Date.LastDayOfMonth() != _today.LastDayOfMonth())
-                            continue;
-
-                        monthIncomes += expense.Amount;
+                        monthIncomes += income.Amount;
                     }
 
-                    var telegramTable = new string[1, 4];
-                    telegramTable[0, 0] = _today.ToString("Y");
-                    telegramTable[0, 1] = monthIncomes.ToString();
-                    telegramTable[0, 2] = monthExpenses.ToString();
-                    telegramTable[0, 3] = (monthIncomes - monthExpenses).ToString();
+                    var telegramTable = new string[1, 3];
+                    telegramTable[0, 0] = $" {monthIncomes.ToString()} ";
+                    telegramTable[0, 1] = $" {monthExpenses.ToString()} ";
+                    telegramTable[0, 2] = $" {(monthIncomes - monthExpenses).ToString()} ";
 
                     text = MarkdownFormatter.FormatTable(_tableOptions, telegramTable);
                     tableFilled = true;
@@ -118,6 +115,7 @@ class BalanceStatisticState : IExpenseInfoState, ILongTermOperation
             catch (OperationCanceledException)
             {
                 text = "Operation is canceled by user";
+                _logger.LogInformation(text);
             }
             finally
             {

@@ -37,7 +37,7 @@ public class TelegramTableBuilder
             }
             else
             {
-                _table[_currentRow, i] = expenseInfo[currencies[i - 1]].ToString("N0");
+                _table[_currentRow, i] = expenseInfo[currencies[i - 1]].ToString();
             }
         }
         _currentRow++;

@@ -36,12 +36,7 @@ internal class StateChain
             _chain[Current] = _chainStatus.State!;
         }
         
-        if (Current < _chain.Length)
-        {
-            return MoveStatus.InsideChainStatus();
-        }
-
-        return MoveStatus.OutOfChainStatus();
+        return Current < _chain.Length ? MoveStatus.InsideChainStatus() : MoveStatus.OutOfChainStatus();
     }
 
     internal void Handle(IMessage message, CancellationToken cancellationToken)

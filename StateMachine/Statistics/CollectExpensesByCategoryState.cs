@@ -3,14 +3,14 @@ using Infrastructure;
 using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
 
-namespace StateMachine
+namespace StateMachine.Statistics
 {
     internal class CollectExpensesByCategoryState<T> : IExpenseInfoState, ILongTermOperation
     {
         private readonly FinanceFilter _financeFilter;
         private readonly ExpensesAggregator<T> _expensesAggregator;
         private readonly TableOptions _tableOptions;
-        private readonly IFinanseRepository _finanseRepository;
+        private readonly IFinanceRepository _financeRepository;
         private readonly Func<T, string> _firstColumnName;
         private readonly ILogger _logger;
         private CancellationTokenSource? _cancellationTokenSource;
@@ -19,14 +19,14 @@ namespace StateMachine
         public CollectExpensesByCategoryState(IExpenseInfoState previousState, FinanceFilter financeFilter, ExpensesAggregator<T> expensesAggregator,
             Func<T, string> firstColumnName,
             TableOptions tableOptions,
-            IFinanseRepository finanseRepository, ILogger logger)
+            IFinanceRepository financeRepository, ILogger logger)
         {
             _previousState = previousState;
             _financeFilter = financeFilter;
             _expensesAggregator = expensesAggregator;
             _firstColumnName = firstColumnName;
             _tableOptions = tableOptions;
-            _finanseRepository = finanseRepository;
+            _financeRepository = financeRepository;
             _logger = logger;
         }
 
@@ -84,10 +84,10 @@ namespace StateMachine
             
                 try
                 {
-                    List<IExpense> expenses;
+                    List<IMoneyTransfer> expenses;
                     using (_cancellationTokenSource = new CancellationTokenSource())
                     {
-                        expenses = await _finanseRepository.ReadOutcomes(_financeFilter, _cancellationTokenSource.Token);
+                        expenses = await _financeRepository.ReadOutcomes(_financeFilter, _cancellationTokenSource.Token);
                     }
                     
                     _logger.LogInformation($"{expenses.Count} expenses satisfy the requirements");

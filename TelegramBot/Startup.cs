@@ -33,20 +33,20 @@ namespace TelegramBot
                 ActivatorUtilities.CreateInstance<GoogleSpreadsheetService>(s, _configuration.GetSection("GoogleSpreadsheet")["Url"]));
 
             // Register the core service
-            services.AddScoped<FinanseRepository>();
+            services.AddScoped<FinanceRepository>();
 
             // Register the decorator by specifying it to use the core service as a dependency
-            services.AddScoped<IFinanseRepository>(provider =>
+            services.AddScoped<IFinanceRepository>(provider =>
             {
-                var coreService = provider.GetRequiredService<FinanseRepository>();
-                var logger = provider.GetRequiredService<ILogger<FinanseRepositoryDecorator>>();
-                return new FinanseRepositoryDecorator(coreService, logger);
+                var coreService = provider.GetRequiredService<FinanceRepository>();
+                var logger = provider.GetRequiredService<ILogger<FinanceRepositoryDecorator>>();
+                return new FinanceRepositoryDecorator(coreService, logger);
             });
             
             services.AddScoped<IStateFactory, StateFactory>(s => ActivatorUtilities.CreateInstance<StateFactory>(s,
                 s.GetRequiredService<IDateTimeService>(),
                 s.GetRequiredService<CategoryOptions>().Categories,
-                s.GetRequiredService<IFinanseRepository>()));
+                s.GetRequiredService<IFinanceRepository>()));
             
             services.AddSwaggerGen(c =>
                 c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Warrior's finance bot", Version = "v1" }));
