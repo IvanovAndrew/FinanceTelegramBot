@@ -9,3 +9,10 @@ public class FnsException : Exception
         _message = message;
     }
 }
+
+public class WrongConfigurationFnsException : FnsException
+{
+    public WrongConfigurationFnsException(string parameter) : base($"Parameter {parameter} isn't configured properly")
+    {
+    }
+}

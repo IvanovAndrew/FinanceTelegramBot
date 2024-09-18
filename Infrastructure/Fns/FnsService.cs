@@ -10,7 +10,7 @@ public class FnsService : IFnsService
 
     public FnsService(string token)
     {
-        _token = token;
+        _token = !string.IsNullOrEmpty(token)? token : throw new WrongConfigurationFnsException(nameof(token));
     }
 
     public async Task<FnsResponse?> GetCheck(string qrRaw)
