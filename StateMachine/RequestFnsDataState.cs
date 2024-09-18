@@ -44,7 +44,7 @@ public class RequestFnsDataState : IExpenseInfoState
             return stateFactory.CreateErrorWithRetryState("Couldn't download the receipt", this);
         }
 
-        var expenses = _check.Data?.Json?.Items?.Select(i => (IExpense) new Expense()
+        var expenses = _check.Data?.Json?.Items?.Select(i => (IMoneyTransfer) new Outcome()
         {
             Amount = new Money
             {
@@ -54,7 +54,7 @@ public class RequestFnsDataState : IExpenseInfoState
             Date = GetDate(_check.Data.Json.DateTime),
             Description = i.Name,
             Category = "Еда"
-        })?.ToList()?? new List<IExpense>();
+        })?.ToList()?? new List<IMoneyTransfer>();
         
         if (!expenses.Any())
         {

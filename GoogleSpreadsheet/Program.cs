@@ -13,12 +13,16 @@ var host = new HostBuilder()
         string spreadsheetId = Environment.GetEnvironmentVariable("SpreadsheetID")?? string.Empty;
         string applicationName = Environment.GetEnvironmentVariable("ApplicationName")?? string.Empty;
 
+        services.AddSingleton<IGoogleService, GoogleService>(s =>
+            ActivatorUtilities.CreateInstance<GoogleService>(s, applicationName, spreadsheetId,
+                s.GetRequiredService<ILogger<GoogleService>>()));
 
         services.AddSingleton<SheetOptions>(s =>
         {
             var instance = ActivatorUtilities.CreateInstance<SheetOptions>(s) as SheetOptions;
             instance.EveryDayExpenses = new ListInfo()
             {
+                IsIncome = false,
                 ListName = "Повседневные",
                 
                 YearToFirstExcelRow = new Dictionary<int, int>()
@@ -40,6 +44,7 @@ var host = new HostBuilder()
             };
             instance.FlatInfo = new ListInfo()
             {
+                IsIncome = false,
                 ListName = "Квартира",
                 Category = "Квартира",
                 YearColumn = "A",
@@ -53,6 +58,7 @@ var host = new HostBuilder()
             };
             instance.BigDealInfo = new ListInfo()
             {
+                IsIncome = false,
                 ListName = "Крупные",
                 DateColumn = "C",
                 CategoryColumn = "D",
@@ -63,6 +69,7 @@ var host = new HostBuilder()
             };
             instance.CurrencyConversion = new ListInfo()
             {
+                IsIncome = false,
                 ListName = "Обмен валюты",
                 Category = "Обмен валюты",
                 DateColumn = "C",
@@ -70,8 +77,19 @@ var host = new HostBuilder()
                 AmountAmdColumn = "I",
                 AmountGelColumn = "J"
             };
+            instance.CurrencyConversionIncome = new ListInfo()
+            {
+                IsIncome = true,
+                ListName = "Обмен валюты",
+                Category = "Обмен валюты",
+                DateColumn = "C",
+                AmountRurColumn = "L",
+                AmountAmdColumn = "M",
+                AmountGelColumn = "P"
+            };
             instance.Incomes = new ListInfo()
             {
+                IsIncome = true,
                 ListName = "Доходы",
                 YearColumn = "A",
                 MonthColumn = "B",
@@ -84,7 +102,6 @@ var host = new HostBuilder()
             };
             return instance;
         });
-
 
         services.AddSingleton<CategoryToListMappingOptions>(s =>
             {
@@ -107,7 +124,7 @@ var host = new HostBuilder()
         );
 
         services.AddSingleton<GoogleSheetWrapper>(s =>
-            ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), applicationName, spreadsheetId, s.GetRequiredService<ILogger<GoogleSheetWrapper>>()));
+            ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<IGoogleService>(), s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), s.GetRequiredService<ILogger<GoogleSheetWrapper>>()));
         services.AddScoped<GoogleSheetAzureFunction>();
         services.AddScoped<AzureQueueTrigger>();
     })

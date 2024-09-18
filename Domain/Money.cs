@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Domain;
 
 namespace Domain
 {
@@ -12,7 +13,7 @@ namespace Domain
         public static Money operator +(Money one, Money two)
         {
             if (one.Currency != two.Currency)
-                throw new InvalidOperationException("Money should have the same currency!");
+                throw new MoneyAdditionException(one, two);
 
             return new Money { Currency = one.Currency, Amount = one.Amount + two.Amount };
         }
@@ -20,7 +21,7 @@ namespace Domain
         public static Money operator -(Money one, Money two)
         {
             if (one.Currency != two.Currency)
-                throw new InvalidOperationException("Money should have the same currency!");
+                throw new MoneyAdditionException(one, two);
 
             return new Money { Currency = one.Currency, Amount = one.Amount - two.Amount };
         }
@@ -65,8 +66,14 @@ namespace Domain
             return false;
         }
     
-        public override string ToString() => $"{Currency.Symbol}{Amount}";
-        public string ToString(string format) => $"{Currency.Symbol}{Amount.ToString(format)}";
+        public override string ToString()
+        {
+            var culture = CultureInfo.GetCultureInfo("ru-RU");
+            var numberFormat = (NumberFormatInfo)culture.NumberFormat.Clone();
+            numberFormat.CurrencySymbol = Currency.Symbol;
+            
+            return Amount.ToString("C0", numberFormat);
+        }
 
         public int CompareTo(Money? other)
         {
@@ -94,5 +101,15 @@ namespace Domain
         {
             return HashCode.Combine(Currency, Amount);
         }
+    }
+}
+
+public class MoneyAdditionException : Exception
+{
+    public override string Message { get; }
+
+    public MoneyAdditionException(Money one, Money two) : base()
+    {
+        Message = $"Money should have the same currency! We have {one} and {two}";
     }
 }

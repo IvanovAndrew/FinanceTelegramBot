@@ -3,7 +3,7 @@ using Infrastructure;
 using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
 
-namespace StateMachine;
+namespace StateMachine.Statistics;
 
 internal class CollectCategoryExpensesBySubcategoriesForAPeriodState : StateWithChainsBase
 {

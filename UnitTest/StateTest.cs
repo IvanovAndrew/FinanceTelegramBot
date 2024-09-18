@@ -28,7 +28,7 @@ public class StateTest
                 Name = "Cats",
             }
         };
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -58,7 +58,7 @@ public class StateTest
                 Name = "Cats",
             }
         };
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -87,7 +87,7 @@ public class StateTest
                 Name = "Cats",
             }
         };
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
 
         
@@ -120,7 +120,7 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
 
         // Act
@@ -153,7 +153,7 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -186,7 +186,7 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -225,7 +225,7 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -262,7 +262,7 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -305,7 +305,7 @@ public class StateTest
             }
         };
         
-        var finanseRepository = new FinanseRepositoryStub();
+        var finanseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, finanseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -348,7 +348,7 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -381,7 +381,7 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -426,7 +426,7 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub() {DelayTime = TimeSpan.FromMinutes(1)};
+        var expenseRepository = new FinanceRepositoryStub() {DelayTime = TimeSpan.FromMinutes(1)};
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -470,7 +470,7 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
         // Act
@@ -478,7 +478,7 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("statistics");
 
         // Assert
-        CollectionAssert.AreEquivalent(new []{"Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
+        CollectionAssert.AreEquivalent(new []{"Balance", "Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
     }
     
     [Test]
@@ -499,7 +499,7 @@ public class StateTest
                 Name = "Cats",
             }
         };
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
 
         
@@ -533,7 +533,7 @@ public class StateTest
                 Name = "Cats",
             }
         };
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
 
         var telegramFile = new FileInfoStub() { FileId = "1", FileName = "test.json", MimeType = mimeType };
@@ -569,7 +569,7 @@ public class StateTest
                 Name = "Cats",
             }
         };
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
 
         var telegramFile = new FileInfoStub() { FileId = "1", FileName = "test.json", MimeType = MediaTypeNames.Application.Json };
@@ -605,14 +605,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -650,14 +650,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -693,14 +693,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -716,7 +716,7 @@ public class StateTest
         StringAssert.Contains("22 July 2023", lastMessage.Text);
         StringAssert.Contains("Category", lastMessage.Text);
         StringAssert.Contains("Cats", lastMessage.Text);
-        StringAssert.Contains("֏10,000", lastMessage.Text);
+        StringAssert.Contains($"10{TestConstants.NBSP}000 ֏", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
     
@@ -739,14 +739,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -782,14 +782,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -806,7 +806,7 @@ public class StateTest
         StringAssert.Contains("May 2023", lastMessage.Text);
         StringAssert.Contains("Category", lastMessage.Text);
         StringAssert.Contains("Cats", lastMessage.Text);
-        StringAssert.Contains("֏10,000", lastMessage.Text);
+        StringAssert.Contains($"10{TestConstants.NBSP}000 ֏", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
     
@@ -829,14 +829,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -853,7 +853,7 @@ public class StateTest
         StringAssert.Contains("July 2023", lastMessage.Text);
         StringAssert.Contains("Category", lastMessage.Text);
         StringAssert.Contains("Food", lastMessage.Text);
-        StringAssert.Contains("֏6,000", lastMessage.Text);
+        StringAssert.Contains($"6{TestConstants.NBSP}000 ֏", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
     
@@ -876,14 +876,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -901,7 +901,7 @@ public class StateTest
         StringAssert.Contains("July 2023", lastMessage.Text);
         StringAssert.Contains("Category", lastMessage.Text);
         StringAssert.Contains("Food", lastMessage.Text);
-        StringAssert.Contains("֏6,000", lastMessage.Text);
+        StringAssert.Contains($"6{TestConstants.NBSP}000 ֏", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
     
@@ -924,14 +924,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -951,7 +951,7 @@ public class StateTest
         StringAssert.Contains("Food", lastMessage.Text);
         StringAssert.Contains("Snacks", lastMessage.Text);
         StringAssert.Contains("Products", lastMessage.Text);
-        StringAssert.Contains("֏1,000", lastMessage.Text);
+        StringAssert.Contains($"1{TestConstants.NBSP}000 ֏", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
     
@@ -974,14 +974,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -1001,7 +1001,7 @@ public class StateTest
         StringAssert.Contains("Food", lastMessage.Text);
         StringAssert.Contains("Snacks", lastMessage.Text);
         StringAssert.Contains("Products", lastMessage.Text);
-        StringAssert.Contains("֏1,000", lastMessage.Text);
+        StringAssert.Contains($"1{TestConstants.NBSP}000 ֏", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
     
@@ -1024,14 +1024,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -1050,7 +1050,7 @@ public class StateTest
         StringAssert.Contains("July 2023", lastMessage.Text);
         StringAssert.Contains("Category", lastMessage.Text);
         StringAssert.Contains("Food", lastMessage.Text);
-        StringAssert.Contains("֏1,000", lastMessage.Text);
+        StringAssert.Contains($"1{TestConstants.NBSP}000 ֏", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
     
@@ -1073,14 +1073,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -1099,7 +1099,7 @@ public class StateTest
         StringAssert.Contains("July 2023", lastMessage.Text);
         StringAssert.Contains("Category", lastMessage.Text);
         StringAssert.Contains("Food", lastMessage.Text);
-        StringAssert.Contains("֏1,000", lastMessage.Text);
+        StringAssert.Contains($"1{TestConstants.NBSP}000 ֏", lastMessage.Text);
         StringAssert.Contains("Total", lastMessage.Text);
     }
     
@@ -1122,14 +1122,14 @@ public class StateTest
             }
         };
         
-        var expenseRepository = new FinanseRepositoryStub();
+        var expenseRepository = new FinanceRepositoryStub();
         await expenseRepository.SaveAllOutcomes(
-            new List<IExpense>()
+            new List<IMoneyTransfer>()
             {
-                new Expense(){Date = new DateOnly(2023, 5, 22), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 6, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Expense(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         var botEngine = CreateBotEngineWrapper(categories, expenseRepository, dateTimeService, telegramBot);
         
@@ -1146,22 +1146,22 @@ public class StateTest
         StringAssertExtension.AssertOrder(lastMessage.Text, "May 2023", "June 2023", "July 2023");
     }
 
-    private StateFactory CreateStateFactory(Category[] categories, IFnsService fnsService, IFinanseRepository finanseRepository, IDateTimeService dateTimeService, ILogger<StateFactory> logger)
+    private StateFactory CreateStateFactory(Category[] categories, IFnsService fnsService, IFinanceRepository financeRepository, IDateTimeService dateTimeService, ILogger<StateFactory> logger)
     {
-        return new StateFactory(dateTimeService, categories, fnsService, finanseRepository, logger);
+        return new StateFactory(dateTimeService, categories, fnsService, financeRepository, logger);
     }
 
-    private BotEngine CreateBotEngine(Category[] categories, IFnsService fnsService, IFinanseRepository finanseRepository, IDateTimeService dateTimeService)
+    private BotEngine CreateBotEngine(Category[] categories, IFnsService fnsService, IFinanceRepository financeRepository, IDateTimeService dateTimeService)
     {
         var logger = new LoggerStub<StateFactory>();
-        var stateFactory = CreateStateFactory(categories, fnsService, finanseRepository, dateTimeService, logger);
+        var stateFactory = CreateStateFactory(categories, fnsService, financeRepository, dateTimeService, logger);
 
         return new BotEngine(stateFactory, logger);
     }
     
-    private BotEngineWrapper CreateBotEngineWrapper(Category[] categories, IFinanseRepository finanseRepository, IDateTimeService dateTimeService, TelegramBotMock telegramBot)
+    private BotEngineWrapper CreateBotEngineWrapper(Category[] categories, IFinanceRepository financeRepository, IDateTimeService dateTimeService, TelegramBotMock telegramBot)
     {
-        var botEngine = CreateBotEngine(categories, new FnsServiceStub(), finanseRepository, dateTimeService);
+        var botEngine = CreateBotEngine(categories, new FnsServiceStub(), financeRepository, dateTimeService);
         return new BotEngineWrapper(botEngine, telegramBot);
     }
 }

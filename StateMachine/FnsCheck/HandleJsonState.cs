@@ -4,13 +4,13 @@ using Infrastructure.Fns;
 using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
 
-namespace StateMachine;
+namespace StateMachine.FnsCheck;
 
 class HandleJsonState : IExpenseInfoState
 {
     public bool UserAnswerIsRequired => false;
     private ITelegramFileInfo FileInfo { get; }
-    private List<IExpense> _expenses = new();
+    private List<IMoneyTransfer> _expenses = new();
     private readonly ILogger _logger;
         
     internal HandleJsonState(ITelegramFileInfo fileInfo, ILogger logger)

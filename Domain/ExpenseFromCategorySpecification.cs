@@ -1,6 +1,6 @@
 ﻿namespace Domain;
 
-public class ExpenseFromCategorySpecification : ISpecification<IExpense>
+public class ExpenseFromCategorySpecification : ISpecification<IMoneyTransfer>
 {
     private readonly string _category;
     public ExpenseFromCategorySpecification(Category category) : this(category.Name)
@@ -12,7 +12,7 @@ public class ExpenseFromCategorySpecification : ISpecification<IExpense>
         _category = category;
     }
     
-    public virtual bool IsSatisfied(IExpense item)
+    public virtual bool IsSatisfied(IMoneyTransfer item)
     {
         return string.Equals(item.Category, _category, StringComparison.InvariantCultureIgnoreCase);
     }

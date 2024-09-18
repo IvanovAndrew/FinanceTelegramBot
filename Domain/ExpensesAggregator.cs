@@ -2,18 +2,18 @@
 {
     public class ExpensesAggregator<T>
     {
-        private readonly Func<IExpense, T> _sumBy;
+        private readonly Func<IMoneyTransfer, T> _sumBy;
         private readonly bool _sortByMoney;
         private readonly bool _sortAsc;
 
-        public ExpensesAggregator(Func<IExpense, T> sumBy, bool sortByMoney, bool sortAsc = false)
+        public ExpensesAggregator(Func<IMoneyTransfer, T> sumBy, bool sortByMoney, bool sortAsc = false)
         {
             _sumBy = sumBy;
             _sortByMoney = sortByMoney;
             _sortAsc = sortAsc;
         }
 
-        public Statistic<T> Aggregate(IEnumerable<IExpense> expenses, IEnumerable<Currency> currencies)
+        public Statistic<T> Aggregate(IEnumerable<IMoneyTransfer> expenses, IEnumerable<Currency> currencies)
         {
             var statistic = new Statistic<T>(currencies, _sumBy);
 
@@ -34,10 +34,10 @@
     {
         private readonly Dictionary<Currency, int> _currencyToIndex = new();
         private readonly Dictionary<T, ExpenseInfo<T>> _rowsDict = new();
-        private readonly Func<IExpense, T> _sumBy;
+        private readonly Func<IMoneyTransfer, T> _sumBy;
         private List<ExpenseInfo<T>> _rows = new();
 
-        public Statistic(IEnumerable<Currency> currencies, Func<IExpense, T> sumBy)
+        public Statistic(IEnumerable<Currency> currencies, Func<IMoneyTransfer, T> sumBy)
         {
             int i = 0;
             foreach (var currency in currencies)
@@ -66,7 +66,7 @@
         }
         
 
-        internal void ProcessExpense(IExpense expense)
+        internal void ProcessExpense(IMoneyTransfer expense)
         {
             if (!_currencyToIndex.TryGetValue(expense.Amount.Currency, out var index)) return;
 

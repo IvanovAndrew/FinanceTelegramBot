@@ -78,12 +78,12 @@ public class GoogleSheetAzureFunction
         var request = await req.ReadAsStringAsync();
         _logger.LogInformation($"Received a string: {request}");
         
-        Expense expense = JsonConvert.DeserializeObject<Expense>(request);
+        MoneyTransfer expense = JsonConvert.DeserializeObject<MoneyTransfer>(request);
 
         var response = HttpResponseData.CreateResponse(req);
         try
         {
-            await _googleSheetWrapper.SaveAll(new List<Expense>() { expense }, cancellationToken);
+            await _googleSheetWrapper.SaveAll(new List<MoneyTransfer>() { expense }, cancellationToken);
             response.StatusCode = HttpStatusCode.OK;
             _logger.LogInformation("All expenses are successfully saved");
         }
@@ -108,7 +108,7 @@ public class GoogleSheetAzureFunction
         var request = await req.ReadAsStringAsync();
         _logger.LogInformation($"Received a string: {request}");
         
-        List<Expense> expenses = JsonConvert.DeserializeObject<List<Expense>>(request);
+        List<MoneyTransfer> expenses = JsonConvert.DeserializeObject<List<MoneyTransfer>>(request);
         _logger.LogInformation($"Deserialized as {expenses} Count: {expenses.Count}");
 
         var response = HttpResponseData.CreateResponse(req);
@@ -139,7 +139,7 @@ public class GoogleSheetAzureFunction
         var request = await req.ReadAsStringAsync();
         _logger.LogInformation($"Received a string: {request}");
         
-        Income income = JsonConvert.DeserializeObject<Income>(request);
+        MoneyTransfer income = JsonConvert.DeserializeObject<MoneyTransfer>(request);
         if (income == null)
         {
             _logger.LogError("Income is missing");
@@ -196,7 +196,7 @@ public class GoogleSheetAzureFunction
                                    $"{(!string.IsNullOrEmpty(options.SubCategory)? "Subcategory is " + options.SubCategory : "")} " +
                                    $"{(options.Currency != null? "Currency is " + options.Currency : "")}");
             
-            _logger.LogInformation("Collecting expenses");
+            _logger.LogInformation("Collecting incomes");
             var expenses = await _googleSheetWrapper.ReadIncomes(options, cancellationToken);
             _logger.LogInformation($"All {expenses.Count} incomes are successfully read");
             
@@ -204,7 +204,7 @@ public class GoogleSheetAzureFunction
         }
         catch (Exception e)
         {
-            _logger.LogError("Couldn't read an income: {e}", e);
+            _logger.LogError("Couldn't get an income: {e}", e);
             response.StatusCode = HttpStatusCode.InternalServerError;
             await response.WriteStringAsync(e.ToString(), cancellationToken);
         }

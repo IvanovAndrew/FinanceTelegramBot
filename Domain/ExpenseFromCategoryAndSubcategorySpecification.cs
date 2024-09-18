@@ -8,7 +8,7 @@ public class ExpenseFromCategoryAndSubcategorySpecification : ExpenseFromCategor
         _subCategory = subCategory;
     }
     
-    public override bool IsSatisfied(IExpense item)
+    public override bool IsSatisfied(IMoneyTransfer item)
     {
         return base.IsSatisfied(item) && string.Equals(item.SubCategory, _subCategory.Name, StringComparison.InvariantCultureIgnoreCase);
     }

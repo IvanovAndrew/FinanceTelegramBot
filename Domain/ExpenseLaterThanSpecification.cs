@@ -1,6 +1,6 @@
 ﻿namespace Domain;
 
-public class ExpenseLaterThanSpecification : ISpecification<IExpense>
+public class ExpenseLaterThanSpecification : ISpecification<IMoneyTransfer>
 {
     private readonly DateOnly _startDate;
 
@@ -8,7 +8,7 @@ public class ExpenseLaterThanSpecification : ISpecification<IExpense>
     {
         _startDate = startDate;
     }
-    public bool IsSatisfied(IExpense item)
+    public bool IsSatisfied(IMoneyTransfer item)
     {
         return _startDate <= item.Date;
     }

@@ -6,17 +6,17 @@ namespace StateMachine;
 
 class EnterOutcomeManuallyState : StateWithChainsBase
 {
-    private readonly ExpenseBuilder _expenseBuilder;
+    private readonly MoneyTransferBuilder _moneyTransferBuilder;
     
     internal EnterOutcomeManuallyState(DateOnly today, IEnumerable<Category> categories, ILogger logger)
     {
-        _expenseBuilder = new ExpenseBuilder();
+        _moneyTransferBuilder = new MoneyTransferBuilder(false);
         StateChain = new StateChain
         (
-            new DatePickerState(new UpdateOutcomeDateStrategy(_expenseBuilder), "Enter the date", today, "dd.MM.yyyy", new Dictionary<DateOnly, string>(){[today] = "Today", [today.AddDays(-1)] = "Yesterday"}, "Another day", logger),
-            new CategorySubcategoryPicker(c => _expenseBuilder.Category = c, sc => _expenseBuilder.SubCategory = sc, categories, logger),
-            new DescriptionPicker(d => _expenseBuilder.Description = d),
-            new AmountPicker(m => _expenseBuilder.Sum = m, "price")
+            new DatePickerState(new UpdateOutcomeDateStrategy(_moneyTransferBuilder), "Enter the date", today, "dd.MM.yyyy", new Dictionary<DateOnly, string>(){[today] = "Today", [today.AddDays(-1)] = "Yesterday"}, "Another day", logger),
+            new CategorySubcategoryPicker(c => _moneyTransferBuilder.Category = c, sc => _moneyTransferBuilder.SubCategory = sc, categories, logger),
+            new DescriptionPicker(d => _moneyTransferBuilder.Description = d),
+            new AmountPicker(m => _moneyTransferBuilder.Sum = m, "price")
         );
     }
     
@@ -27,6 +27,6 @@ class EnterOutcomeManuallyState : StateWithChainsBase
 
     protected override IExpenseInfoState NextState(IStateFactory stateFactory)
     {
-        return stateFactory.CreateConfirmState(_expenseBuilder.Build());
+        return stateFactory.CreateConfirmState(_moneyTransferBuilder.Build());
     }
 }

@@ -3,7 +3,7 @@ using Infrastructure;
 using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
 
-namespace StateMachine
+namespace StateMachine.Statistics
 {
     internal class CollectDayExpenseState : StateWithChainsBase
     {
@@ -16,7 +16,7 @@ namespace StateMachine
         public CollectDayExpenseState(DateOnly today, ILogger logger)
         {
             _today = today;
-            _financeFilter = new FinanceFilter();
+            _financeFilter = new FinanceFilter() {Income = false};
 
             StateChain = new StateChain(
                 new DatePickerState(FilterUpdateStrategy<DateOnly>.FillDate(_financeFilter), "Enter the day", today, _dateFormat,

@@ -2,6 +2,8 @@
 {
     public class ListInfo
     {
+        public bool IsIncome;
+        
         public string ListName;
         public string? Category;
         

@@ -3,7 +3,7 @@ using Infrastructure;
 using Infrastructure.Telegram;
 using Microsoft.Extensions.Logging;
 
-namespace StateMachine;
+namespace StateMachine.Statistics;
 
 internal class CollectMonthStatisticState : StateWithChainsBase
 {
@@ -16,7 +16,7 @@ internal class CollectMonthStatisticState : StateWithChainsBase
     public CollectMonthStatisticState(DateOnly today, ILogger logger)
     {
         _today = today;
-        _financeFilter = new FinanceFilter();
+        _financeFilter = new FinanceFilter() {Income = false};
         
         StateChain = new StateChain( 
             new DatePickerState(FilterUpdateStrategy<DateOnly>.FillMonthRange(_financeFilter), "Enter the month", _today, DateFormat, 

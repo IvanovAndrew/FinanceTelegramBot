@@ -11,11 +11,9 @@ public interface IStateFactory
     IExpenseInfoState CreateRequestPasteJsonState();
     IExpenseInfoState CreateChooseStatisticState();
     IExpenseInfoState CreateCollectDayExpenseState();
-    IExpenseInfoState CreateConfirmState(IExpense expense);
-    IExpenseInfoState CreateConfirmState(IIncome income);
-    IExpenseInfoState CreateSaveState(IExpense expense);
-    IExpenseInfoState CreateSaveState(IIncome expense);
-    IExpenseInfoState CreateSaveExpensesFromJsonState(List<IExpense> expenses);
+    IExpenseInfoState CreateConfirmState(IMoneyTransfer expense);
+    IExpenseInfoState CreateSaveState(IMoneyTransfer expense);
+    IExpenseInfoState CreateSaveExpensesFromJsonState(List<IMoneyTransfer> expenses);
     IExpenseInfoState CreateHandleJsonFileState(ITelegramFileInfo fileInfo);
     IExpenseInfoState CreateErrorWithRetryState(string warning, IExpenseInfoState state);
     IExpenseInfoState CreateCancelState();
@@ -37,4 +35,6 @@ public interface IStateFactory
     IExpenseInfoState CreateRequestFnsDataState(string messageText);
     IExpenseInfoState CreateEnterIncomeState();
     IExpenseInfoState CreateEnterOutcomeManuallyState();
+    IExpenseInfoState CreateBalanceState();
+    IExpenseInfoState CreateBalanceStatisticState(FinanceFilter filter);
 }

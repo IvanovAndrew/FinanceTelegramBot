@@ -9,7 +9,7 @@ public class MoneyTransferSearchOption
     public string SubCategory { get; set; } = string.Empty;
     public Currency? Currency { get; set; } = null;
 
-    internal bool IsSatisfied(Expense expense)
+    internal bool IsSatisfied(MoneyTransfer expense)
     {
         return (DateFrom == null || DateFrom.Value <= expense.Date) &&
                (DateTo == null || expense.Date <= DateTo.Value) &&
