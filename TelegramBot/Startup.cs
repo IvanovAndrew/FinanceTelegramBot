@@ -18,6 +18,7 @@ namespace TelegramBot
         public void ConfigureServices(IServiceCollection services)
         {
             var builder = services.AddControllers().AddNewtonsoftJson();
+            services.ConfigureTelegramBotMvc();
 
             services.AddLogging();
             services.AddSingleton<IDateTimeService, DateTimeService>();

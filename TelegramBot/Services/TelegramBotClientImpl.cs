@@ -36,8 +36,8 @@ public class TelegramBotClientImpl : ITelegramBot
             textToSend = $"```{TelegramEscaper.EscapeString(textToSend)}```";
         }
 
-        var message = await _client.SendTextMessageAsync(messageToSend.ChatId, textToSend, replyMarkup:inlineKeyboard, 
-            parseMode: messageToSend.UseMarkdown? ParseMode.MarkdownV2 : null, 
+        var message = await _client.SendMessage(messageToSend.ChatId, textToSend, replyMarkup:inlineKeyboard, 
+            parseMode: messageToSend.UseMarkdown? ParseMode.MarkdownV2 : ParseMode.None,
             cancellationToken: cancellationToken);
         return new TelegramMessage(message);
     }
@@ -53,7 +53,7 @@ public class TelegramBotClientImpl : ITelegramBot
             );
         }
         
-        var message = await _client.EditMessageTextAsync(messageToSend.ChatId, messageToSend.MessageId, messageToSend.Text,
+        var message = await _client.EditMessageText(messageToSend.ChatId, messageToSend.MessageId, messageToSend.Text,
             replyMarkup:inlineKeyboard,
             cancellationToken: cancellationToken);
 
@@ -62,7 +62,7 @@ public class TelegramBotClientImpl : ITelegramBot
 
     public async Task SetMyCommandsAsync(TelegramButton[] buttons, CancellationToken cancellationToken = default)
     {
-        await _client.SetMyCommandsAsync(
+        await _client.SetMyCommands(
             buttons.Select(c => new BotCommand(){Description = c.Text, Command = c.CallbackData}),
             scope: BotCommandScope.Default(), 
             cancellationToken:cancellationToken);
@@ -78,7 +78,7 @@ public class TelegramBotClientImpl : ITelegramBot
 
         try
         {
-            await _client.DeleteMessageAsync(message.ChatId, message.Id, cancellationToken);
+            await _client.DeleteMessage(message.ChatId, message.Id, cancellationToken);
         }
         catch (Exception e)
         {
@@ -91,14 +91,14 @@ public class TelegramBotClientImpl : ITelegramBot
         if (mimeType != MediaTypeNames.Application.Json)
             return null;
         
-        var file = await _client.GetFileAsync(fileId, cancellationToken);
+        var file = await _client.GetFile(fileId, cancellationToken);
 
         if (file?.FilePath == null) return null;
         
         string text;
         using (var memoryStream = new MemoryStream())
         {
-            await _client.DownloadFileAsync(file.FilePath, memoryStream, cancellationToken);
+            await _client.DownloadFile(file.FilePath, memoryStream, cancellationToken);
             var bytes = memoryStream.ToArray();
             text = System.Text.Encoding.Default.GetString(bytes);
         }
@@ -108,12 +108,12 @@ public class TelegramBotClientImpl : ITelegramBot
 
     public async Task SetWebhookAsync(string url)
     {
-        await _client.SetWebhookAsync(url);
+        await _client.SetWebhook(url);
     }
     
     public async Task<TelegramWebHookInfo> GetWebhookInfoAsync()
     {
-        var webHookInfo = await _client.GetWebhookInfoAsync();
+        var webHookInfo = await _client.GetWebhookInfo();
 
         return new TelegramWebHookInfo()
         {
