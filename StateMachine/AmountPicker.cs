@@ -17,7 +17,7 @@ class AmountPicker : IChainState
 
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
-        return await botClient.SendTextMessageAsync(chatId, $"Enter the {_title}", cancellationToken: cancellationToken);
+        return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = chatId, Text = $"Enter the {_title}", IsRemovable = true}, cancellationToken: cancellationToken);
     }
 
     public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)

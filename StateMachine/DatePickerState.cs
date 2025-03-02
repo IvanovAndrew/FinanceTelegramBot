@@ -56,9 +56,7 @@ internal class DatePickerState : IChainState
         var keyboard = TelegramKeyboard.FromButtons(buttons, chunkSize: chunkSize);
         
         return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: Text,
-            keyboard: keyboard,
+            new EditableMessageToSend(){ChatId = chatId, Text = Text, Keyboard = keyboard},
             cancellationToken: cancellationToken);
     }
 
@@ -89,6 +87,6 @@ internal class CustomDatePickerState : DatePickerState
     public override async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await botClient.SendTextMessageAsync(
-            chatId: chatId, $"{Text}. Example: {Today.ToString(DateFormat)}", cancellationToken:cancellationToken);
+            new EditableMessageToSend(){ChatId = chatId, Text = $"{Text}. Example: {Today.ToString(DateFormat)}"}, cancellationToken: cancellationToken);
     }
 }

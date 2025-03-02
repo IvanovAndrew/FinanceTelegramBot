@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTest\UnitTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleSpreadsheet", "GoogleSpreadsheet\GoogleSpreadsheet.csproj", "{3A391108-A3F4-4742-9594-24C5BC9C15F8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{DDA3CB1D-973E-40DD-B641-CC01339099FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +50,9 @@ Global
 		{3A391108-A3F4-4742-9594-24C5BC9C15F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A391108-A3F4-4742-9594-24C5BC9C15F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A391108-A3F4-4742-9594-24C5BC9C15F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDA3CB1D-973E-40DD-B641-CC01339099FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDA3CB1D-973E-40DD-B641-CC01339099FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDA3CB1D-973E-40DD-B641-CC01339099FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDA3CB1D-973E-40DD-B641-CC01339099FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

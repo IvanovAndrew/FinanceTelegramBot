@@ -1,5 +1,4 @@
-﻿using Infrastructure;
-using Infrastructure.Telegram;
+﻿using Infrastructure.Telegram;
 
 namespace UnitTest;
 
@@ -30,6 +29,25 @@ public class TelegramBotMock : ITelegramBot
         };
         _messages.Add(message);
         return Task.FromResult<IMessage>(message);
+    }
+
+    public Task<IMessage> SendTextMessageAsync(IMessageToSend messageToSend, CancellationToken cancellationToken = default)
+    {
+        var message = new MessageStub()
+        {
+            Id = _messageId++,
+            ChatId = messageToSend.ChatId,
+            TelegramKeyboard = messageToSend.Keyboard,
+            Text = messageToSend.Text,
+            Date = DateTime.Now
+        };
+        _messages.Add(message);
+        return Task.FromResult<IMessage>(message);
+    }
+
+    public Task<IMessage> EditSentTextMessageAsync(IMessageToSend messageToSend, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task SetMyCommandsAsync(TelegramButton[] buttons, CancellationToken cancellationToken = default)

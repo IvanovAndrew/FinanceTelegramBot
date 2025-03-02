@@ -8,6 +8,7 @@ namespace Domain
         public static Currency Rur = new("RUR", "₽");
         public static Currency Amd = new("AMD", "֏");
         public static Currency Gel = new("GEL", "₾");
+        public static Currency USD = new("USD", "$", "C2");
         
         private static Dictionary<string, Currency> _mapping = new()
         {
@@ -18,17 +19,21 @@ namespace Domain
             ["gel"] = Gel, 
             ["lari"] = Gel, 
             ["лари"] = Gel, 
+            ["usd"] = USD,
+            ["доллар"] = USD,
         };
         
         public readonly string Name;
         public readonly string Symbol;
-    
-        private Currency(string s, string symbol)
+        public readonly string Format;
+
+        private Currency(string s, string symbol, string format = "C0")
         {
             Name = s;
             Symbol = symbol;
+            Format = format;
         }
-        
+
         public static bool TryParse(string text, [NotNullWhen(true)] out Currency? currency)
         {
             var stringToParse = text.Trim();

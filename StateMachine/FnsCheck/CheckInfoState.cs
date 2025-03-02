@@ -16,9 +16,7 @@ public class CheckInfoState : IExpenseInfoState
         });
         
         return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: "Enter the check",
-            keyboard: keyboard,
+            new EditableMessageToSend(){ChatId = chatId, Text = "Enter the check", Keyboard = keyboard},
             cancellationToken: cancellationToken);
     }
 

@@ -8,68 +8,6 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TelegramBot.Services;
 
-public class TelegramBotLogDecorator : ITelegramBot
-{
-    private readonly ITelegramBot _source;
-    private readonly ILogger _logger;
-
-    public TelegramBotLogDecorator(ITelegramBot source, ILogger logger)
-    {
-        _source = source;
-        _logger = logger;
-    }
-    
-    public Task<IMessage> SendTextMessageAsync(long chatId, string text)
-    {
-        _logger.LogInformation(text);
-        return _source.SendTextMessageAsync(chatId, text);
-    }
-
-    public Task<IMessage> SendTextMessageAsync(long chatId, string? text = null, TelegramKeyboard? keyboard = null, bool useMarkdown = false,
-        CancellationToken cancellationToken = default)
-    {
-        return _source.SendTextMessageAsync(chatId, text, keyboard, useMarkdown, cancellationToken);
-    }
-
-    public Task SetMyCommandsAsync(TelegramButton[] buttons, CancellationToken cancellationToken = default)
-    {
-        return _source.SetMyCommandsAsync(buttons, cancellationToken);
-    }
-
-    public async Task DeleteMessageAsync(IMessage message, CancellationToken cancellationToken)
-    {
-        try
-        {
-            _logger.LogInformation($"Removing message {message.Id} \"{message.Text}\"");
-            await _source.DeleteMessageAsync(message, cancellationToken);
-            _logger.LogInformation($"Message {message.Id} \"{message.Text}\" is removed");
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message, e);
-            throw;
-        }
-    }
-
-    public Task<IFile?> GetFileAsync(string fileId, string? mimeType, CancellationToken cancellationToken = default)
-    {
-        _logger.LogInformation($"Telegram: get file");
-        return _source.GetFileAsync(fileId, mimeType, cancellationToken);
-    }
-
-    public Task<TelegramWebHookInfo> GetWebhookInfoAsync()
-    {
-        _logger.LogInformation($"Telegram: get web hook info");
-        return _source.GetWebhookInfoAsync();
-    }
-
-    public Task SetWebhookAsync(string url)
-    {
-        _logger.LogInformation($"Telegram: set web hook to {url}");
-        return _source.SetWebhookAsync(url);
-    }
-}
-
 public class TelegramBotClientImpl : ITelegramBot
 {
     private readonly ITelegramBotClient _client;
@@ -81,33 +19,44 @@ public class TelegramBotClientImpl : ITelegramBot
         _dateTimeService = dateTimeService;
     }
     
-    public async Task<IMessage> SendTextMessageAsync(long chatId, string text)
-    {
-        var message = await _client.SendTextMessageAsync(chatId, text);
-        return new TelegramMessage(message);
-    }
-
-    public async Task<IMessage> SendTextMessageAsync(long chatId, string text, TelegramKeyboard? keyboard = null, bool useMarkdown = false,
-        CancellationToken cancellationToken = default)
+    public async Task<IMessage> SendTextMessageAsync(IMessageToSend messageToSend, CancellationToken cancellationToken = default)
     {
         InlineKeyboardMarkup? inlineKeyboard = null;
-        if (keyboard != null)
+        if (messageToSend.Keyboard != null)
         {
             inlineKeyboard = new InlineKeyboardMarkup(
-                keyboard.Buttons.Select(row => 
+                messageToSend.Keyboard.Buttons.Select(row => 
                     row.Select(button => InlineKeyboardButton.WithCallbackData(button.Text, button.CallbackData)))
             );
         }
 
-        var textToSend = text;
-        if (useMarkdown)
+        var textToSend = messageToSend.Text;
+        if (messageToSend.UseMarkdown)
         {
             textToSend = $"```{TelegramEscaper.EscapeString(textToSend)}```";
         }
 
-        var message = await _client.SendTextMessageAsync(chatId, textToSend, replyMarkup:inlineKeyboard, 
-            parseMode: useMarkdown? ParseMode.MarkdownV2 : null, 
+        var message = await _client.SendTextMessageAsync(messageToSend.ChatId, textToSend, replyMarkup:inlineKeyboard, 
+            parseMode: messageToSend.UseMarkdown? ParseMode.MarkdownV2 : null, 
             cancellationToken: cancellationToken);
+        return new TelegramMessage(message);
+    }
+
+    public async Task<IMessage> EditSentTextMessageAsync(IMessageToSend messageToSend, CancellationToken cancellationToken = default)
+    {
+        InlineKeyboardMarkup? inlineKeyboard = null;
+        if (messageToSend.Keyboard != null)
+        {
+            inlineKeyboard = new InlineKeyboardMarkup(
+                messageToSend.Keyboard.Buttons.Select(row => 
+                    row.Select(button => InlineKeyboardButton.WithCallbackData(button.Text, button.CallbackData)))
+            );
+        }
+        
+        var message = await _client.EditMessageTextAsync(messageToSend.ChatId, messageToSend.MessageId, messageToSend.Text,
+            replyMarkup:inlineKeyboard,
+            cancellationToken: cancellationToken);
+
         return new TelegramMessage(message);
     }
 

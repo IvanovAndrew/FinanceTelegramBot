@@ -20,17 +20,13 @@ namespace StateMachine
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            string infoMessage = "Enter the category";
-
-            var keyboard = TelegramKeyboard.FromButtons(
-                _categories.Select(c => new TelegramButton() { Text = c.Name, CallbackData = c.Name })
-            );
-
             return await botClient.SendTextMessageAsync(
-                chatId: chatId,
-                text: infoMessage,
-                keyboard: keyboard,
-                cancellationToken: cancellationToken);
+                new EditableMessageToSend()
+                {
+                    ChatId = chatId, 
+                    Text = "Enter the category", 
+                    Keyboard = TelegramKeyboard.FromButtons(_categories.Select(c => new TelegramButton() { Text = c.Name, CallbackData = c.Name })
+                    )}, cancellationToken: cancellationToken);
         }
 
         public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)
@@ -87,9 +83,7 @@ namespace StateMachine
             }
             
             return await botClient.SendTextMessageAsync(
-                chatId: chatId,
-                text: infoMessage,
-                keyboard: keyboard,
+                new EditableMessageToSend(){ChatId = chatId, Text = infoMessage, Keyboard = keyboard},
                 cancellationToken: cancellationToken);
         }
 

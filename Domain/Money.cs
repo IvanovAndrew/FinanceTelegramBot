@@ -72,7 +72,7 @@ namespace Domain
             var numberFormat = (NumberFormatInfo)culture.NumberFormat.Clone();
             numberFormat.CurrencySymbol = Currency.Symbol;
             
-            return Amount.ToString("C0", numberFormat);
+            return Amount.ToString(Currency.Format, numberFormat);
         }
 
         public int CompareTo(Money? other)

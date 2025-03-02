@@ -19,7 +19,7 @@ namespace StateMachine
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            await botClient.SendTextMessageAsync(chatId, _errorMessage, cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId =  chatId, Text = _errorMessage}, cancellationToken: cancellationToken);
 
             return await _state.Request(botClient, chatId, cancellationToken: cancellationToken);
         }

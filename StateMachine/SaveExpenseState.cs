@@ -44,7 +44,7 @@ namespace StateMachine
 
         public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
         {
-            var savingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
+            await botClient.SendTextMessageAsync(new EditableMessageToSend(){ChatId = message.ChatId, Text = "Saving... It can take some time."}, cancellationToken: cancellationToken);
 
             SaveResult result;
             try
@@ -72,8 +72,7 @@ namespace StateMachine
                 _cancellationTokenSource = null;
             }
 
-            await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
-            return await botClient.SendTextMessageAsync(message.ChatId, result.GetMessage());
+            return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ ChatId = message.ChatId, Text = result.GetMessage()}, cancellationToken: cancellationToken);
         }
 
         public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,

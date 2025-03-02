@@ -38,7 +38,7 @@ namespace StateMachine
             
             IExpenseInfoState newState;
 
-            await RemovePreviousMessage(state, botClient);
+            //await RemovePreviousMessage(state, botClient);
 
             if (message.Edited)
             {

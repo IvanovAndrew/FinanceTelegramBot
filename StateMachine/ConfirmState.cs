@@ -20,24 +20,21 @@ namespace StateMachine
 
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            string infoMessage = string.Join($"{Environment.NewLine}", 
-                _item.ToString(),
-                "",
-                "Would you like to save it?"
-            );
-
-            var keyboard = TelegramKeyboard.FromButtons(
-                new[]
-                {
-                    new TelegramButton() { Text = "Save", CallbackData = "Save" },
-                    new TelegramButton() { Text = "Cancel", CallbackData = "Cancel" },
-                });
-
-            return await botClient.SendTextMessageAsync(
-                chatId: chatId,
-                text: $"{infoMessage}",
-                keyboard: keyboard,
-                cancellationToken: cancellationToken);
+            return await botClient.SendTextMessageAsync(new EditableMessageToSend()
+            {
+                ChatId = chatId,
+                Text = string.Join($"{Environment.NewLine}", 
+                    _item.ToString(),
+                    "",
+                    "Would you like to save it?"
+                ),
+                Keyboard = TelegramKeyboard.FromButtons(
+                    new[]
+                    {
+                        new TelegramButton() { Text = "Save", CallbackData = "Save" },
+                        new TelegramButton() { Text = "Cancel", CallbackData = "Cancel" },
+                    })
+            }, cancellationToken: cancellationToken);
         }
 
         public Task HandleInternal(IMessage message, CancellationToken cancellationToken)

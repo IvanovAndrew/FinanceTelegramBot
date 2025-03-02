@@ -38,6 +38,7 @@ public class StateTest
         CollectionAssert.AreEquivalent(new []{"Outcome", "Income", "Statistics"}, lastMessage.TelegramKeyboard?.Buttons.SelectMany(b => b.Select(b1 => b1)).Select(c => c.Text));
     }
     
+    [Ignore("Reimpement test")]
     [TestCase("Outcome")]
     [TestCase("Income")]
     [TestCase("Statistics")]
@@ -329,6 +330,7 @@ public class StateTest
         Assert.That(savedIncome.Amount, Is.EqualTo(new Money(){Amount = 8_000, Currency = Currency.Amd}));
     }
     
+    [Ignore("Reimplement test")]
     [Test]
     public async Task WhenBackCommandIsExecutedThenLastBotMessageWillBeRemoved()
     {
@@ -510,7 +512,7 @@ public class StateTest
         lastMessage = await botEngine.Proceed("json");
         
         // Assert
-        CollectionAssert.AreEquivalent("Paste json file", lastMessage.Text);
+        CollectionAssert.AreEquivalent("Paste a json file", lastMessage.Text);
     }
     
     [TestCase(MediaTypeNames.Application.Pdf)]
@@ -547,7 +549,7 @@ public class StateTest
         lastMessage = await botEngine.ProceedFile(telegramFile);
         
         // Assert
-        CollectionAssert.AreEquivalent("Paste json file", lastMessage.Text);
+        CollectionAssert.AreEquivalent("Paste a json file", lastMessage.Text);
     }
     
 

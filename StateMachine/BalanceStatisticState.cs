@@ -28,7 +28,7 @@ class BalanceStatisticState : IExpenseInfoState, ILongTermOperation
 
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
     {
-        return await botClient.SendTextMessageAsync(chatId, "Wait", cancellationToken:cancellationToken);
+        return await botClient.SendTextMessageAsync(new EditableMessageToSend(){ChatId = chatId, Text = "Wait"}, cancellationToken: cancellationToken);
     }
 
     public Task HandleInternal(IMessage message, CancellationToken cancellationToken)
@@ -57,7 +57,7 @@ class BalanceStatisticState : IExpenseInfoState, ILongTermOperation
         }
         else
         {
-            var collectingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Collecting expenses... It can take some time.");
+            await botClient.SendTextMessageAsync(new EditableMessageToSend(){ChatId = message.ChatId, Text = "Collecting expenses... It can take some time."}, cancellationToken: cancellationToken);
         
             try
             {
@@ -114,17 +114,18 @@ class BalanceStatisticState : IExpenseInfoState, ILongTermOperation
             }
             catch (OperationCanceledException)
             {
-                text = "Operation is canceled by user";
+                text = "Operation is canceled by a user";
                 _logger.LogInformation(text);
             }
             finally
             {
                 _cancellationTokenSource = null;
-                await botClient.DeleteMessageAsync(collectingMessage, cancellationToken);
             }
         }
         
-        return await botClient.SendTextMessageAsync(chatId: message.ChatId, text, useMarkdown:tableFilled, cancellationToken: cancellationToken);
+        _logger.LogInformation($"Sending text: {text} tableFilled = {tableFilled}");
+        _logger.LogInformation("Passing the logger " + _logger + " to " + botClient.GetType());
+        return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = message.ChatId, Text = text, UseMarkdown = tableFilled}, cancellationToken: cancellationToken);
     }
 
         public Task Cancel()

@@ -1,4 +1,5 @@
 using Infrastructure;
+using Infrastructure.Telegram;
 using Microsoft.AspNetCore.Mvc;
 using StateMachine;
 using Telegram.Bot.Types;
@@ -28,7 +29,7 @@ namespace TelegramBot.Controllers
         [Route(MessageRoute)]
         public async Task<IActionResult> Post([FromBody] Update update)
         {
-            var botClient = new TelegramBotLogDecorator(_botService.GetBot(), _logger);
+            var botClient = new TelegramBotEditMessageInsteadOfSendingDecorator(new TelegramBotLogDecorator(_botService.GetBot(), _logger));
 
             var message = TelegramMessage.FromUpdate(update);
         
@@ -42,7 +43,7 @@ namespace TelegramBot.Controllers
             {
                 botEngine.ClearState(message.ChatId);
                 _logger.LogError($"{e}");
-                await botClient.SendTextMessageAsync(message.ChatId, $"{e.Message}");
+                await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = message.ChatId, Text = $"{e.Message}"});
             }
             catch (Exception e)
             {
@@ -50,12 +51,12 @@ namespace TelegramBot.Controllers
                 _logger.LogError($"Unhandled exception: {e}");
                 if (message.ChatId != _botService.SupportChatId)
                 {
-                    await botClient.SendTextMessageAsync(message.ChatId, "Something went wrong. I've already informed Andrew about it.");
-                    await botClient.SendTextMessageAsync(_botService.SupportChatId, $"Your wife is angry because of {e}");
+                    await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ ChatId = message.ChatId, Text = "Something went wrong. I've already informed Andrew about it."});
+                    await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ ChatId = _botService.SupportChatId, Text = $"Your wife is angry because of {e}"});
                 }
                 else
                 {
-                    await botClient.SendTextMessageAsync(message.ChatId, $"{e}");
+                    await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = message.ChatId, Text = $"{e}"});
                 }
             }
             

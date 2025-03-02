@@ -1,4 +1,4 @@
-namespace TelegramBot
+namespace TelegramBot.Services
 {
     public static class TelegramEscaper
     {

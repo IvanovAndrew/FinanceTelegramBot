@@ -25,12 +25,12 @@ class HandleJsonState : IExpenseInfoState
 
         if (string.IsNullOrEmpty(file?.Text))
         {
-            return await botClient.SendTextMessageAsync(chatId, "Couldn't download the file or the file is empty", cancellationToken: cancellationToken);
+            return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId =  chatId, Text = "Couldn't download the file or the file is empty"}, cancellationToken: cancellationToken);
         }
 
         FileInfo.Content = file;
         
-        return await botClient.SendTextMessageAsync(chatId, "File downloaded", cancellationToken: cancellationToken);
+        return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId =  chatId, Text = "File downloaded"}, cancellationToken: cancellationToken);
     }
 
     public async Task HandleInternal(IMessage message, CancellationToken cancellationToken)

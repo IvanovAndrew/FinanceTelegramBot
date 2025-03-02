@@ -80,7 +80,8 @@ namespace StateMachine.Statistics
             }
             else
             {
-                var collectingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Collecting expenses... It can take some time.");
+                await botClient.SendTextMessageAsync(
+                    new EditableMessageToSend(){ChatId = message.ChatId, Text = "Collecting expenses... It can take some time."}, cancellationToken: cancellationToken);
             
                 try
                 {
@@ -125,11 +126,10 @@ namespace StateMachine.Statistics
                 finally
                 {
                     _cancellationTokenSource = null;
-                    await botClient.DeleteMessageAsync(collectingMessage, cancellationToken);
                 }
             }
             
-            return await botClient.SendTextMessageAsync(chatId: message.ChatId, text, useMarkdown:tableFilled, cancellationToken: cancellationToken);
+            return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ ChatId = message.ChatId, Text = text, UseMarkdown = tableFilled}, cancellationToken: cancellationToken);
         }
 
         public Task Cancel()

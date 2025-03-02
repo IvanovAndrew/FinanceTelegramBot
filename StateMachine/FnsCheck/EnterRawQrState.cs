@@ -22,7 +22,7 @@ public class EnterRawQrState : IExpenseInfoState
     public bool UserAnswerIsRequired => true;
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
-        return await botClient.SendTextMessageAsync(chatId, "Enter the string you get after QR reading", cancellationToken: cancellationToken);
+        return await botClient.SendTextMessageAsync(new EditableMessageToSend(){ChatId = chatId, Text = "Enter the string you get after QR reading"}, cancellationToken: cancellationToken);
     }
 
     public Task HandleInternal(IMessage message, CancellationToken cancellationToken)

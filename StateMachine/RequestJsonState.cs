@@ -17,10 +17,7 @@ class RequestJsonState : IExpenseInfoState
         
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
-        return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: "Paste json file",
-            cancellationToken: cancellationToken);
+        return await botClient.SendTextMessageAsync(new EditableMessageToSend(){ChatId = chatId, Text = "Paste a json file"}, cancellationToken: cancellationToken);
     }
 
     public Task HandleInternal(IMessage message, CancellationToken cancellationToken)

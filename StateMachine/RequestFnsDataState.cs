@@ -24,7 +24,7 @@ public class RequestFnsDataState : IExpenseInfoState
     public bool UserAnswerIsRequired => false;
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
-        return await botClient.SendTextMessageAsync(chatId, "Requesting FNS data...", cancellationToken: cancellationToken);
+        return await botClient.SendTextMessageAsync(new EditableMessageToSend(){ChatId = chatId, Text = "Requesting FNS data..."}, cancellationToken: cancellationToken);
     }
 
     public IExpenseInfoState MoveToPreviousState(IStateFactory stateFactory)

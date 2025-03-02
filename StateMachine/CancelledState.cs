@@ -15,9 +15,9 @@ namespace StateMachine
 
         public bool UserAnswerIsRequired => false;
 
-        public Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
+        public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            return botClient.SendTextMessageAsync(chatId, "Canceled");
+            return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = chatId, Text = "Canceled"});
         }
 
         public Task HandleInternal(IMessage message, CancellationToken cancellationToken)

@@ -17,16 +17,15 @@ internal class CurrencyPicker : IChainState
     {
         var keyboard = TelegramKeyboard.FromButtons(new[]
         {
-            new TelegramButton{Text = "All", CallbackData = "All"},
             new TelegramButton{Text = Currency.Rur.Name, CallbackData = Currency.Rur.Symbol},
             new TelegramButton{Text = Currency.Amd.Name, CallbackData = Currency.Amd.Symbol},
             new TelegramButton{Text = Currency.Gel.Name, CallbackData = Currency.Gel.Symbol},
+            new TelegramButton{Text = Currency.USD.Name, CallbackData = Currency.USD.Symbol},
+            new TelegramButton{Text = "All", CallbackData = "All"},
         });
         
         return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: "Enter the currency",
-            keyboard: keyboard,
+            new EditableMessageToSend(){ChatId = chatId, Text = "Enter the currency", Keyboard = keyboard},
             cancellationToken: cancellationToken);
     }
 

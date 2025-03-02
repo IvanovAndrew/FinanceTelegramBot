@@ -14,7 +14,7 @@ class DescriptionPicker : IChainState
     
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
-        return await botClient.SendTextMessageAsync(chatId, "Write a description", cancellationToken:cancellationToken);
+        return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = chatId, Text = "Write a description"}, cancellationToken:cancellationToken);
     }
 
     public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)

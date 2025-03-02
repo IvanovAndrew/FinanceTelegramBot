@@ -23,9 +23,7 @@ class EnterTheWayState : IExpenseInfoState
         });
         
         return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: "Enter the expense",
-            keyboard: keyboard,
+            new EditableMessageToSend(){ChatId = chatId, Text = "Enter the expense", Keyboard = keyboard},
             cancellationToken: cancellationToken);
     }
 

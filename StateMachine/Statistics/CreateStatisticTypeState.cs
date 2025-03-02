@@ -17,10 +17,11 @@ namespace StateMachine.Statistics
     
         public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken)
         {
-            var info = "Choose kind of statistic";
-
-            var keyboard = 
-                TelegramKeyboard.FromButtons(new []
+            return await botClient.SendTextMessageAsync(new EditableMessageToSend()
+            {
+                ChatId = chatId, 
+                Text = "Choose kind of statistic", 
+                Keyboard = TelegramKeyboard.FromButtons(new []
                 {
                     new TelegramButton { Text = "Balance", CallbackData = "balance"},
                     new TelegramButton { Text = "Day expenses (by categories)", CallbackData = "statisticByDay"},
@@ -28,13 +29,8 @@ namespace StateMachine.Statistics
                     new TelegramButton { Text = "Category expenses (by months)", CallbackData = "statisticByCategory"}, 
                     new TelegramButton { Text = "Subcategory expenses (overall)", CallbackData = "statisticBySubcategory"}, 
                     new TelegramButton { Text = "Subcategory expenses (by months)", CallbackData = "statisticBySubcategoryByMonth"}, 
-                }, chunkSize:2);
-        
-            return await botClient.SendTextMessageAsync(
-                chatId: chatId,
-                text: info,
-                keyboard: keyboard,
-                cancellationToken: cancellationToken);
+                }, chunkSize:2),
+            }, cancellationToken: cancellationToken);
         }
 
         public Task HandleInternal(IMessage message, CancellationToken cancellationToken)

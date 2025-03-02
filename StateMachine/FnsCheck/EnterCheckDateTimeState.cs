@@ -20,9 +20,11 @@ internal class EnterCheckDateTimeState : IChainState
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: $"Enter date and time of the check. For example, {_now.ToString(DateTimeFormat)}",
-            cancellationToken: cancellationToken);
+            new EditableMessageToSend()
+            {
+                ChatId = chatId, 
+                Text = $"Enter date and time of the check. For example, {_now.ToString(DateTimeFormat)}"
+            }, cancellationToken: cancellationToken);
     }
 
     public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)
@@ -50,9 +52,11 @@ internal class EnterCheckAmountState : IChainState
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: $"Enter the amount in rubles.",
-            cancellationToken: cancellationToken);
+            new EditableMessageToSend()
+            {
+                ChatId = chatId, 
+                Text = $"Enter the amount in rubles.",
+            }, cancellationToken: cancellationToken);
     }
 
     public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)
@@ -79,8 +83,11 @@ internal class EnterFiscalNumberState : IChainState
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: $"Enter the fiscal number. It should contain 16 digits",
+            new EditableMessageToSend()
+            {
+                ChatId = chatId, 
+                Text = $"Enter the fiscal number. It should contain 16 digits"
+            },
             cancellationToken: cancellationToken);
     }
 
@@ -108,9 +115,11 @@ internal class EnterFiscalDocumentNumberState : IChainState
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: $"Enter the fiscal document number. It should contain only digits",
-            cancellationToken: cancellationToken);
+            new EditableMessageToSend()
+            {
+                ChatId = chatId,
+                Text = "Enter the fiscal document number. It should contain only digits",
+            }, cancellationToken: cancellationToken);
     }
 
     public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)
@@ -137,9 +146,11 @@ internal class EnterFiscalDocumentSignState : IChainState
     public async Task<IMessage> Request(ITelegramBot botClient, long chatId, CancellationToken cancellationToken = default)
     {
         return await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: $"Enter the fiscal document sign. It should contain only digits",
-            cancellationToken: cancellationToken);
+            new EditableMessageToSend()
+            {
+                ChatId = chatId,
+                Text = $"Enter the fiscal document sign. It should contain only digits",
+            }, cancellationToken: cancellationToken);
     }
 
     public ChainStatus HandleInternal(IMessage message, CancellationToken cancellationToken)

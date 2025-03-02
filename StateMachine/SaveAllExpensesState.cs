@@ -45,7 +45,7 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
 
     public async Task<IMessage> Handle(ITelegramBot botClient, IMessage message, CancellationToken cancellationToken)
     {
-        var savingMessage = await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
+        var savingMessage = await botClient.SendTextMessageAsync(new EditableMessageToSend(){ChatId = message.ChatId, Text = "Saving... It can take some time."}, cancellationToken: cancellationToken);
 
         SaveBatchExpensesResult result;
 
@@ -72,10 +72,7 @@ public class SaveAllExpensesState : IExpenseInfoState, ILongTermOperation
             _cancellationTokenSource = null;
         }
 
-        await botClient.DeleteMessageAsync(message, cancellationToken);
-        await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
-
-        return await botClient.SendTextMessageAsync(message.ChatId, result.GetMessage());
+        return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = message.ChatId, Text = result.GetMessage()}, cancellationToken: cancellationToken);
     }
 
     public IExpenseInfoState ToNextState(IMessage message, IStateFactory stateFactory,

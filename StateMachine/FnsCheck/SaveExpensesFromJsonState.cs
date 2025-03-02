@@ -52,7 +52,7 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
         else
         {
             var savingMessage =
-                await botClient.SendTextMessageAsync(message.ChatId, "Saving... It can take some time.");
+                await botClient.SendTextMessageAsync(new EditableMessageToSend(){ChatId = message.ChatId, Text = "Saving... It can take some time."}, cancellationToken: cancellationToken);
 
             SaveBatchExpensesResult result;
             try
@@ -84,11 +84,10 @@ internal class SaveExpensesFromJsonState : IExpenseInfoState, ILongTermOperation
                 sum += expense.Amount;
             }
 
-            await botClient.DeleteMessageAsync(savingMessage, cancellationToken);
-            return await botClient.SendTextMessageAsync(message.ChatId, result.GetMessage());
+            return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = message.ChatId, Text = result.GetMessage()}, cancellationToken: cancellationToken);
         }
 
-        return await botClient.SendTextMessageAsync(message.ChatId, "Canceled");
+        return await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = message.ChatId, Text = "Canceled"}, cancellationToken: cancellationToken);
     }
 
     public Task Cancel()
