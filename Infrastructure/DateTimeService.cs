@@ -1,4 +1,6 @@
-﻿namespace Infrastructure;
+﻿using Application;
+
+namespace Infrastructure;
 
 public class DateTimeService : IDateTimeService
 {

@@ -14,7 +14,7 @@ public interface IGoogleSpreadsheetService
     public Task<List<IMoneyTransfer>> GetIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
     public Task<List<IMoneyTransfer>> GetExpenses(FinanceFilter financeFilter, CancellationToken cancellationToken);
     public Task<bool> SaveExpense(IMoneyTransfer expense, CancellationToken cancellationToken);
-    public Task<bool> SaveAllExpenses(List<IMoneyTransfer> expenses, CancellationToken cancellationToken);
+    public Task<bool> SaveAllExpenses(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken);
 }
 
 public class GoogleSpreadsheetService : IGoogleSpreadsheetService
@@ -122,7 +122,7 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         return false;
     }
 
-    public async Task<bool> SaveAllExpenses(List<IMoneyTransfer> expenses, CancellationToken cancellationToken)
+    public async Task<bool> SaveAllExpenses(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
     {
         try
         {

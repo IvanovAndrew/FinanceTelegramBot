@@ -1,4 +1,4 @@
-using System.ComponentModel;
+using Domain;
 
 namespace Domain
 {
@@ -24,4 +24,9 @@ namespace Domain
     {
         public string Name { get; init; }
     }
+}
+
+public interface ICategoryProvider
+{
+    public IReadOnlyList<Category> GetCategories(bool income);
 }

@@ -1,0 +1,21 @@
+﻿using Application;
+using Domain;
+
+namespace UnitTest.Stubs;
+
+public class FnsServiceStub : IFnsService
+{
+    internal Dictionary<string, IReadOnlyCollection<Outcome>> Responses = new();
+    
+    public Task<IReadOnlyCollection<Outcome>> GetCheck(string qrRaw)
+    {
+        if (Responses.TryGetValue(qrRaw, out var value))
+        {
+            return Task.FromResult(value);
+        }
+
+        value = Array.Empty<Outcome>();
+        
+        return Task.FromResult(value);
+    }
+}
