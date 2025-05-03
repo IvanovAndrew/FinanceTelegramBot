@@ -39,7 +39,7 @@ public class FinanceRepositoryDecorator : IFinanceRepository
         return result;
     }
 
-    public async Task<bool> SaveAllOutcomes(List<IMoneyTransfer> expense, CancellationToken cancellationToken)
+    public async Task<bool> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expense, CancellationToken cancellationToken)
     {
         _logger.LogInformation($"ExpenseRepository is trying to save {expense.Count} expense(s)");
         
@@ -151,7 +151,7 @@ public class FinanceRepository : IFinanceRepository
         return await _spreadsheetService.SaveIncome(income, cancellationToken);
     }
 
-    public async Task<bool> SaveAllOutcomes(List<IMoneyTransfer> expenses, CancellationToken cancellationToken)
+    public async Task<bool> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
     {
         return await _spreadsheetService.SaveAllExpenses(expenses, cancellationToken);
     }

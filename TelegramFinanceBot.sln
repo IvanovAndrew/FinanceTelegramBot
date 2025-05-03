@@ -4,9 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleSheetWriter", "Google
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{526858F8-36BF-40FF-AF5F-E173F8021A3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramBot", "TelegramBot\TelegramBot.csproj", "{89652111-475C-43F3-BD26-D6A63A4580B2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateMachine", "StateMachine\StateMachine.csproj", "{B42524FA-40F3-451B-AAB2-A39D59BC9D40}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotController", "BotController\BotController.csproj", "{89652111-475C-43F3-BD26-D6A63A4580B2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{ECDF541E-21EF-4CE5-81B7-C0375301DA98}"
 EndProject
@@ -34,10 +32,6 @@ Global
 		{89652111-475C-43F3-BD26-D6A63A4580B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89652111-475C-43F3-BD26-D6A63A4580B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89652111-475C-43F3-BD26-D6A63A4580B2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B42524FA-40F3-451B-AAB2-A39D59BC9D40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B42524FA-40F3-451B-AAB2-A39D59BC9D40}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B42524FA-40F3-451B-AAB2-A39D59BC9D40}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B42524FA-40F3-451B-AAB2-A39D59BC9D40}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ECDF541E-21EF-4CE5-81B7-C0375301DA98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{ECDF541E-21EF-4CE5-81B7-C0375301DA98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECDF541E-21EF-4CE5-81B7-C0375301DA98}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -7,9 +7,9 @@ public class UserSessionService : IUserSessionService
 {
     private readonly MemoryCache _cache = new(new MemoryCacheOptions(){ExpirationScanFrequency = TimeSpan.FromMinutes(30)});
     
-    public UserSession? GetUserSession(long chatId)
+    public UserSession GetUserSession(long sessionId)
     {
-        if (_cache.TryGetValue(chatId, out UserSession userSession))
+        if (_cache.TryGetValue(sessionId, out UserSession userSession))
         {
             return userSession;
         }
@@ -19,6 +19,11 @@ public class UserSessionService : IUserSessionService
 
     public void SaveUserSession(UserSession userSession)
     {
-        _cache.Set(userSession.ChatId, userSession);
+        _cache.Set(userSession.Id, userSession);
+    }
+
+    public void RemoveSession(long sessionId)
+    {
+        _cache.Remove(sessionId);
     }
 }

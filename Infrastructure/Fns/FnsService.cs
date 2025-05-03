@@ -1,4 +1,6 @@
-﻿using Infrastructure.Fns.DataContract;
+﻿using Application;
+using Domain;
+using Infrastructure.Fns.DataContract;
 using Newtonsoft.Json;
 
 namespace Infrastructure.Fns;
@@ -12,8 +14,8 @@ public class FnsService : IFnsService
     {
         _token = !string.IsNullOrEmpty(token)? token : throw new WrongConfigurationFnsException(nameof(token));
     }
-
-    public async Task<FnsResponse?> GetCheck(string qrRaw)
+    
+    public async Task<IReadOnlyCollection<Outcome>> GetCheck(string qrRaw)
     {
         using HttpClient client = new HttpClient();
         
@@ -31,7 +33,23 @@ public class FnsService : IFnsService
             var responseString = await response.Content.ReadAsStringAsync();
             try
             {
-                return JsonConvert.DeserializeObject<FnsResponse>(responseString);
+                var fnsResponse = JsonConvert.DeserializeObject<FnsResponse>(responseString);
+
+                var json = fnsResponse.Data?.Json;
+                
+                var expenses = json?.Items?.Select(i => new Outcome()
+                {
+                    Amount = new Money
+                    {
+                        Amount = i.Sum / 100m,
+                        Currency = Currency.Rur
+                    },
+                    Date = GetDate(json.DateTime),
+                    Description = i.Name,
+                    Category = "Еда"
+                })?.ToList()?? new List<Outcome>();
+
+                return expenses;
             }
             catch (Exception e)
             {
@@ -40,6 +58,11 @@ public class FnsService : IFnsService
             }
         }
 
-        return null;
+        return [];
+        
+        DateOnly GetDate(DateTime date)
+        {
+            return DateOnly.FromDateTime(date.Hour < 4? date.AddDays(-1) : date);
+        }
     }
 }

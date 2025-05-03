@@ -49,6 +49,7 @@
         }
 
         public List<ExpenseInfo<T>> Rows => _rows;
+        public IReadOnlyList<Currency> Currencies => _currencyToIndex.Keys.ToList();
 
         private TotalExpenseInfo<T> _total; 
         public TotalExpenseInfo<T> Total
