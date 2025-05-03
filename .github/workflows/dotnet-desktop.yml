@@ -71,7 +71,7 @@ jobs:
     - name: Install .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
 
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild.exe
@@ -79,7 +79,7 @@ jobs:
 
     # Run Build TelegramBot project
     - name: Build TelegramBot project
-      run: dotnet build TelegramBot/TelegramBot.csproj
+      run: dotnet build TelegramBot.sln
 
     # Run Build GoogleSpreadsheet project
     - name: Build GoogleSpreadsheet project
