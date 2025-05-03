@@ -43,6 +43,7 @@ public class StatisticForASubcategoryTest
         var table = lastMessage.Table;
 
         // Assert
+        Assert.That(table, Is.Not.Null);
         StringAssert.Contains("Statistic", table.Title);
         StringAssert.Contains("Expenses from July 2022", table.Subtitle);
         StringAssert.Contains("Category: Food", table.Subtitle);
@@ -96,6 +97,7 @@ public class StatisticForASubcategoryTest
         var table = lastMessage.Table;
         
         // Assert
+        Assert.That(table, Is.Not.Null);
         StringAssert.Contains("Statistic", table.Title);
         StringAssert.Contains("Expenses from March 2022", table.Subtitle);
         StringAssert.Contains("Category: Food", table.Subtitle);

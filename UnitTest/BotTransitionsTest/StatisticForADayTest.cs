@@ -42,6 +42,7 @@ public class StatisticForADayTest
         // Assert
         var table = lastMessage.Table;
         
+        Assert.That(table, Is.Not.Null);
         StringAssert.Contains("Statistic", table.Title);
         StringAssert.Contains("23 July 2023", table?.Subtitle ?? string.Empty);
         CollectionAssert.AreEquivalent(new []{"Category", "AMD"}, table?.ColumnNames);
@@ -88,6 +89,8 @@ public class StatisticForADayTest
         
 
         // Assert
+        Assert.That(response.Options, Is.Not.Null);
+        
         var buttons = response.Options.AllOptions().Select(_ => _.Text);
         CollectionAssert.Contains(buttons, "Today");
         CollectionAssert.Contains(buttons, "Yesterday");
@@ -137,6 +140,7 @@ public class StatisticForADayTest
         // Assert
         var table = lastMessage.Table;
         
+        Assert.That(table, Is.Not.Null);
         StringAssert.Contains("22 July 2023", table.Subtitle);
         CollectionAssert.Contains(table.ColumnNames, "Category");
         CollectionAssert.Contains(table.Rows.Select(c => c.FirstColumnValue), "Cats");

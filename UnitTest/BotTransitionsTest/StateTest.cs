@@ -33,6 +33,7 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("/start");
         
         // Assert
+        Assert.That(lastMessage.Options, Is.Not.Null);
         CollectionAssert.AreEquivalent(new []{"Outcome", "Income", "Statistics"}, lastMessage.Options.AllOptions().Select(c => c.Text));
     }
     
@@ -177,6 +178,7 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("statistics");
 
         // Assert
+        Assert.That(lastMessage.Options, Is.Not.Null);
         CollectionAssert.AreEquivalent(new []{"Balance", "Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, lastMessage.Options.AllOptions().Select(c => c.Text));
     }
 }

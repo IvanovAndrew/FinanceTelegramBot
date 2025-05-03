@@ -62,7 +62,10 @@ public class StatisticForAMonthTest
 
 
         // Assert
+        Assert.That(response.Options, Is.Not.Null);
+        
         var buttons = response.Options.AllOptions().Select(_ => _.Text);
+        
         CollectionAssert.Contains(buttons, "July 2023");
         CollectionAssert.Contains(buttons, "June 2023");
         CollectionAssert.Contains(buttons, "January 2023");
@@ -130,6 +133,7 @@ public class StatisticForAMonthTest
         var table = lastMessage.Table;
 
         // Assert
+        Assert.That(table, Is.Not.Null);
         StringAssert.Contains("Statistic", table.Title);
         StringAssert.Contains("May 2023", table.Subtitle);
         CollectionAssert.Contains(table.ColumnNames, "Category");

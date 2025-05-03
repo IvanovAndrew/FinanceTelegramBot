@@ -42,6 +42,7 @@ public class StatisticBalanceTest
         // Assert
         var table = lastMessage.Table;
         
+        Assert.That(table, Is.Not.Null);
         StringAssert.Contains("Balance", table.Title);
         StringAssert.Contains("June 2023", table.Subtitle);
         CollectionAssert.AreEquivalent(new []{"Balance", "AMD"}, table?.ColumnNames);

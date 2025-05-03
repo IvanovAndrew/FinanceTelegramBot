@@ -67,6 +67,7 @@ public class StatisticForASubcategoryByMonthsTest
         // Assert
         var table = lastMessage.Table;
         
+        Assert.That(table, Is.Not.Null);
         StringAssert.Contains("Statistic", table.Title);
         StringAssert.Contains("July 2023", table.Subtitle);
         StringAssert.Contains("Category: Food", table.Subtitle);
@@ -120,6 +121,7 @@ public class StatisticForASubcategoryByMonthsTest
         var table = lastMessage.Table;
         
         // Assert
+        Assert.That(table, Is.Not.Null);
         CollectionAssertExtension.AssertOrder(table.Rows.Select(row => row.FirstColumnValue).ToList(), "May 2023", "June 2023", "July 2023");
     }
     
@@ -169,6 +171,7 @@ public class StatisticForASubcategoryByMonthsTest
         // Assert
         var table = lastMessage.Table;
         
+        Assert.That(table, Is.Not.Null);
         Assert.That(table.Title, Is.EqualTo("Statistic"));
         StringAssert.Contains("January 2022", table.Subtitle);
         StringAssert.Contains("Category", table.Subtitle);

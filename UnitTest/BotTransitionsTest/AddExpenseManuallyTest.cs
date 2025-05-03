@@ -37,6 +37,7 @@ public class AddExpenseManuallyTest
         lastMessage = await botEngine.Proceed("By myself");
     
         // Assert
+        Assert.That(lastMessage.Options, Is.Not.Null);
         CollectionAssert.AreEquivalent(new []{"Today", "Yesterday", "Another day"}, lastMessage.Options.AllOptions().Select(b => b.Text)); 
     }
     
@@ -65,6 +66,7 @@ public class AddExpenseManuallyTest
         
         // Assert
         Assert.That(lastMessage.Text, Is.EqualTo("Enter the category"));
+        Assert.That(lastMessage.Options, Is.Not.Null);
         CollectionAssert.AreEquivalent(new []{"Food", "Cats"}, lastMessage.Options.AllOptions().Select(b => b.Text));
     }
     
@@ -169,6 +171,7 @@ public class AddExpenseManuallyTest
         
         // Assert
         StringAssert.EndsWith("save it?", lastMessage.Text);
+        Assert.That(lastMessage.Options, Is.Not.Null);
         CollectionAssert.AreEquivalent(new []{"Save", "Cancel"}, lastMessage.Options.AllOptions().Select(b => b.Text));
     }
     

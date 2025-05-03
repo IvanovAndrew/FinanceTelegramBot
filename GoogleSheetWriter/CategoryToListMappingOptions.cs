@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace GoogleSheetWriter
+﻿namespace GoogleSheetWriter
 {
     public class CategoryToListMappingOptions
     {

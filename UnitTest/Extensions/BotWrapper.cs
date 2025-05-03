@@ -59,7 +59,7 @@ internal class BotEngineWrapper
         return lastMessage;
     }
     
-    internal static BotEngineWrapper Create(Category[] outcomeCategories, Category[] incomeCategories, FinanceRepositoryStub expenseRepository, DateTimeServiceStub dateTimeService, MessageServiceMock telegramBot, IUserSessionService userSessionService, IFnsService fnsService = null)
+    internal static BotEngineWrapper Create(Category[] outcomeCategories, Category[] incomeCategories, FinanceRepositoryStub expenseRepository, DateTimeServiceStub dateTimeService, MessageServiceMock telegramBot, IUserSessionService userSessionService, IFnsService? fnsService = null)
     {
         var services = new ServiceCollection();
 
