@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using Domain;
+using NUnit.Framework;
 
 namespace UnitTest;
 
