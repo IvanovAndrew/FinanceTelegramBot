@@ -79,7 +79,7 @@ jobs:
 
     # Run Build TelegramBot project
     - name: Build TelegramBot project
-      run: dotnet build TelegramBot.sln
+      run: dotnet build BotController/BotController.csproj
 
     # Run Build GoogleSpreadsheet project
     - name: Build GoogleSpreadsheet project
