@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using Application;
+using Domain;
 using Infrastructure.Telegram;
 
 namespace Infrastructure;
@@ -14,7 +15,7 @@ public interface IStateFactory
     IExpenseInfoState CreateConfirmState(IMoneyTransfer expense);
     IExpenseInfoState CreateSaveState(IMoneyTransfer expense);
     IExpenseInfoState CreateSaveExpensesFromJsonState(List<IMoneyTransfer> expenses);
-    IExpenseInfoState CreateHandleJsonFileState(ITelegramFileInfo fileInfo);
+    IExpenseInfoState CreateHandleJsonFileState(IFileInfo fileInfo);
     IExpenseInfoState CreateErrorWithRetryState(string warning, IExpenseInfoState state);
     IExpenseInfoState CreateCancelState();
 

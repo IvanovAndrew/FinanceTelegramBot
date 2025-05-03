@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using Domain;
 
 namespace Domain
 {
@@ -101,15 +100,5 @@ namespace Domain
         {
             return HashCode.Combine(Currency, Amount);
         }
-    }
-}
-
-public class MoneyAdditionException : Exception
-{
-    public override string Message { get; }
-
-    public MoneyAdditionException(Money one, Money two) : base()
-    {
-        Message = $"Money should have the same currency! We have {one} and {two}";
     }
 }

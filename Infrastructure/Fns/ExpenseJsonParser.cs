@@ -1,11 +1,12 @@
-﻿using Domain;
+﻿using Application;
+using Domain;
 using Newtonsoft.Json;
 
 namespace Infrastructure.Fns;
 
-public class ExpenseJsonParser
+public class ExpenseJsonParser : IExpenseJsonParser
 {
-    public List<IMoneyTransfer> Parse(string text, string category, Currency currency)
+    public IReadOnlyList<IMoneyTransfer> Parse(string text, string category, Currency currency)
     {
         var result = new List<IMoneyTransfer>();
         dynamic json = JsonConvert.DeserializeObject(text)!;
