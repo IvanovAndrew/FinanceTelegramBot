@@ -2,20 +2,11 @@
 
 namespace GoogleSheetWriter
 {
-    internal class SheetRowFactory
+    internal class SheetRowFactory(ListInfo info, CultureInfo culture)
     {
-        private readonly CultureInfo _culture;
-        private readonly ListInfo _info;
-
-        public SheetRowFactory(ListInfo info, CultureInfo culture)
+        internal MoneyTransfer CreateMoneyTransfer(IReadOnlyDictionary<ExcelColumn, CellData> cellData, bool isIncome)
         {
-            _culture = culture;
-            _info = info;
-        }
-
-        internal MoneyTransfer CreateMoneyTransfer(IReadOnlyDictionary<string, ICellData> cellData, bool isIncome)
-        {
-            var wrapper = new GoogleDataWrapper(cellData, _info, _culture);
+            var wrapper = new GoogleDataWrapper(cellData, info, culture);
 
             return new MoneyTransfer()
             {

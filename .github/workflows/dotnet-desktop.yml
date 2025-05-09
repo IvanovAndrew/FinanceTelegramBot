@@ -83,7 +83,7 @@ jobs:
 
     # Run Build GoogleSpreadsheet project
     - name: Build GoogleSpreadsheet project
-      run: dotnet build GoogleSpreadsheet/GoogleSpreadsheet.csproj
+      run: dotnet build GoogleSpreadsheet.AzureFunction/GoogleSpreadsheet.AzureFunction.csproj
 
     # Execute all unit tests in the solution
     - name: Execute unit tests

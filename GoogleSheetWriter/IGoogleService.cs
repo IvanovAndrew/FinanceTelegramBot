@@ -25,51 +25,21 @@ public interface IGridData
 
 public interface IRowData
 {
-    IReadOnlyDictionary<string, ICellData> Cells { get; }
+    IReadOnlyDictionary<string, CellData> Cells { get; }
     bool ContainsValue(params string[] values);
 }
 
-public interface ICellData
+public record struct CellData
 {
-    bool Filled { get; }
-    string? Value { get; }
+    public bool Filled { get; set; }
+    public string? Value { get; set;}
 }
 
 
 public class GoogleRequestOptions
 {
     internal string Range { get; init; }
-    internal string[] RequestedColumns { get; init; }
-
-    internal static string[] GetColumnsBetween(string firstColumn, string lastColumn)
-    {
-        if (string.IsNullOrEmpty(firstColumn) || string.IsNullOrEmpty(lastColumn))
-            throw new ArgumentNullException("Columns are not specified");
-
-        if (firstColumn.Length != 1 || lastColumn.Length != 1)
-            throw new ArgumentOutOfRangeException("Now only 1-letter columns are supported");
-
-        char start = firstColumn[0];
-        char end = lastColumn[0];
-        if (start > end)
-        {
-            (start, end) = (end, start);
-            (firstColumn, lastColumn) = (lastColumn, firstColumn);
-        }
-
-        List<string> columns = new List<string>();
-        columns.Add(firstColumn);
-
-        // Проходим по буквам от start до end
-        for (char c = (char)(start + 1); c < end; c++)
-        {
-            columns.Add(c.ToString());
-        }
-        
-        columns.Add(lastColumn);
-
-        return columns.ToArray();
-    }
+    internal ExcelColumn[] RequestedColumns { get; init; }
 }
 
 public class GoogleService : IGoogleService
@@ -147,7 +117,7 @@ public class GoogleService : IGoogleService
         var response = await request.ExecuteAsync(cancellationToken);
         var sheet = response.Sheets.First(s => s.Properties.Title == listName);
         
-        return Grid.FromGoogleSheet(sheet, options.RequestedColumns);
+        return Grid.FromGoogleSheet(sheet, options.RequestedColumns.Select(column => column.Name).ToArray());
     }
 
     public async Task UpdateSheetAsync(string range, List<IList<object>> values, CancellationToken cancellationToken)
@@ -199,7 +169,7 @@ class GridData : IGridData
 
 class RowData : IRowData
 {
-    public IReadOnlyDictionary<string, ICellData> Cells { get; private set;}
+    public IReadOnlyDictionary<string, CellData> Cells { get; private set;}
     
     public bool ContainsValue(params string[] values)
     {
@@ -215,31 +185,28 @@ class RowData : IRowData
     internal static IRowData FromGoogleRowData(Google.Apis.Sheets.v4.Data.RowData? rowData, string[] columns)
     {
         if (rowData?.Values == null)
-            return new RowData() { Cells = new Dictionary<string, ICellData>() };
+            return new RowData() { Cells = new Dictionary<string, CellData>() };
 
         if (rowData.Values.Count > columns.Length)
         {
             throw new InvalidOperationException(
-                $"Columns count mismatch. Requested columns {string.Join(", ", columns)} but {string.Join(", ", rowData.Values)} were received");
+                $"Columns count mismatch. Requested columns {string.Join(", ", columns)} but {string.Join(", ", rowData.Values.Select(v => v.FormattedValue))} were received");
         }
 
-        var dictionary = new Dictionary<string, ICellData>();
+        var dictionary = new Dictionary<string, CellData>();
         
         for (int i = 0; i < rowData.Values.Count; i++)
         {
-            dictionary[columns[i]] = CellData.FromGoogleCellData(rowData.Values[i]);
+            dictionary[columns[i]] = CellDataHelper.FromGoogleCellData(rowData.Values[i]);
         }
 
         return new RowData() { Cells = dictionary };
     }
 }
 
-class CellData : ICellData
+static class CellDataHelper
 {
-    public bool Filled { get; private set; }
-    public string? Value { get; private set;}
-
-    internal static ICellData FromGoogleCellData(Google.Apis.Sheets.v4.Data.CellData? cellData)
+    internal static CellData FromGoogleCellData(Google.Apis.Sheets.v4.Data.CellData? cellData)
     {
         if (cellData == null)
             return new CellData();

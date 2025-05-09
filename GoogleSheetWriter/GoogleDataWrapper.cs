@@ -1,15 +1,17 @@
 ﻿using System.Globalization;
-using Google.Apis.Sheets.v4.Data;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("GoogleSheetWriter.Test")]
 
 namespace GoogleSheetWriter
 {
     internal class GoogleDataWrapper
     {
-        private readonly IReadOnlyDictionary<string, ICellData> _cellData;
+        private readonly IReadOnlyDictionary<ExcelColumn, CellData> _cellData;
         private readonly ListInfo _columnNames;
         private readonly CultureInfo _culture;
 
-        internal GoogleDataWrapper(IReadOnlyDictionary<string, ICellData> cellData, ListInfo columnNames, CultureInfo culture)
+        internal GoogleDataWrapper(IReadOnlyDictionary<ExcelColumn, CellData> cellData, ListInfo columnNames, CultureInfo culture)
         {
             _cellData = cellData;
             _culture = culture;
@@ -25,14 +27,14 @@ namespace GoogleSheetWriter
         public string? SubCategory => GetByColumnName(_columnNames.SubCategoryColumn);
         public string? Description => GetByColumnName(_columnNames.DescriptionColumn);
 
-        public decimal Amount => ParseAmount(GetByColumnName(_columnNames.AmountRurColumn), GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn));
+        public decimal Amount => ParseAmount(GetByColumnName(_columnNames.AmountRurColumn), GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn));
 
         public Currency Currency => ParseCurrency(GetByColumnName(_columnNames.AmountRurColumn),
-            GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn)); 
+            GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn)); 
 
-        private string? GetByColumnName(string columnName)
+        private string? GetByColumnName(ExcelColumn? excelColumn)
         {
-            if (string.IsNullOrEmpty(columnName) || !_cellData.TryGetValue(columnName, out var value) || !value.Filled) return null;
+            if (excelColumn == null || !_cellData.TryGetValue(excelColumn, out var value) || !value.Filled) return null;
 
             return value.Value;
         }
@@ -41,8 +43,8 @@ namespace GoogleSheetWriter
         {
             foreach (var s in values)
             {
-                var trimmedValue = (s?? "").Trim();
-                if (decimal.TryParse(trimmedValue, NumberStyles.Currency, _culture, out var value) && value != 0)
+                var trimmedValue = Normalize(s);
+                if (decimal.TryParse(trimmedValue, NumberStyles.Currency, _culture, out var value))
                 {
                     return value;
                 }
@@ -50,50 +52,33 @@ namespace GoogleSheetWriter
 
             return 0;
         }
+
+        private Currency ParseCurrency(
+            string? rurColumn, string? amdColumn, string? gelColumn, string? usdColumn)
+        {
+            var currencies = new (string? Column, Currency Type)[]
+            {
+                (rurColumn, Currency.RUR),
+                (amdColumn, Currency.AMD),
+                (gelColumn, Currency.GEL),
+                (usdColumn, Currency.USD),
+            };
+
+            foreach (var (column, currency) in currencies)
+            {
+                var value = Normalize(column);
+                if (currency == Currency.RUR && value.Contains("Загрузка", StringComparison.CurrentCultureIgnoreCase))
+                    return Currency.RUR;
+
+                if (decimal.TryParse(value, NumberStyles.Currency, _culture, out var parsed))
+                    return currency;
+            }
+
+            return Currency.RUR;
+
+            //throw new ArgumentOutOfRangeException($"Couldn't parse money from columns: {string.Join(", ", currencies.Select(c => c.Column))}");
+        }
         
-        private decimal Parse(params string[] values)
-        {
-            foreach (var s in values)
-            {
-                var trimmedValue = (s?? "").Trim();
-                if (decimal.TryParse(trimmedValue, NumberStyles.Currency, _culture, out var value))
-                {
-                    return value;
-                }
-            }
-
-            return -1;
-        }
-
-        private Currency ParseCurrency(string? rurValue, string? amdValue, string? gelValue)
-        {
-            string rur = (rurValue ?? String.Empty).Trim();
-            string amd = (amdValue ?? String.Empty).Trim();
-            string gel = (gelValue ?? String.Empty).Trim();
-            if (string.IsNullOrEmpty(rur) && string.IsNullOrEmpty(amd) && string.IsNullOrEmpty(gel))
-                return Currency.RUR;
-
-            if (rur.Contains("Загрузка", StringComparison.CurrentCultureIgnoreCase))
-            {
-                return Currency.RUR;
-            }
-
-            if (Parse(rur) != -1)
-            {
-                return Currency.RUR;
-            }
-
-            else if (Parse(amd) != -1)
-            {
-                return Currency.AMD;
-            }
-            
-            else if (Parse(gel) != -1)
-            {
-                return Currency.GEL;
-            }
-
-            throw new ArgumentOutOfRangeException($"Couldn't parse money from {rurValue}, {amdValue}, and {gelValue}");
-        }
+        private string Normalize(string? input) => (input ?? string.Empty).Trim();
     }
 }
