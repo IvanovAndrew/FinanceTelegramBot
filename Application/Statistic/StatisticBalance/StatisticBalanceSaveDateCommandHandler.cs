@@ -1,11 +1,14 @@
 ﻿using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticBalance;
 
-public class StatisticBalanceSaveDateCommandHandler(IUserSessionService sessionService, IDateTimeService dateTimeService, IMediator mediator) : IRequestHandler<StatisticBalanceSaveDateCommand>
+public class StatisticBalanceSaveDateCommandHandler(IUserSessionService sessionService, IDateTimeService dateTimeService, IMediator mediator, ILogger<StatisticBalanceSaveDateCommandHandler> logger) : IRequestHandler<StatisticBalanceSaveDateCommand>
 {
     public async Task Handle(StatisticBalanceSaveDateCommand request, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"StatisticBalanceSaveDateCommandHandler called");
+        
         var session = sessionService.GetUserSession(request.SessionId);
 
         if (session != null)
