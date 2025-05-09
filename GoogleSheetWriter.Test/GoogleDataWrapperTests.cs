@@ -25,6 +25,7 @@ public class GoogleDataWrapperTests
         AmountAmdColumn = ExcelColumn.FromString("H"),
         AmountGelColumn = ExcelColumn.FromString("I"),
         AmountUsdColumn = ExcelColumn.FromString("J"),
+        AmountEurColumn = ExcelColumn.FromString("K"),
     };
 
     [Fact]

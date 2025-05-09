@@ -27,10 +27,10 @@ namespace GoogleSheetWriter
         public string? SubCategory => GetByColumnName(_columnNames.SubCategoryColumn);
         public string? Description => GetByColumnName(_columnNames.DescriptionColumn);
 
-        public decimal Amount => ParseAmount(GetByColumnName(_columnNames.AmountRurColumn), GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn));
+        public decimal Amount => ParseAmount(GetByColumnName(_columnNames.AmountRurColumn), GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn), GetByColumnName(_columnNames.AmountEurColumn));
 
         public Currency Currency => ParseCurrency(GetByColumnName(_columnNames.AmountRurColumn),
-            GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn)); 
+            GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn), GetByColumnName(_columnNames.AmountEurColumn)); 
 
         private string? GetByColumnName(ExcelColumn? excelColumn)
         {
@@ -54,7 +54,7 @@ namespace GoogleSheetWriter
         }
 
         private Currency ParseCurrency(
-            string? rurColumn, string? amdColumn, string? gelColumn, string? usdColumn)
+            string? rurColumn, string? amdColumn, string? gelColumn, string? usdColumn, string? eurColumn)
         {
             var currencies = new (string? Column, Currency Type)[]
             {
@@ -62,6 +62,7 @@ namespace GoogleSheetWriter
                 (amdColumn, Currency.AMD),
                 (gelColumn, Currency.GEL),
                 (usdColumn, Currency.USD),
+                (eurColumn, Currency.EUR),
             };
 
             foreach (var (column, currency) in currencies)

@@ -143,6 +143,12 @@ namespace GoogleSheetWriter
                 excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountUsdColumn, firstExcelColumn)] =
                     income.Currency == Currency.USD ? income.Amount : "";
             }
+            
+            if (listInfo.AmountEurColumn is not null)
+            {
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountEurColumn, firstExcelColumn)] =
+                    income.Currency == Currency.EUR ? income.Amount : "";
+            }
 
             while (excelRowValues[^1] == null)
             {
@@ -223,6 +229,12 @@ namespace GoogleSheetWriter
                 {
                     excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountUsdColumn, firstExcelColumn)] =
                         expense.Currency == Currency.USD ? expense.Amount : "";
+                }
+                
+                if (listInfo.AmountEurColumn is not null)
+                {
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountEurColumn, firstExcelColumn)] =
+                        expense.Currency == Currency.EUR ? expense.Amount : "";
                 }
                 
                 while (excelRowValues[^1] == null)

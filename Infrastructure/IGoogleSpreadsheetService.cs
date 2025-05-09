@@ -183,6 +183,12 @@ public class GoogleSpreadsheetExpenseDto
             case 2:
                 currency = Domain.Currency.Gel;
                 break;
+            case 3:
+                currency = Domain.Currency.USD;
+                break;
+            case 4:
+                currency = Domain.Currency.EUR;
+                break;
             default:
                 throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}");
         }
@@ -236,6 +242,12 @@ public class GoogleSpreadsheetIncomeDto
                 break;
             case 2:
                 currency = Domain.Currency.Gel;
+                break;
+            case 3:
+                currency = Domain.Currency.USD;
+                break;
+            case 4:
+                currency = Domain.Currency.EUR;
                 break;
             default:
                 throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}");
