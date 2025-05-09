@@ -1,9 +1,4 @@
 using System.Globalization;
-using System.Reflection;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.Sheets.v4;
-using Google.Apis.Sheets.v4.Data;
 using Microsoft.Extensions.Logging;
 
 namespace GoogleSheetWriter
@@ -16,7 +11,6 @@ namespace GoogleSheetWriter
         private readonly ILogger<GoogleSheetWrapper> _logger;
         private readonly CultureInfo _cultureInfo = new("ru-RU");
         private const int BatchSize = 500;
-        private char FirstExcelColumn = 'A';
         private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
         public GoogleSheetWrapper(IGoogleService googleService, SheetOptions options, CategoryToListMappingOptions mappingOptions, ILogger<GoogleSheetWrapper> logger)
@@ -55,7 +49,7 @@ namespace GoogleSheetWriter
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
-                string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountGelColumn}{row + expenses.Count - 1}";
+                string range = BuildRange(listInfo, listInfo.GetFirstExcelColumn(), row, expenses.Count);
 
                 var excelRowValues = FillExcelRows(expenses, listInfo, row);
 
@@ -78,7 +72,7 @@ namespace GoogleSheetWriter
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // TODO Now there is inner rule that columns follow one by one. It can't be true in general and can lead to issues
-                string range = $"{listInfo.ListName}!{listInfo.YearColumn}{row}:{listInfo.AmountGelColumn}{row}";
+                string range = BuildRange(listInfo, listInfo.GetFirstExcelColumn(), row, 1);
 
                 var excelRowValues = FillExcelRows(income, listInfo, row);
                 await _googleService.UpdateSheetAsync(range, excelRowValues, cancellationToken);
@@ -99,47 +93,55 @@ namespace GoogleSheetWriter
                 excelRowValues.Add(null);
             }
 
-            if (!string.IsNullOrEmpty(listInfo.YearColumn))
+            var firstExcelColumn = listInfo.GetFirstExcelColumn();
+
+            if (listInfo.YearColumn is not null)
             {
-                excelRowValues[listInfo.YearColumn[0] - FirstExcelColumn] = $"=YEAR({listInfo.DateColumn}{row})";
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.YearColumn, firstExcelColumn)] = $"=YEAR({listInfo.DateColumn}{row})";
             }
 
-            if (!string.IsNullOrEmpty(listInfo.MonthColumn))
+            if (listInfo.MonthColumn is not null)
             {
-                excelRowValues[listInfo.MonthColumn[0] - FirstExcelColumn] = $"=MONTH({listInfo.DateColumn}{row})";
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.MonthColumn, firstExcelColumn)] = $"=MONTH({listInfo.DateColumn}{row})";
             }
 
-            if (!string.IsNullOrEmpty(listInfo.DateColumn))
+            if (listInfo.DateColumn is not null)
             {
-                excelRowValues[listInfo.DateColumn[0] - FirstExcelColumn] = income.Date.ToString("dd.MM.yyyy");
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.DateColumn, firstExcelColumn)] = income.Date.ToString("dd.MM.yyyy");
             }
 
-            if (!string.IsNullOrEmpty(listInfo.CategoryColumn))
+            if (listInfo.CategoryColumn is not null)
             {
-                excelRowValues[listInfo.CategoryColumn[0] - FirstExcelColumn] = income.Category;
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.CategoryColumn, firstExcelColumn)] = income.Category;
             }
 
-            if (!string.IsNullOrEmpty(listInfo.DescriptionColumn))
+            if (listInfo.DescriptionColumn is not null)
             {
-                excelRowValues[listInfo.DescriptionColumn[0] - FirstExcelColumn] = income.Description;
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.DescriptionColumn, firstExcelColumn)] = income.Description;
             }
 
-            if (!string.IsNullOrEmpty(listInfo.AmountRurColumn))
+            if (listInfo.AmountRurColumn is not null)
             {
-                excelRowValues[listInfo.AmountRurColumn[0] - FirstExcelColumn] =
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountRurColumn, firstExcelColumn)] =
                     income.Currency == Currency.RUR ? income.Amount : "";
             }
 
-            if (!string.IsNullOrEmpty(listInfo.AmountAmdColumn))
+            if (listInfo.AmountAmdColumn is not null)
             {
-                excelRowValues[listInfo.AmountAmdColumn[0] - FirstExcelColumn] =
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountAmdColumn, firstExcelColumn)] =
                     income.Currency == Currency.AMD ? income.Amount : "";
             }
             
-            if (!string.IsNullOrEmpty(listInfo.AmountGelColumn))
+            if (listInfo.AmountGelColumn is not null)
             {
-                excelRowValues[listInfo.AmountGelColumn[0] - FirstExcelColumn] =
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountGelColumn, firstExcelColumn)] =
                     income.Currency == Currency.GEL ? income.Amount : "";
+            }
+                
+            if (listInfo.AmountUsdColumn is not null)
+            {
+                excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountUsdColumn, firstExcelColumn)] =
+                    income.Currency == Currency.USD ? income.Amount : "";
             }
 
             while (excelRowValues[^1] == null)
@@ -155,6 +157,7 @@ namespace GoogleSheetWriter
         
         private List<IList<object>> FillExcelRows(List<MoneyTransfer> expenses, ListInfo listInfo, int firstRow)
         {
+            var firstExcelColumn = listInfo.GetFirstExcelColumn();
             var result = new List<IList<object>>(expenses.Count);
 
             for (int i = 0; i < expenses.Count; i++)
@@ -168,54 +171,60 @@ namespace GoogleSheetWriter
                     excelRowValues.Add(null);
                 }
 
-                if (!string.IsNullOrEmpty(listInfo.YearColumn))
+                if (listInfo.YearColumn is not null)
                 {
-                    excelRowValues[listInfo.YearColumn[0] - FirstExcelColumn] = $"=YEAR({listInfo.DateColumn}{row})";
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.YearColumn, firstExcelColumn)] = $"=YEAR({listInfo.DateColumn}{row})";
                 }
 
-                if (!string.IsNullOrEmpty(listInfo.MonthColumn))
+                if (listInfo.MonthColumn is not null)
                 {
-                    excelRowValues[listInfo.MonthColumn[0] - FirstExcelColumn] = $"=MONTH({listInfo.DateColumn}{row})";
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.MonthColumn, firstExcelColumn)] = $"=MONTH({listInfo.DateColumn}{row})";
                 }
 
-                if (!string.IsNullOrEmpty(listInfo.DateColumn))
+                if (listInfo.DateColumn is not null)
                 {
-                    excelRowValues[listInfo.DateColumn[0] - FirstExcelColumn] = expense.Date.ToString("dd.MM.yyyy");
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.DateColumn, firstExcelColumn)] = expense.Date.ToString("dd.MM.yyyy");
                 }
 
-                if (!string.IsNullOrEmpty(listInfo.CategoryColumn))
+                if (listInfo.CategoryColumn is not null)
                 {
-                    excelRowValues[listInfo.CategoryColumn[0] - FirstExcelColumn] = expense.Category;
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.CategoryColumn, firstExcelColumn)] = expense.Category;
                 }
 
-                if (!string.IsNullOrEmpty(listInfo.SubCategoryColumn))
+                if (listInfo.SubCategoryColumn is not null)
                 {
-                    excelRowValues[listInfo.SubCategoryColumn[0] - FirstExcelColumn] = expense.Subcategory;
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.SubCategoryColumn, firstExcelColumn)] = expense.Subcategory;
                 }
 
-                if (!string.IsNullOrEmpty(listInfo.DescriptionColumn))
+                if (listInfo.DescriptionColumn is not null)
                 {
-                    excelRowValues[listInfo.DescriptionColumn[0] - FirstExcelColumn] = expense.Description;
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.DescriptionColumn, firstExcelColumn)] = expense.Description;
                 }
 
-                if (!string.IsNullOrEmpty(listInfo.AmountRurColumn))
+                if (listInfo.AmountRurColumn is not null)
                 {
-                    excelRowValues[listInfo.AmountRurColumn[0] - FirstExcelColumn] =
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountRurColumn, firstExcelColumn)] =
                         expense.Currency == Currency.RUR ? expense.Amount : "";
                 }
 
-                if (!string.IsNullOrEmpty(listInfo.AmountAmdColumn))
+                if (listInfo.AmountAmdColumn is not null)
                 {
-                    excelRowValues[listInfo.AmountAmdColumn[0] - FirstExcelColumn] =
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountAmdColumn, firstExcelColumn)] =
                         expense.Currency == Currency.AMD ? expense.Amount : "";
                 }
                 
-                if (!string.IsNullOrEmpty(listInfo.AmountGelColumn))
+                if (listInfo.AmountGelColumn is not null)
                 {
-                    excelRowValues[listInfo.AmountGelColumn[0] - FirstExcelColumn] =
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountGelColumn, firstExcelColumn)] =
                         expense.Currency == Currency.GEL ? expense.Amount : "";
                 }
-
+                
+                if (listInfo.AmountUsdColumn is not null)
+                {
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountUsdColumn, firstExcelColumn)] =
+                        expense.Currency == Currency.USD ? expense.Amount : "";
+                }
+                
                 while (excelRowValues[^1] == null)
                 {
                     excelRowValues.RemoveAt(excelRowValues.Count - 1);
@@ -229,7 +238,12 @@ namespace GoogleSheetWriter
 
         private async Task<int> GetNumberFilledRows(string listName, CancellationToken cancellationToken)
         {
-            var sheet = await _googleService.GetSheetAsync(listName, new GoogleRequestOptions() { Range = $"{listName}!A1:B", RequestedColumns = new []{"A", "B"}}, cancellationToken);
+            var sheet = await _googleService.GetSheetAsync(listName, 
+                new GoogleRequestOptions()
+                {
+                    Range = $"{listName}!A1:B", 
+                    RequestedColumns = new []{"A", "B"}.Select(ExcelColumn.FromString).ToArray()
+                }, cancellationToken);
 
             int i = 0;
             foreach (var data in sheet.Data)
@@ -293,18 +307,19 @@ namespace GoogleSheetWriter
                 fromRangeRow = rowNumber;
             }
             
-            int toRangeRow = fromRangeRow + BatchSize - 1;
-            
             int lastFilledRow = await GetNumberFilledRows(info.ListName, cancellationToken);
-            _logger.LogInformation($"List: {info.ListName} FromRange {fromRangeRow} Last Filled Row = {lastFilledRow}");
+            
+
+            ExcelColumn[] requestedColumns = ExcelColumn.ColumnsBetween(info.DateColumn, info.GetLastExcelColumn());
+            _logger.LogInformation($"List: {info.ListName} FromRange {fromRangeRow} Last Filled Row = {lastFilledRow}. ");
 
             while (fromRangeRow < lastFilledRow)
             {
                 var sheet = await _googleService.GetSheetAsync(info.ListName,
                     new GoogleRequestOptions()
                     {
-                        Range = $"{info.ListName}!{info.DateColumn}{fromRangeRow}:{info.AmountGelColumn}{toRangeRow}",
-                        RequestedColumns = GoogleRequestOptions.GetColumnsBetween(info.DateColumn, info.AmountGelColumn),
+                        Range = BuildRange(info, info.DateColumn, fromRangeRow, BatchSize),
+                        RequestedColumns = requestedColumns,
                     }, cancellationToken);
 
                 foreach (var data in sheet.Data)
@@ -316,7 +331,9 @@ namespace GoogleSheetWriter
                         if (!rowData.Cells.Any()) continue;
                         if (rowData.ContainsValue("Дата", "Год")) continue;
 
-                        var expense = factory.CreateMoneyTransfer(rowData.Cells, isIncome);
+                        var cells = rowData.Cells.ToDictionary(k => ExcelColumn.FromString(k.Key), kvp => kvp.Value);
+
+                        var expense = factory.CreateMoneyTransfer(cells, isIncome);
 
                         if (searchOptions.IsSatisfied(expense))
                         {
@@ -326,10 +343,15 @@ namespace GoogleSheetWriter
                 }
 
                 fromRangeRow += BatchSize;
-                toRangeRow += BatchSize;
             }
 
             return expenses;
+        }
+        
+        private string BuildRange(ListInfo listInfo, ExcelColumn firstColumn, int startRow, int rowCount)
+        {
+            var lastColumn = listInfo.GetLastExcelColumn();
+            return $"{listInfo.ListName}!{firstColumn.Name}{startRow}:{lastColumn}{startRow + rowCount - 1}";
         }
     }
 }

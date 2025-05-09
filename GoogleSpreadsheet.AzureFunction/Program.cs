@@ -22,7 +22,6 @@ var host = new HostBuilder()
             var instance = ActivatorUtilities.CreateInstance<SheetOptions>(s) as SheetOptions;
             instance.EveryDayExpenses = new ListInfo()
             {
-                IsIncome = false,
                 ListName = "Повседневные",
                 
                 YearToFirstExcelRow = new Dictionary<int, int>()
@@ -33,73 +32,75 @@ var host = new HostBuilder()
                     [2025] = 10800,
                 },
                 
-                YearColumn = "A",
-                MonthColumn = "B",
-                DateColumn = "C",
-                CategoryColumn = "D",
-                SubCategoryColumn = "E",
-                DescriptionColumn = "F",
-                AmountRurColumn = "G",
-                AmountAmdColumn = "H",
-                AmountGelColumn = "I"
+                YearColumn = ExcelColumn.FromString("A"),
+                MonthColumn = ExcelColumn.FromString("B"),
+                DateColumn = ExcelColumn.FromString("C"),
+                CategoryColumn = ExcelColumn.FromString("D"),
+                SubCategoryColumn = ExcelColumn.FromString("E"),
+                DescriptionColumn = ExcelColumn.FromString("F"),
+                AmountRurColumn = ExcelColumn.FromString("G"),
+                AmountAmdColumn = ExcelColumn.FromString("H"),
+                AmountGelColumn = ExcelColumn.FromString("I"),
+                AmountUsdColumn = ExcelColumn.FromString("J"),
             };
             instance.FlatInfo = new ListInfo()
             {
-                IsIncome = false,
                 ListName = "Квартира",
                 Category = "Квартира",
-                YearColumn = "A",
-                MonthColumn = "B",
-                DateColumn = "C",
-                SubCategoryColumn = "D",
-                DescriptionColumn = "E",
-                AmountRurColumn = "F",
-                AmountAmdColumn = "G",
-                AmountGelColumn = "H"
+                YearColumn = ExcelColumn.FromString("A"),
+                MonthColumn = ExcelColumn.FromString("B"),
+                DateColumn = ExcelColumn.FromString("C"),
+                CategoryColumn = ExcelColumn.FromString("D"),
+                DescriptionColumn = ExcelColumn.FromString("E"),
+                AmountRurColumn = ExcelColumn.FromString("F"),
+                AmountAmdColumn = ExcelColumn.FromString("G"),
+                AmountGelColumn = ExcelColumn.FromString("H"),
+                AmountUsdColumn = ExcelColumn.FromString("I"),
             };
             instance.BigDealInfo = new ListInfo()
             {
-                IsIncome = false,
                 ListName = "Крупные",
-                DateColumn = "C",
-                CategoryColumn = "D",
-                DescriptionColumn = "E",
-                AmountRurColumn = "F",
-                AmountAmdColumn = "G",
-                AmountGelColumn = "H",
+                DateColumn = ExcelColumn.FromString("C"),
+                CategoryColumn = ExcelColumn.FromString("D"),
+                DescriptionColumn = ExcelColumn.FromString("E"),
+                AmountRurColumn = ExcelColumn.FromString("F"),
+                AmountAmdColumn = ExcelColumn.FromString("G"),
+                AmountGelColumn = ExcelColumn.FromString("H"),
+                AmountUsdColumn = ExcelColumn.FromString("I"),
             };
             instance.CurrencyConversion = new ListInfo()
             {
-                IsIncome = false,
                 ListName = "Обмен валюты",
                 Category = "Обмен валюты",
-                DateColumn = "C",
-                AmountRurColumn = "H",
-                AmountAmdColumn = "I",
-                AmountGelColumn = "J"
+                DateColumn = ExcelColumn.FromString("C"),
+                AmountRurColumn = ExcelColumn.FromString("H"),
+                AmountAmdColumn = ExcelColumn.FromString("I"),
+                AmountGelColumn = ExcelColumn.FromString("J"),
             };
             instance.CurrencyConversionIncome = new ListInfo()
             {
                 IsIncome = true,
                 ListName = "Обмен валюты",
                 Category = "Обмен валюты",
-                DateColumn = "C",
-                AmountRurColumn = "L",
-                AmountAmdColumn = "M",
-                AmountGelColumn = "P"
+                DateColumn = ExcelColumn.FromString("C"),
+                AmountRurColumn = ExcelColumn.FromString("L"),
+                AmountAmdColumn = ExcelColumn.FromString("M"),
+                AmountUsdColumn = ExcelColumn.FromString("O"),
+                AmountGelColumn = ExcelColumn.FromString("P")
             };
             instance.Incomes = new ListInfo()
             {
                 IsIncome = true,
                 ListName = "Доходы",
-                YearColumn = "A",
-                MonthColumn = "B",
-                DateColumn = "C",
-                CategoryColumn = "D",
-                DescriptionColumn = "E",
-                AmountRurColumn = "F",
-                AmountAmdColumn = "G",
-                AmountGelColumn = "H"
+                YearColumn = ExcelColumn.FromString("A"),
+                MonthColumn = ExcelColumn.FromString("B"),
+                DateColumn = ExcelColumn.FromString("C"),
+                CategoryColumn = ExcelColumn.FromString("D"),
+                DescriptionColumn = ExcelColumn.FromString("E"),
+                AmountRurColumn = ExcelColumn.FromString("F"),
+                AmountAmdColumn = ExcelColumn.FromString("G"),
+                AmountGelColumn = ExcelColumn.FromString("H"),
+                AmountUsdColumn = ExcelColumn.FromString("I"),
             };
             return instance;
         });

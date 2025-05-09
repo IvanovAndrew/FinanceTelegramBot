@@ -59,7 +59,7 @@ public class GoogleSheetAzureFunction
         }
         catch (Exception e)
         {
-            _logger.LogError("Couldn't save an expense: {e}", e);
+            _logger.LogError("Couldn't read an expense: {e}", e);
             response.StatusCode = HttpStatusCode.InternalServerError;
             await response.WriteStringAsync(e.ToString(), cancellationToken);
         }
