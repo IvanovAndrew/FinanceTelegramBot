@@ -42,6 +42,7 @@ var host = new HostBuilder()
                 AmountAmdColumn = ExcelColumn.FromString("H"),
                 AmountGelColumn = ExcelColumn.FromString("I"),
                 AmountUsdColumn = ExcelColumn.FromString("J"),
+                AmountEurColumn = ExcelColumn.FromString("K"),
             };
             instance.FlatInfo = new ListInfo()
             {
@@ -56,6 +57,7 @@ var host = new HostBuilder()
                 AmountAmdColumn = ExcelColumn.FromString("G"),
                 AmountGelColumn = ExcelColumn.FromString("H"),
                 AmountUsdColumn = ExcelColumn.FromString("I"),
+                AmountEurColumn = ExcelColumn.FromString("K"),
             };
             instance.BigDealInfo = new ListInfo()
             {
@@ -67,6 +69,7 @@ var host = new HostBuilder()
                 AmountAmdColumn = ExcelColumn.FromString("G"),
                 AmountGelColumn = ExcelColumn.FromString("H"),
                 AmountUsdColumn = ExcelColumn.FromString("I"),
+                AmountEurColumn = ExcelColumn.FromString("J"),
             };
             instance.CurrencyConversion = new ListInfo()
             {
@@ -85,6 +88,7 @@ var host = new HostBuilder()
                 DateColumn = ExcelColumn.FromString("C"),
                 AmountRurColumn = ExcelColumn.FromString("L"),
                 AmountAmdColumn = ExcelColumn.FromString("M"),
+                AmountEurColumn = ExcelColumn.FromString("N"),
                 AmountUsdColumn = ExcelColumn.FromString("O"),
                 AmountGelColumn = ExcelColumn.FromString("P")
             };
@@ -101,6 +105,7 @@ var host = new HostBuilder()
                 AmountAmdColumn = ExcelColumn.FromString("G"),
                 AmountGelColumn = ExcelColumn.FromString("H"),
                 AmountUsdColumn = ExcelColumn.FromString("I"),
+                AmountEurColumn = ExcelColumn.FromString("J"),
             };
             return instance;
         });
