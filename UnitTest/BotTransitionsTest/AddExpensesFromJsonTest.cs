@@ -1,14 +1,14 @@
 ﻿using System.Net.Mime;
 using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class AddExpensesFromJsonTest
 {
-    [Test]
+    [Fact]
     public async Task AfterClickingOnOutcomesFromJsonTheFileIsRequired()
     {
         // Arrange
@@ -38,12 +38,12 @@ public class AddExpensesFromJsonTest
         lastMessage = await botEngine.Proceed("json");
         
         // Assert
-        CollectionAssert.AreEquivalent("Paste a json file", lastMessage.Text);
+        Assert.Equivalent("Paste a json file", lastMessage.Text);
     }
     
-    [TestCase(MediaTypeNames.Application.Pdf)]
-    [TestCase(MediaTypeNames.Application.Xml)]
-    [TestCase(MediaTypeNames.Text.Plain)]
+    [InlineData(MediaTypeNames.Application.Pdf)]
+    [InlineData(MediaTypeNames.Application.Xml)]
+    [InlineData(MediaTypeNames.Text.Plain)]
     public async Task PastedFileShouldHaveJsonFormat(string mimeType)
     {
         // Arrange
@@ -69,10 +69,10 @@ public class AddExpensesFromJsonTest
         lastMessage = await botEngine.ProceedFile(telegramFile);
         
         // Assert
-        CollectionAssert.AreEquivalent("Paste a json file", lastMessage.Text);
+        Assert.Equivalent("Paste a json file", lastMessage.Text);
     }
     
-    [Test]
+    [Fact]
     public async Task AllOutcomesFromJsonFileAreSaved()
     {
         // Arrange
@@ -105,6 +105,6 @@ public class AddExpensesFromJsonTest
         lastMessage = await botEngine.ProceedFile(telegramFile);
         
         // Assert
-        Assert.That(telegramBot.SentMessages.Any(c => c.Text.Contains("All expenses are saved", StringComparison.InvariantCultureIgnoreCase)));
+        Assert.Contains(telegramBot.SentMessages, c => c.Text.Contains("All expenses are saved", StringComparison.InvariantCultureIgnoreCase));
     }
 }

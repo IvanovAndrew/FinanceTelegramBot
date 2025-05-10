@@ -1,13 +1,13 @@
 ﻿using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class StatisticForAMonthTest
 {
-    [Test]
+    [Fact]
     public async Task StatisticForAMonthAllowsToChooseBetweenCurrentPreviousAndEnterCustomMonth()
     {
         // Arrange
@@ -62,17 +62,17 @@ public class StatisticForAMonthTest
 
 
         // Assert
-        Assert.That(response.Options, Is.Not.Null);
+        Assert.NotNull(response.Options);
         
         var buttons = response.Options.AllOptions().Select(_ => _.Text);
         
-        CollectionAssert.Contains(buttons, "July 2023");
-        CollectionAssert.Contains(buttons, "June 2023");
-        CollectionAssert.Contains(buttons, "January 2023");
-        CollectionAssert.Contains(buttons, "Another month");
+        Assert.Contains("July 2023", buttons);
+        Assert.Contains("June 2023", buttons);
+        Assert.Contains("January 2023", buttons);
+        Assert.Contains("Another month", buttons);
     }
 
-    [Test]
+    [Fact]
     public async Task StatisticForACustomMonth()
     {
         // Arrange
@@ -133,11 +133,11 @@ public class StatisticForAMonthTest
         var table = lastMessage.Table;
 
         // Assert
-        Assert.That(table, Is.Not.Null);
-        StringAssert.Contains("Statistic", table.Title);
-        StringAssert.Contains("May 2023", table.Subtitle);
-        CollectionAssert.Contains(table.ColumnNames, "Category");
-        CollectionAssert.Contains(table.Rows.Select(c => c.FirstColumnValue), "Cats");
-        CollectionAssert.Contains(table.Rows.Select(c => c.FirstColumnValue), "Total");
+        Assert.NotNull(table);
+        Assert.Contains("Statistic", table.Title);
+        Assert.Contains("May 2023", table.Subtitle);
+        Assert.Contains("Category", table.ColumnNames);
+        Assert.Contains("Cats", table.Rows.Select(c => c.FirstColumnValue));
+        Assert.Contains("Total", table.Rows.Select(c => c.FirstColumnValue));
     }
 }

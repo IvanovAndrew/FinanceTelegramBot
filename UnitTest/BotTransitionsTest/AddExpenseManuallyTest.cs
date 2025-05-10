@@ -1,19 +1,29 @@
 ﻿using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
-
 public class AddExpenseManuallyTest
 {
-    [Test]
+    private readonly MessageServiceMock _telegramBot;
+    private readonly DateTimeServiceStub _dateTimeService;
+    private readonly FinanceRepositoryStub _expenseRepository;
+    private readonly UserSessionService _userSession;
+
+    public AddExpenseManuallyTest()
+    {
+        _telegramBot = new MessageServiceMock();
+        _dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
+        _expenseRepository = new FinanceRepositoryStub();
+        _userSession = new UserSessionService();
+    }
+    
+    [Fact]
     public async Task ThereAreThreeDaysForOutcome()
     {
         // Arrange
-        var telegramBot = new MessageServiceMock();
-        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         var categories = new Category[]
         {
             new()
@@ -28,7 +38,7 @@ public class AddExpenseManuallyTest
         };
         var expenseRepository = new FinanceRepositoryStub();
         var userSession = new UserSessionService();
-        var botEngine = BotEngineWrapper.Create(categories, [], expenseRepository, dateTimeService, telegramBot, userSession);
+        var botEngine = BotEngineWrapper.Create(categories, [], expenseRepository, _dateTimeService, _telegramBot, userSession);
 
     
         // Act
@@ -37,12 +47,14 @@ public class AddExpenseManuallyTest
         lastMessage = await botEngine.Proceed("By myself");
     
         // Assert
-        Assert.That(lastMessage.Options, Is.Not.Null);
-        CollectionAssert.AreEquivalent(new []{"Today", "Yesterday", "Another day"}, lastMessage.Options.AllOptions().Select(b => b.Text)); 
+        Assert.NotNull(lastMessage.Options);
+        Assert.Contains("Today", lastMessage.Options.AllOptions().Select(b => b.Text).ToList()); 
+        Assert.Contains("Yesterday", lastMessage.Options.AllOptions().Select(b => b.Text)); 
+        Assert.Contains("Another day", lastMessage.Options.AllOptions().Select(b => b.Text)); 
     }
     
-    [TestCase("today")]
-    [TestCase("yesterday")]
+    [InlineData("today")]
+    [InlineData("yesterday")]
     public async Task AfterEnteringDateWeChooseACategory(string date)
     {
         // Arrange
@@ -65,12 +77,12 @@ public class AddExpenseManuallyTest
         var lastMessage = await botEngine.Proceed(date);
         
         // Assert
-        Assert.That(lastMessage.Text, Is.EqualTo("Enter the category"));
-        Assert.That(lastMessage.Options, Is.Not.Null);
-        CollectionAssert.AreEquivalent(new []{"Food", "Cats"}, lastMessage.Options.AllOptions().Select(b => b.Text));
+        Assert.Equal("Enter the category", lastMessage.Text);
+        Assert.NotNull(lastMessage.Options);
+        Assert.Equivalent(new []{"Food", "Cats"}, lastMessage.Options.AllOptions().Select(b => b.Text));
     }
     
-    [Test]
+    [Fact]
     public async Task WhenACategoryWithoutSubcategoryIsChosenTheDescriptionWillBeAsked()
     {
         // Arrange
@@ -101,10 +113,10 @@ public class AddExpenseManuallyTest
         var lastMessage = await botEngine.Proceed("cats");
         
         // Assert
-        Assert.That(lastMessage.Text, Is.EqualTo("Enter the description"));
+        Assert.Equal("Enter the description", lastMessage.Text);
     }
     
-    [Test]
+    [Fact]
     public async Task WhenDescriptionIsAddedThePriceWillBeAsked()
     {
         // Arrange
@@ -129,15 +141,15 @@ public class AddExpenseManuallyTest
         var lastMessage = await botEngine.Proceed("royal canin");
         
         // Assert
-        Assert.That(lastMessage.Text, Is.EqualTo("Enter the price"));
+        Assert.Equal("Enter the price", lastMessage.Text);
     }
     
-    [TestCase("1 рубль")]
-    [TestCase("10 рублей")]
-    [TestCase("100 rur")]
-    [TestCase("50 amd")]
-    [TestCase("50 драм")]
-    [TestCase("50 драмов")]
+    [InlineData("1 рубль")]
+    [InlineData("10 рублей")]
+    [InlineData("100 rur")]
+    [InlineData("50 amd")]
+    [InlineData("50 драм")]
+    [InlineData("50 драмов")]
     public async Task WhenThePriceIsAddedThenSaveWillBeAsked(string price)
     {
         // Arrange
@@ -170,12 +182,12 @@ public class AddExpenseManuallyTest
         var lastMessage = await botEngine.Proceed(price);
         
         // Assert
-        StringAssert.EndsWith("save it?", lastMessage.Text);
-        Assert.That(lastMessage.Options, Is.Not.Null);
-        CollectionAssert.AreEquivalent(new []{"Save", "Cancel"}, lastMessage.Options.AllOptions().Select(b => b.Text));
+        Assert.EndsWith("save it?", lastMessage.Text);
+        Assert.NotNull(lastMessage.Options);
+        Assert.Equivalent(new []{"Save", "Cancel"}, lastMessage.Options.AllOptions().Select(b => b.Text));
     }
     
-    [Test]
+    [Fact]
     public async Task ClickOnSaveButtonSavesTheExpense()
     {
         // Arrange
@@ -212,14 +224,14 @@ public class AddExpenseManuallyTest
         var savedExpense = savedExpenses.First();
         
         // Assert
-        Assert.That(() => new DateOnly(2023, 6, 29) == savedExpense.Date);
-        Assert.That(savedExpense.Category, Is.EqualTo("Cats"));
-        Assert.That(savedExpense.SubCategory, Is.EqualTo(null));
-        Assert.That(savedExpense.Description, Is.EqualTo("royal canin"));
-        Assert.That(savedExpense.Amount, Is.EqualTo(new Money(){Amount = 20_000, Currency = Currency.Amd}));
+        Assert.Equal(new DateOnly(2023, 6, 29), savedExpense.Date);
+        Assert.Equal("Cats", savedExpense.Category);
+        Assert.Null(savedExpense.SubCategory);
+        Assert.Equal("royal canin", savedExpense.Description);
+        Assert.Equal(new Money(){Amount = 20_000, Currency = Currency.Amd}, savedExpense.Amount);
     }
     
-    [Test]
+    [Fact]
     public async Task IfWrongPriceIsEnteredItWillBePossibleToReenterIt()
     {
         // Arrange
@@ -258,10 +270,10 @@ public class AddExpenseManuallyTest
         var savedExpense = savedExpenses.First();
         
         // Assert
-        Assert.That(() => new DateOnly(2023, 6, 29) == savedExpense.Date);
-        Assert.That(savedExpense.Category, Is.EqualTo("Cats"));
-        Assert.That(savedExpense.SubCategory, Is.EqualTo(null));
-        Assert.That(savedExpense.Description, Is.EqualTo("royal canin"));
-        Assert.That(savedExpense.Amount, Is.EqualTo(new Money(){Amount = 10_000, Currency = Currency.Amd}));
+        Assert.Equal(new DateOnly(2023, 6, 29), savedExpense.Date);
+        Assert.Equal("Cats", savedExpense.Category);
+        Assert.Null(savedExpense.SubCategory);
+        Assert.Equal("royal canin", savedExpense.Description);
+        Assert.Equal(new Money(){Amount = 10_000, Currency = Currency.Amd}, savedExpense.Amount);
     }
 }

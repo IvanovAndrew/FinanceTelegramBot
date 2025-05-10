@@ -1,13 +1,13 @@
 ﻿using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class StatisticForASubcategoryByMonthsTest
 {
-    [Test]
+    [Fact]
     public async Task StatisticForASubcategoryByMonths()
     {
         // Arrange
@@ -67,17 +67,17 @@ public class StatisticForASubcategoryByMonthsTest
         // Assert
         var table = lastMessage.Table;
         
-        Assert.That(table, Is.Not.Null);
-        StringAssert.Contains("Statistic", table.Title);
-        StringAssert.Contains("July 2023", table.Subtitle);
-        StringAssert.Contains("Category: Food", table.Subtitle);
-        StringAssert.Contains("Subcategory: Snacks", table.Subtitle);
-        CollectionAssert.AreEquivalent(new string[] {"Month", "AMD"}, table.ColumnNames);
-        Assert.That(table.Rows.First().CurrencyValues[Currency.Amd].Amount, Is.EqualTo(1000m));
-        StringAssert.Contains("Total", table.Rows.Last().FirstColumnValue);
+        Assert.NotNull(table);
+        Assert.Contains("Statistic", table.Title);
+        Assert.Contains("July 2023", table.Subtitle);
+        Assert.Contains("Category: Food", table.Subtitle);
+        Assert.Contains("Subcategory: Snacks", table.Subtitle);
+        Assert.Equivalent(new string[] {"Month", "AMD"}, table.ColumnNames);
+        Assert.Equal(1000m, table.Rows.First().CurrencyValues[Currency.Amd].Amount);
+        Assert.Contains("Total", table.Rows.Last().FirstColumnValue);
     }
     
-    [Test]
+    [Fact]
     public async Task StatisticForASubCategoryByMonthsIsSortedChronologically()
     {
         // Arrange
@@ -121,11 +121,11 @@ public class StatisticForASubcategoryByMonthsTest
         var table = lastMessage.Table;
         
         // Assert
-        Assert.That(table, Is.Not.Null);
+        Assert.NotNull(table);
         CollectionAssertExtension.AssertOrder(table.Rows.Select(row => row.FirstColumnValue).ToList(), "May 2023", "June 2023", "July 2023");
     }
     
-    [Test]
+    [Fact]
     public async Task StatisticForASubCategoryWithCustomDateRange()
     {
         // Arrange
@@ -171,15 +171,15 @@ public class StatisticForASubcategoryByMonthsTest
         // Assert
         var table = lastMessage.Table;
         
-        Assert.That(table, Is.Not.Null);
-        Assert.That(table.Title, Is.EqualTo("Statistic"));
-        StringAssert.Contains("January 2022", table.Subtitle);
-        StringAssert.Contains("Category", table.Subtitle);
-        StringAssert.Contains("Food", table.Subtitle);
-        StringAssert.Contains("Subcategory", table.Subtitle);
-        StringAssert.Contains("Snacks", table.Subtitle);
+        Assert.NotNull(table);
+        Assert.Equal("Statistic", table.Title);
+        Assert.Contains("January 2022", table.Subtitle);
+        Assert.Contains("Category", table.Subtitle);
+        Assert.Contains("Food", table.Subtitle);
+        Assert.Contains("Subcategory", table.Subtitle);
+        Assert.Contains("Snacks", table.Subtitle);
         
-        CollectionAssert.Contains(table.Rows.Select(r => r.FirstColumnValue), "July 2023");
-        CollectionAssert.Contains(table.Rows.Select(r => r.FirstColumnValue), "Total");
+        Assert.Contains("July 2023", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
 }

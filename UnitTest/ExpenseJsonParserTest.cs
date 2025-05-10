@@ -1,12 +1,12 @@
 ﻿using Domain;
 using Infrastructure.Fns;
-using NUnit.Framework;
+using Xunit;
 
 namespace UnitTest;
 
 public class ExpenseJsonParserTest
 {
-    [Test]
+    [Fact]
     public void Parse()
     {
         var text = @"
@@ -55,8 +55,8 @@ public class ExpenseJsonParserTest
         var parser = new ExpenseJsonParser();
         var expenses = parser.Parse(text, "Еда", Currency.Rur).ToList();
 
-        Assert.That(expenses.Count, Is.EqualTo(4));
-        CollectionAssert.AreEquivalent(
+        Assert.Equal(4, expenses.Count);
+        Assert.Equivalent(
             new []
             {
                 new Money(){Currency = Currency.Rur, Amount = 334},
@@ -66,7 +66,7 @@ public class ExpenseJsonParserTest
             }, expenses.Select(c => c.Amount));
     }
     
-    [Test]
+    [Fact]
     public void Parse2()
     {
         var text = @"{
@@ -261,8 +261,8 @@ public class ExpenseJsonParserTest
         var parser = new ExpenseJsonParser();
         var expenses = parser.Parse(text, "Еда", Currency.Rur).ToList();
 
-        Assert.That(expenses.Count, Is.EqualTo(11));
-        CollectionAssert.AreEquivalent(
+        Assert.Equal(11, expenses.Count);
+        Assert.Equivalent(
             new []
             {
                 new Money(){Currency = Currency.Rur, Amount = 39.99m},

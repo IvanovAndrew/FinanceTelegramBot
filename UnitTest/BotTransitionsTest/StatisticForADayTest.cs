@@ -1,13 +1,13 @@
 ﻿using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class StatisticForADayTest
 {
-    [Test]
+    [Fact]
     public async Task StatisticForADay()
     {
         // Arrange
@@ -42,16 +42,16 @@ public class StatisticForADayTest
         // Assert
         var table = lastMessage.Table;
         
-        Assert.That(table, Is.Not.Null);
-        StringAssert.Contains("Statistic", table.Title);
-        StringAssert.Contains("23 July 2023", table?.Subtitle ?? string.Empty);
-        CollectionAssert.AreEquivalent(new []{"Category", "AMD"}, table?.ColumnNames);
-        CollectionAssert.Contains( table.Rows.Select(r => r.FirstColumnValue), "Cats");
-        CollectionAssert.Contains( table.Rows.Select(r => r.FirstColumnValue), "Food");
-        CollectionAssert.Contains( table.Rows.Select(r => r.FirstColumnValue), "Total");
+        Assert.NotNull(table);
+        Assert.Contains("Statistic", table.Title);
+        Assert.Contains("23 July 2023", table?.Subtitle ?? string.Empty);
+        Assert.Equivalent(new []{"Category", "AMD"}, table?.ColumnNames);
+        Assert.Contains("Cats", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Food", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
     
-    [Test]
+    [Fact]
     public async Task StatisticForADayAllowsToChooseBetweenTodayYesterdayAndEnterCustomDate()
     {
         // Arrange
@@ -89,15 +89,15 @@ public class StatisticForADayTest
         
 
         // Assert
-        Assert.That(response.Options, Is.Not.Null);
+        Assert.NotNull(response.Options);
         
         var buttons = response.Options.AllOptions().Select(_ => _.Text);
-        CollectionAssert.Contains(buttons, "Today");
-        CollectionAssert.Contains(buttons, "Yesterday");
-        CollectionAssert.Contains(buttons, "Another day");
+        Assert.Contains("Today", buttons);
+        Assert.Contains("Yesterday", buttons);
+        Assert.Contains("Another day", buttons);
     }
     
-    [Test]
+    [Fact]
     public async Task StatisticForACustomDay()
     {
         // Arrange
@@ -140,11 +140,11 @@ public class StatisticForADayTest
         // Assert
         var table = lastMessage.Table;
         
-        Assert.That(table, Is.Not.Null);
-        StringAssert.Contains("22 July 2023", table.Subtitle);
-        CollectionAssert.Contains(table.ColumnNames, "Category");
-        CollectionAssert.Contains(table.Rows.Select(c => c.FirstColumnValue), "Cats");
-        Assert.That(table.Rows.First(r => r.FirstColumnValue == "Cats").CurrencyValues[Currency.Amd].Amount, Is.EqualTo(10_000m));
-        CollectionAssert.Contains(table.Rows.Select(c => c.FirstColumnValue), "Total");
+        Assert.NotNull(table);
+        Assert.Contains("22 July 2023", table.Subtitle);
+        Assert.Contains("Category", table.ColumnNames);
+        Assert.Contains("Cats", table.Rows.Select(c => c.FirstColumnValue));
+        Assert.Equal(10_000m, table.Rows.First(r => r.FirstColumnValue == "Cats").CurrencyValues[Currency.Amd].Amount);
+        Assert.Contains("Total", table.Rows.Select(c => c.FirstColumnValue));
     }
 }

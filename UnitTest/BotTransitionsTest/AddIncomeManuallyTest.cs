@@ -1,13 +1,13 @@
 ﻿using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class AddIncomeManuallyTest
 {
-    [Test]
+    [Fact]
     public async Task ClickOnSaveButtonSavesTheIncome()
     {
         // Arrange
@@ -42,10 +42,10 @@ public class AddIncomeManuallyTest
         var savedIncome = savedIncomes.First();
         
         // Assert
-        StringAssert.EndsWith("Saved", lastMessage.Text);
-        Assert.That(() => new DateOnly(2024, 9, 8) == savedIncome.Date);
-        Assert.That(savedIncome.Category, Is.EqualTo("Other"));
-        Assert.That(savedIncome.Description, Is.EqualTo("Improvisation class"));
-        Assert.That(savedIncome.Amount, Is.EqualTo(new Money(){Amount = 8_000, Currency = Currency.Amd}));
+        Assert.EndsWith("Saved", lastMessage.Text);
+        Assert.Equal(new DateOnly(2024, 9, 8), savedIncome.Date);
+        Assert.Equal("Other", savedIncome.Category);
+        Assert.Equal("Improvisation class", savedIncome.Description);
+        Assert.Equal(new Money(){Amount = 8_000, Currency = Currency.Amd}, savedIncome.Amount);
     }
 }

@@ -1,11 +1,11 @@
 ﻿using Domain;
-using NUnit.Framework;
+using Xunit;
 
 namespace UnitTest;
 
 public class AggregatorTest
 {
-    [Test]
+    [Fact]
     public void CategorySum()
     {
         var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, false);
@@ -37,14 +37,14 @@ public class AggregatorTest
         var statistics = expenseAggregator.Aggregate(expenses, currencies);
 
         var catsExpenses = statistics.Rows.First(c => c.Row == "Cats");
-        Assert.That(catsExpenses[Currency.Amd], Is.EqualTo(new Money(){Amount = 15_000m, Currency = Currency.Amd}));
-        Assert.That(catsExpenses[Currency.Rur], Is.EqualTo(new Money(){Amount = 1_000m, Currency = Currency.Rur}));
+        Assert.Equal(new Money(){Amount = 15_000m, Currency = Currency.Amd}, catsExpenses[Currency.Amd]);
+        Assert.Equal(new Money(){Amount = 1_000m, Currency = Currency.Rur}, catsExpenses[Currency.Rur]);
         
-        Assert.That(statistics.Total[Currency.Amd], Is.EqualTo(new Money(){Amount = 15_000m, Currency = Currency.Amd}));
-        Assert.That(statistics.Total[Currency.Rur], Is.EqualTo(new Money(){Amount = 1_300m, Currency = Currency.Rur}));
+        Assert.Equal(new Money(){Amount = 15_000m, Currency = Currency.Amd}, statistics.Total[Currency.Amd]);
+        Assert.Equal(new Money(){Amount = 1_300m, Currency = Currency.Rur}, statistics.Total[Currency.Rur]);
     }
     
-    [Test]
+    [Fact]
     public void TotalsCalculation()
     {
         var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, false);
@@ -75,11 +75,11 @@ public class AggregatorTest
         };
         var statistics = expenseAggregator.Aggregate(expenses, currencies);
 
-        Assert.That(statistics.Total[Currency.Amd], Is.EqualTo(new Money(){Amount = 15_000m, Currency = Currency.Amd}));
-        Assert.That(statistics.Total[Currency.Rur], Is.EqualTo(new Money(){Amount = 1_300m, Currency = Currency.Rur}));
+        Assert.Equal(new Money(){Amount = 15_000m, Currency = Currency.Amd}, statistics.Total[Currency.Amd]);
+        Assert.Equal(new Money(){Amount = 1_300m, Currency = Currency.Rur}, statistics.Total[Currency.Rur]);
     }
     
-    [Test]
+    [Fact]
     public void UnrequestedCurrencyIsIgnored()
     {
         var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, false);
@@ -114,10 +114,10 @@ public class AggregatorTest
 
         // Assert
         var catsExpenses = statistics.Rows.First(c => c.Row == "Cats");
-        Assert.That(catsExpenses[Currency.Amd], Is.EqualTo(new Money(){Amount = 15_000m, Currency = Currency.Amd}));
+        Assert.Equal(new Money(){Amount = 15_000m, Currency = Currency.Amd}, catsExpenses[Currency.Amd]);
     }
     
-    [Test]
+    [Fact]
     public void WhenExpensesInTheCurrencyAreMissingThenZeroWillBeReturned()
     {
         var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, false);
@@ -152,12 +152,12 @@ public class AggregatorTest
 
         // Assert
         var foodExpenses = statistics.Rows.First(c => c.Row == "Food");
-        Assert.That(foodExpenses[Currency.Amd], Is.EqualTo(new Money(){Amount = 0m, Currency = Currency.Amd}));
-        Assert.That(foodExpenses[Currency.Rur], Is.EqualTo(new Money(){Amount = 300m, Currency = Currency.Rur}));
+        Assert.Equal(new Money(){Amount = 0m, Currency = Currency.Amd}, foodExpenses[Currency.Amd]);
+        Assert.Equal(new Money(){Amount = 300m, Currency = Currency.Rur}, foodExpenses[Currency.Rur]);
     }
     
     
-    [Test]
+    [Fact]
     public void DateSorting()
     {
         var expenseAggregator = new ExpensesAggregator<DateOnly>(e => e.Date, false, true);
@@ -190,7 +190,7 @@ public class AggregatorTest
         var statistics = expenseAggregator.Aggregate(expenses, currencies);
 
         // Assert
-        CollectionAssert.AreEqual(
+        Assert.Equivalent(
             new []
             {
                 DateOnly.FromDateTime(DateTime.Today.AddDays(-2)),

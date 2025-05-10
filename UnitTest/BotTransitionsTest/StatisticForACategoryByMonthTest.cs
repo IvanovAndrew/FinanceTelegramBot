@@ -1,13 +1,13 @@
 ﻿using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class StatisticForACategoryByMonthTest
 {
-    [Test]
+    [Fact]
     public async Task StatisticForACategoryWithACustomDateRange()
     {
         // Arrange
@@ -50,14 +50,14 @@ public class StatisticForACategoryByMonthTest
         // Assert
         var table = lastMessage.Table;
         Assert.NotNull(table);
-        StringAssert.Contains("Statistic", table.Title);
-        StringAssert.Contains("Category", table.Subtitle);
-        StringAssert.Contains("Food", table.Subtitle);
-        CollectionAssert.Contains(table.Rows.Select(r => r.FirstColumnValue), "July 2023");
-        CollectionAssert.Contains(table.Rows.Select(r => r.FirstColumnValue), "Total");
+        Assert.Contains("Statistic", table.Title);
+        Assert.Contains("Category", table.Subtitle);
+        Assert.Contains("Food", table.Subtitle);
+        Assert.Contains("July 2023", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
     
-    [Test]
+    [Fact]
     public async Task StatisticForACategoryByAPeriod()
     {
         // Arrange
@@ -101,10 +101,10 @@ public class StatisticForACategoryByMonthTest
         var table = lastMessage.Table;
         Assert.NotNull(table);
         
-        Assert.That(table.Title, Is.EqualTo("Statistic"));
-        StringAssert.Contains("Category", table.Subtitle);
-        StringAssert.Contains("Food", table.Subtitle);
-        CollectionAssert.Contains(table.Rows.Select(r => r.FirstColumnValue), "July 2023");
-        CollectionAssert.Contains(table.Rows.Select(r => r.FirstColumnValue), "Total");
+        Assert.Equal("Statistic", table.Title);
+        Assert.Contains("Category", table.Subtitle);
+        Assert.Contains("Food", table.Subtitle);
+        Assert.Contains("July 2023", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
 }

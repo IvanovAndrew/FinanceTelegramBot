@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace UnitTest.Extensions;
 
@@ -24,7 +24,7 @@ public static class StringAssertExtension
                 message = $"{substrings[i - 1]} should be before {substrings[i]}.";
             }
 
-            Assert.That(prevIndex < currentIndex, message);
+            Assert.True(prevIndex < currentIndex, message);
         }
     }
 }
@@ -53,7 +53,7 @@ public static class CollectionAssertExtension
                 message = $"{items[i - 1]} should be before {items[i]}.";
             }
 
-            Assert.That(previousValue < indices[i], message);
+            Assert.True(previousValue < indices[i], message);
         }
     }
 }

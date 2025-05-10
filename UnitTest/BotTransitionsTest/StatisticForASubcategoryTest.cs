@@ -1,13 +1,13 @@
 ﻿using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class StatisticForASubcategoryTest
 {
-    [Test]
+    [Fact]
     public async Task StatisticForASubcategory()
     {
         // Arrange
@@ -43,17 +43,17 @@ public class StatisticForASubcategoryTest
         var table = lastMessage.Table;
 
         // Assert
-        Assert.That(table, Is.Not.Null);
-        StringAssert.Contains("Statistic", table.Title);
-        StringAssert.Contains("Expenses from July 2022", table.Subtitle);
-        StringAssert.Contains("Category: Food", table.Subtitle);
-        StringAssert.Contains("Subcategory", table.FirstColumnName);
-        CollectionAssert.Contains(table.Rows.Select(r => r.FirstColumnValue), "Snacks");
-        CollectionAssert.Contains(table.Rows.Select(r => r.FirstColumnValue), "Products");
-        CollectionAssert.Contains(table.Rows.Select(r => r.FirstColumnValue), "Total");
+        Assert.NotNull(table);
+        Assert.Contains("Statistic", table.Title);
+        Assert.Contains("Expenses from July 2022", table.Subtitle);
+        Assert.Contains("Category: Food", table.Subtitle);
+        Assert.Contains("Subcategory", table.FirstColumnName);
+        Assert.Contains("Snacks", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Products", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
     
-    [Test]
+    [Fact]
     public async Task StatisticByASubcategoryWithCustomDateRange()
     {
         // Arrange
@@ -97,12 +97,13 @@ public class StatisticForASubcategoryTest
         var table = lastMessage.Table;
         
         // Assert
-        Assert.That(table, Is.Not.Null);
-        StringAssert.Contains("Statistic", table.Title);
-        StringAssert.Contains("Expenses from March 2022", table.Subtitle);
-        StringAssert.Contains("Category: Food", table.Subtitle);
-        CollectionAssert.IsSubsetOf(new [] {"Snacks", "Products"}, table.Rows.Select(c => c.FirstColumnValue));
-        Assert.That(table.Rows.First(c => c.FirstColumnValue == "Snacks").CurrencyValues[Currency.Amd].Amount, Is.EqualTo(1_000m));
-        CollectionAssert.Contains(table.Rows.Select(c => c.FirstColumnValue), "Total");
+        Assert.NotNull(table);
+        Assert.Contains("Statistic", table.Title);
+        Assert.Contains("Expenses from March 2022", table.Subtitle);
+        Assert.Contains("Category: Food", table.Subtitle);
+        Assert.Contains("Snacks", table.Rows.Select(c => c.FirstColumnValue));
+        Assert.Contains("Products", table.Rows.Select(c => c.FirstColumnValue));
+        Assert.Equal(1_000m, table.Rows.First(c => c.FirstColumnValue == "Snacks").CurrencyValues[Currency.Amd].Amount);
+        Assert.Contains("Total", table.Rows.Select(c => c.FirstColumnValue));
     }
 }

@@ -1,13 +1,13 @@
 using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class StateTest
 {
-    [Test]
+    [Fact]
     public async Task ThereAreTwoOptionsInGreetingState()
     {
         // Arrange
@@ -33,13 +33,13 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("/start");
         
         // Assert
-        Assert.That(lastMessage.Options, Is.Not.Null);
-        CollectionAssert.AreEquivalent(new []{"Outcome", "Income", "Statistics"}, lastMessage.Options.AllOptions().Select(c => c.Text));
+        Assert.NotNull(lastMessage.Options);
+        Assert.Equivalent(new []{"Outcome", "Income", "Statistics"}, lastMessage.Options.AllOptions().Select(c => c.Text));
     }
     
-    [TestCase("Outcome")]
-    [TestCase("Income")]
-    [TestCase("Statistics")]
+    [InlineData("Outcome")]
+    [InlineData("Income")]
+    [InlineData("Statistics")]
     public async Task AfterPressingOnAnyButtonInGreetingState_TheGreetingMessageIsDisappeared(string pressedButton)
     {
         // Arrange
@@ -67,11 +67,10 @@ public class StateTest
         await botEngine.Proceed(pressedButton);
 
         // Assert
-        CollectionAssert.DoesNotContain(telegramBot.SentMessages.Select(c => c.Text), greetingMessageText);
+        Assert.DoesNotContain(greetingMessageText, telegramBot.SentMessages.Select(c => c.Text));
     }
     
-    [Ignore("Temporarily ignored")]
-    [Test]
+    [Fact(Skip = "Temporarily ignored")]
     public async Task WhenBackCommandIsExecutedThenLastBotMessageWillBeRemoved()
     {
         // Arrange
@@ -102,10 +101,10 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("/back");
 
         // Assert
-        Assert.That(telegramBot.SentMessages.Select(c => c.Text), Is.Not.Contains("Enter the category"));
+        Assert.DoesNotContain("Enter the category", telegramBot.SentMessages.Select(c => c.Text));
     }
     
-    [Test]
+    [Fact]
     public async Task ClickOnCancelButtonCancelsLongTermOperation()
     {
         // Arrange
@@ -147,10 +146,10 @@ public class StateTest
         var savedExpenses = await expenseRepository.ReadOutcomes(new FinanceFilter(), default);
         
         // Assert
-        Assert.That(savedExpenses.Count, Is.EqualTo(0));
+        Assert.Empty(savedExpenses);
     }
     
-    [Test]
+    [Fact]
     public async Task ThereAreFiveOptionsInStatisticsState()
     {
         // Arrange
@@ -178,7 +177,7 @@ public class StateTest
         var lastMessage = await botEngine.Proceed("statistics");
 
         // Assert
-        Assert.That(lastMessage.Options, Is.Not.Null);
-        CollectionAssert.AreEquivalent(new []{"Balance", "Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, lastMessage.Options.AllOptions().Select(c => c.Text));
+        Assert.NotNull(lastMessage.Options);
+        Assert.Equivalent(new []{"Balance", "Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, lastMessage.Options.AllOptions().Select(c => c.Text));
     }
 }

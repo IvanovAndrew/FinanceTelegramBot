@@ -1,14 +1,14 @@
 ﻿using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
 using UnitTest.Stubs;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class AddExpensesFromFNSTest
 {
-    [Test]
+    [Fact]
     public async Task AddOutcomeByManualRequisites()
     {
         // Arrange
@@ -60,7 +60,7 @@ public class AddExpensesFromFNSTest
         var lastMessage = await botEngine.Proceed("1234567");
 
         // Assert
-        StringAssert.Contains("Category: Food", lastMessage.Text);
-        StringAssert.Contains("saved with", lastMessage.Text);
+        Assert.Contains("Category: Food", lastMessage.Text);
+        Assert.Contains("saved with", lastMessage.Text);
     }
 }

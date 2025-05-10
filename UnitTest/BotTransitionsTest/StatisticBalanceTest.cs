@@ -1,13 +1,13 @@
 ﻿using Domain;
 using Infrastructure;
-using NUnit.Framework;
 using UnitTest.Extensions;
+using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class StatisticBalanceTest 
 {
-    [Test]
+    [Fact]
     public async Task StatisticForADay()
     {
         // Arrange
@@ -42,10 +42,12 @@ public class StatisticBalanceTest
         // Assert
         var table = lastMessage.Table;
         
-        Assert.That(table, Is.Not.Null);
-        StringAssert.Contains("Balance", table.Title);
-        StringAssert.Contains("June 2023", table.Subtitle);
-        CollectionAssert.AreEquivalent(new []{"Balance", "AMD"}, table?.ColumnNames);
-        CollectionAssert.IsSubsetOf(new []{"Income", "Outcome", "Total"}, table.Rows.Select(r => r.FirstColumnValue));
+        Assert.NotNull(table);
+        Assert.Contains("Balance", table.Title);
+        Assert.Contains("June 2023", table.Subtitle);
+        Assert.Equal(new []{"Balance", "AMD"}, table?.ColumnNames);
+        Assert.Contains("Income", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Outcome", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
 }
