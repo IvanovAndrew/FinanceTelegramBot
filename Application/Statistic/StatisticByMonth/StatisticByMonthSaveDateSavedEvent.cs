@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Domain.Events;
+namespace Application.Statistic.StatisticByMonth;
 
 public class StatisticByMonthSaveDateSavedEvent : INotification
 {

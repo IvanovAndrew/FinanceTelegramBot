@@ -1,8 +1,7 @@
 ﻿using Domain;
-using Domain.Events;
 using MediatR;
 
-namespace Application.Statistic;
+namespace Application.Statistic.StatisticBySubcategory;
 
 public class StatisticBySubcategoryDateFromSavedEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticBySubcategoryDateFromSavedEvent>
 {
@@ -12,7 +11,7 @@ public class StatisticBySubcategoryDateFromSavedEventHandler(IUserSessionService
 
         if (session != null)
         {
-            await messageService.EditSentTextMessageAsync(
+            var message = await messageService.EditSentTextMessageAsync(
                 new Message()
                 {
                     ChatId = session.Id,
@@ -21,6 +20,8 @@ public class StatisticBySubcategoryDateFromSavedEventHandler(IUserSessionService
                     Options = MessageOptions.FromListAndLastSingleLine(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList(), "All")
                 }
                 , cancellationToken);
+
+            session.LastSentMessageId = message.Id;
         }
     }
 }

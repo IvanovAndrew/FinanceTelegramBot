@@ -2,7 +2,7 @@
 using Domain;
 using MediatR;
 
-namespace Application.Commands.StatisticBySubcategoryByMonth;
+namespace Application.Statistic.StatisticBySubcategoryByMonth;
 
 public class StatisticBySubcategoryMonthSaveDateCommand : IRequest
 {
@@ -27,8 +27,13 @@ public class StatisticBySubcategoryMonthSaveDateCommandHandler(IUserSessionServi
             }
             else
             {
+                await mediator.Publish(new CustomDateRequestedEvent()
+                {
+                    SessionId = session.Id, 
+                    Text = $"Enter the month. Example: {dateTimeService.Today().ToString("MMMM yyyy")}",
+                    LastSentMessageId = session.LastSentMessageId,
+                }, cancellationToken);
                 session.LastSentMessageId = null;
-                await mediator.Publish(new CustomDateRequestedEvent() { SessionId = session.Id }, cancellationToken);
             }
         }
     }
@@ -40,11 +45,11 @@ public class StatisticBySubcategoryByMonthDateSavedEvent : INotification
     public int? LastSentMessageId { get; init; }
 }
 
-public class StatisticBySubcategoryByMonthDateSavedEventHandler(IMessageService messageService) : INotificationHandler<StatisticBySubcategoryByMonthDateSavedEvent>
+public class StatisticBySubcategoryByMonthDateSavedEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticBySubcategoryByMonthDateSavedEvent>
 {
     public async Task Handle(StatisticBySubcategoryByMonthDateSavedEvent notification, CancellationToken cancellationToken)
     {
-        await messageService.EditSentTextMessageAsync(
+        var message = await messageService.EditSentTextMessageAsync(
             new Message()
             {
                 ChatId = notification.SessionId,
@@ -52,5 +57,11 @@ public class StatisticBySubcategoryByMonthDateSavedEventHandler(IMessageService 
                 Text = "Enter the currency",
                 Options = MessageOptions.FromListAndLastSingleLine(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList(), "All")
             }, cancellationToken);
+
+        var session = userSessionService.GetUserSession(notification.SessionId);
+        if (session != null)
+        {
+            session.LastSentMessageId = message.Id;
+        }
     }
 }

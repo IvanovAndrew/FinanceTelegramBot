@@ -12,7 +12,7 @@ public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionSe
 
         if (session != null)
         {
-            await mediator.Publish(new BalanceStatisticCollectingStarted(){SessionId = session.Id, LastSentMessageId = (int) session.LastSentMessageId!}, cancellationToken);
+            await mediator.Publish(new BalanceStatisticCollectingStarted(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId}, cancellationToken);
             
             var cancellationTokenSource = session.CancellationTokenSource = new CancellationTokenSource();
 
@@ -93,7 +93,7 @@ public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionSe
                     await mediator.Publish(new BalanceStatisticCalculatedEvent()
                     {
                         SessionId = session.Id,
-                        LastSentMessageId = (int)session.LastSentMessageId!,
+                        LastSentMessageId = session.LastSentMessageId,
                         Table = table
                     }, cancellationToken);
 
@@ -103,7 +103,7 @@ public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionSe
                 else
                 {
                     await mediator.Publish(new NeitherIncomesNotOutcomesFoundEvent()
-                        { SessionId = session.Id, LastSentMessageId = (int) session.LastSentMessageId! });
+                        { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
                 }
             }
             catch (OperationCanceledException)

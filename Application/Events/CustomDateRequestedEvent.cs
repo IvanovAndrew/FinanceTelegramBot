@@ -6,4 +6,5 @@ public class CustomDateRequestedEvent : INotification
 {
     public long SessionId { get; init; }
     public string Text { get; init; }
+    public int? LastSentMessageId { get; init; }
 }

@@ -12,14 +12,14 @@ public class StatisticBalanceSaveDateCommand : IRequest
 public class StatisticBalanceDateSaved : INotification
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
+    public int? LastSentMessageId { get; init; }
 }
 
-public class StatisticBalanceDateSavedHandler(IMessageService messageService) : INotificationHandler<StatisticBalanceDateSaved>
+public class StatisticBalanceDateSavedHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticBalanceDateSaved>
 {
     public async Task Handle(StatisticBalanceDateSaved notification, CancellationToken cancellationToken)
     {
-        await messageService.EditSentTextMessageAsync(
+        var message = await messageService.EditSentTextMessageAsync(
             new Message()
             {
                 ChatId = notification.SessionId,
@@ -27,5 +27,11 @@ public class StatisticBalanceDateSavedHandler(IMessageService messageService) : 
                 Text = "Enter the currency",
                 Options = MessageOptions.FromList(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList())
             }, cancellationToken);
+
+        var session = userSessionService.GetUserSession(notification.SessionId);
+        if (session != null)
+        {
+            session.LastSentMessageId = message.Id;
+        }
     }
 }

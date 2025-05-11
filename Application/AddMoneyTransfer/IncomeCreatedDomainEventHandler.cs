@@ -1,8 +1,6 @@
-﻿using Domain.Events;
-using Infrastructure;
-using MediatR;
+﻿using MediatR;
 
-namespace Application.Events;
+namespace Application.AddMoneyTransfer;
 
 public class IncomeCreatedDomainEventHandler(IDateTimeService dateTimeService, IMessageService messageService)
     : INotificationHandler<IncomeCreatedEvent>

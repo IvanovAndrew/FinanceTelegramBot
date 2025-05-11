@@ -1,9 +1,8 @@
 ﻿using Domain;
-using Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Events;
+namespace Application.Statistic.StatisticByMonth;
 
 public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userSessionService, IMessageService messageService, ILogger<StatisticByMonthSaveDateSavedEventHandler> logger) : INotificationHandler<StatisticByMonthSaveDateSavedEvent>
 {
@@ -14,7 +13,7 @@ public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userS
 
         if (userSession != null)
         {
-            await messageService.EditSentTextMessageAsync(
+            var message = await messageService.EditSentTextMessageAsync(
                 new Message()
                 {
                     ChatId = notification.SessionId,
@@ -23,6 +22,8 @@ public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userS
                     Options = MessageOptions.FromListAndLastSingleLine(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList(), "All")
                 },
             cancellationToken);
+
+            userSession.LastSentMessageId = message.Id;
         }
     }
 }

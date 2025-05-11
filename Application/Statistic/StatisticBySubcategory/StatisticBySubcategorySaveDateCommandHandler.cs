@@ -20,8 +20,13 @@ public class StatisticBySubcategorySaveDateCommandHandler(IUserSessionService us
             }
             else
             {
+                await mediator.Publish(new CustomDateRequestedEvent()
+                {
+                    SessionId = session.Id, 
+                    Text = $"Choose start of the period. Example: {dateTimeService.Today().ToString("MMMM yyyy")}",
+                    LastSentMessageId = session.LastSentMessageId,
+                }, cancellationToken);
                 session.LastSentMessageId = null;
-                await mediator.Publish(new CustomDateRequestedEvent() { SessionId = session.Id, Text = $"Choose start of the period. Example: {dateTimeService.Today().ToString("MMMM yyyy")}"}, cancellationToken);
             }
         }
     }

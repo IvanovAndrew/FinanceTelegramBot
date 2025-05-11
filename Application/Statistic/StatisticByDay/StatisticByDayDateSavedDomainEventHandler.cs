@@ -2,7 +2,7 @@
 using Domain.Events;
 using MediatR;
 
-namespace Application.Events;
+namespace Application.Statistic.StatisticByDay;
 
 public class StatisticByDayDateSavedDomainEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticByDayDateSavedEvent>
 {
@@ -12,7 +12,7 @@ public class StatisticByDayDateSavedDomainEventHandler(IUserSessionService userS
 
         if (session != null)
         {
-            await messageService.EditSentTextMessageAsync(
+            var message = await messageService.EditSentTextMessageAsync(
                 new Message()
                 {
                     ChatId = notification.SessionId,
@@ -20,6 +20,8 @@ public class StatisticByDayDateSavedDomainEventHandler(IUserSessionService userS
                     Text = "Enter the currency",
                     Options = MessageOptions.FromListAndLastSingleLine(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList(), "All")
                 }, cancellationToken);
+
+            session.LastSentMessageId = message.Id;
         }
     }
 }

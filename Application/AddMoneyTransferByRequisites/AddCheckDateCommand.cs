@@ -29,12 +29,13 @@ public class AddCheckDateCommandHandler(IUserSessionService userSessionService, 
             }
             else
             {
-                session.LastSentMessageId = null;
                 await mediator.Publish(new CustomDateRequestedEvent()
                 {
                     SessionId = session.Id,
+                    LastSentMessageId = session.LastSentMessageId,
                     Text = $"Enter the day. Example: {dateTimeService.Today().ToString("dd MMMM yyyy")}",
                 }, cancellationToken);
+                session.LastSentMessageId = null;
             }
         }
     }

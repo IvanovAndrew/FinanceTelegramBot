@@ -2,7 +2,7 @@
 using Domain.Events;
 using MediatR;
 
-namespace Application.Commands.StatisticByDay;
+namespace Application.Statistic.StatisticByDay;
 
 public class StatisticByDaySaveDateCommand : IRequest
 {
@@ -29,12 +29,13 @@ public class StatisticByDaySaveDateCommandHandler(IUserSessionService userSessio
             }
             else
             {
-                session.LastSentMessageId = null;
                 await mediator.Publish(new CustomDateRequestedEvent()
                 {
                     SessionId = session.Id,
+                    LastSentMessageId = session.LastSentMessageId,
                     Text = $"Enter the day. Example: {dateTimeService.Today().ToString("d MMMM yyyy")}",
                 }, cancellationToken);
+                session.LastSentMessageId = null;
             }
         }
     }

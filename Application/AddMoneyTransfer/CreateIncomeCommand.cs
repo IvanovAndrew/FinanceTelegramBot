@@ -1,4 +1,5 @@
-﻿using Domain.Events;
+﻿using Application.AddMoneyTransfer;
+using Domain.Events;
 using MediatR;
 
 namespace Application.Commands.CreateIncome;
@@ -27,7 +28,7 @@ public class CreateIncomeCommandHandler : IRequestHandler<CreateIncomeCommand>
         {
             session.QuestionnaireService = new ManualMoneyTransferQuestionnaireService();
             session.MoneyTransferBuilder = new MoneyTransferBuilder(true);
-            await _mediator.Publish(new IncomeCreatedEvent() { SessionId = session.Id, LastSentMessageId = (int) session.LastSentMessageId! }, cancellationToken);
+            await _mediator.Publish(new IncomeCreatedEvent() { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
         }
     }
 }

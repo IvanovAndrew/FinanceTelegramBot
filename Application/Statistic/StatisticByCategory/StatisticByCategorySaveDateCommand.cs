@@ -1,5 +1,4 @@
 ﻿using Application.Events;
-using Domain.Events;
 using MediatR;
 
 namespace Application.Statistic.StatisticByCategory;
@@ -28,12 +27,13 @@ public class StatisticByCategorySaveDateCommandHandler(IUserSessionService userS
             }
             else
             {
-                session.LastSentMessageId = null;
                 await mediator.Publish(new CustomDateRequestedEvent()
                 {
                     SessionId = session.Id,
+                    LastSentMessageId = session.LastSentMessageId,
                     Text = $"Enter the month. Example: {dateTimeService.Today().ToString("MMMM yyyy")}",
                 }, cancellationToken);
+                session.LastSentMessageId = null;
             }
         }
     }

@@ -11,7 +11,7 @@ public class StatisticByCategorySaveDateSavedEventHandler(IUserSessionService us
 
         if (session != null)
         {
-            await messageService.EditSentTextMessageAsync(
+            var message = await messageService.EditSentTextMessageAsync(
                 new Message()
                 {
                     ChatId = notification.SessionId,
@@ -19,6 +19,8 @@ public class StatisticByCategorySaveDateSavedEventHandler(IUserSessionService us
                     Text = "Enter the currency",
                     Options = MessageOptions.FromListAndLastSingleLine(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList(), "All")
                 }, cancellationToken);
+
+            session.LastSentMessageId = message.Id;
         }
     }
 }

@@ -66,7 +66,7 @@ public class MessageOptions
     
     public static MessageOptions FromListAndLastSingleLine(IReadOnlyCollection<string> items, string lastOption)
     {
-        return new MessageOptions(items.Select(item => new Option(item)).ToList(), singleLineOption:new Option(lastOption));
+        return new MessageOptions(items.Select(item => new Option(item)).ToList(), items.Count, singleLineOption:new Option(lastOption));
     }
 
     public IEnumerable<IReadOnlyList<Option>> Chunks()

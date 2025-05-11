@@ -1,4 +1,5 @@
 using Application.AddExpense;
+using Application.AddMoneyTransfer;
 using Application.AddMoneyTransferByRequisites;
 using Application.Commands;
 using Application.Commands.CreateIncome;
@@ -23,89 +24,20 @@ namespace Application.Services
         {
             _logger.LogInformation($"{message.Text} was received");
 
-            IRequest command = null;
+            IRequest? command = null;
 
-            if (message.Text == "/start")
+            if (message.Text.StartsWith("/"))
             {
-                command = new StartSessionCommand() { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/cancel")
-            {
-                command = new CancelSessionCommand() { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/back")
-            {
-                command = new StepBackCommand() { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/save")
-            {
-                command = new SaveMoneyTransferCommand() { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/outcome")
-            {
-                command = new CreateExpenseCommand() { SessionID = message.ChatId };
-            }
-            else if (message.Text == "/income")
-            {
-                command = new CreateIncomeCommand() { SessionID = message.ChatId };
-            }
-            else if (message.Text == "/statistics")
-            {
-                var systemEvent = new StatisticRequestedEvent { SessionId = message.ChatId };
-                await mediator.Publish(systemEvent, cancellationToken);
-                return;
-            }
-            else if (message.Text == "/balance")
-            {
-                command = new StatisticBalanceCommand { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/statisticByDay")
-            {
-                command = new StatisticByDayCommand { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/statisticByMonth")
-            {
-                command = new StatisticByMonthCommand { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/statisticByCategory")
-            {
-                command = new StatisticByCategoryCommand { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/statisticBySubcategory")
-            {
-                command = new StatisticBySubcategoryCommand { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/statisticBySubcategoryByMonth")
-            {
-                command = new StatisticBySubcategoryByMonthCommand { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/myself")
-            {
-                command = new CreateOutcomeQuestionnaireCommand() { SessionId = message.ChatId };
-            }
-            else if (message.Text == "/check")
-            {
-                var domainEvent = new CheckOutcomeQuestionnaireRequestedEvent() { SessionId = message.ChatId };
-                await mediator.Publish(domainEvent, cancellationToken);
-                return;
-            }
-            else if (message.Text == "/json")
-            {
-                var domainEvent = new JsonCheckRequestedEvent() { SessionId = message.ChatId };
-                await mediator.Publish(domainEvent, cancellationToken);
-                return;
-            }
-            else if (message.Text == "/url")
-            {
-                await mediator.Publish(new UrlLinkRequestedEvent() { SessionId = message.ChatId },
-                    cancellationToken);
-                return;
-            }
-            else if (message.Text == "/requisites")
-            {
-                await mediator.Publish(new RequisitesRequestedDomainEvent() { SessionId = message.ChatId },
-                    cancellationToken);
-                return;
+                command = MapCommand(message.Text, message.ChatId);
+                if (command == null)
+                {
+                    var appEvent = MapNotification(message.Text, message.ChatId);
+                    if (appEvent != null)
+                    {
+                        await mediator.Publish(appEvent, cancellationToken);
+                        return;
+                    }
+                }
             }
             else if (string.IsNullOrEmpty(message.Text) && message.FileInfo != null)
             {
@@ -134,6 +66,42 @@ namespace Application.Services
 
             _logger.LogInformation($"Command is {command?.ToString()}. Text is {message.Text}");
             await mediator.Send(command, cancellationToken);
+        }
+
+        private IRequest? MapCommand(string text, long chatId)
+        {
+            IRequest? command = text switch
+            {
+                "/start" => new StartSessionCommand() { SessionId = chatId },
+                "/cancel" => new CancelSessionCommand() { SessionId = chatId },
+                "/back" => new StepBackCommand() { SessionId = chatId },
+                "/save" => new SaveMoneyTransferCommand() { SessionId = chatId },
+                "/outcome" => new CreateExpenseCommand() { SessionID = chatId },
+                "/income" => new CreateIncomeCommand() { SessionID = chatId },
+                "/balance" => new StatisticBalanceCommand { SessionId = chatId },
+                "/statisticByDay" => new StatisticByDayCommand { SessionId = chatId },
+                "/statisticByMonth" => new StatisticByMonthCommand { SessionId = chatId },
+                "/statisticByCategory" => new StatisticByCategoryCommand { SessionId = chatId },
+                "/statisticBySubcategory" => new StatisticBySubcategoryCommand { SessionId = chatId },
+                "/statisticBySubcategoryByMonth" => new StatisticBySubcategoryByMonthCommand { SessionId = chatId },
+                "/myself" => new CreateOutcomeQuestionnaireCommand() { SessionId = chatId },
+                _ => null
+            };
+
+            return command;
+        }
+
+        private INotification? MapNotification(string text, long chatId)
+        {
+            return text switch
+            {
+                "/statistics" => new StatisticRequestedEvent { SessionId = chatId },
+                "/requisites" => new RequisitesRequestedDomainEvent() { SessionId = chatId },
+                "/check" => new CheckOutcomeQuestionnaireRequestedEvent() { SessionId = chatId },
+                "/json" => new JsonCheckRequestedEvent() { SessionId = chatId },
+                "/url" => new UrlLinkRequestedEvent() { SessionId = chatId },
+                _ => null
+            };
         }
     }
 }

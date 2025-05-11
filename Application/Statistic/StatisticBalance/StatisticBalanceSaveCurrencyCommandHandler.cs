@@ -15,7 +15,7 @@ public class StatisticBalanceSaveCurrencyCommandHandler(IUserSessionService user
             {
                 session.StatisticsOptions.Currency = currency;
                 session.QuestionnaireService.Next();
-                await mediator.Send(new GetBalanceStatisticCommand(){SessionId = session.Id, LastSentMessage = (int) session.LastSentMessageId!}, cancellationToken);
+                await mediator.Send(new GetBalanceStatisticCommand(){SessionId = session.Id, LastSentMessage = session.LastSentMessageId}, cancellationToken);
             }
         }
     }

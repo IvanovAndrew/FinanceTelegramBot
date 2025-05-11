@@ -48,4 +48,65 @@ public class StatisticBalanceTest
         Assert.Contains("Outcome", table.Rows.Select(r => r.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
+    
+    [Fact]
+    public async Task StatisticFromJanuary()
+    {
+        await _expenseRepository.SaveAllOutcomes(
+            new List<IMoneyTransfer>()
+            {
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+            }, default);
+        
+        // Act
+        await _botEngine.Proceed("/start");
+        await _botEngine.Proceed("Statistics");
+        await _botEngine.Proceed("Balance");
+        await _botEngine.Proceed("Another month");
+        await _botEngine.Proceed("January 2023");
+        var lastMessage = await _botEngine.Proceed("AMD");
+
+        // Assert
+        var table = lastMessage.Table;
+        
+        Assert.NotNull(table);
+        Assert.Contains("Balance", table.Title);
+        Assert.Contains("January 2023", table.Subtitle);
+        Assert.Equal(new []{"Balance", "AMD"}, table?.ColumnNames);
+        Assert.Contains("Income", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Outcome", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
+    }
+    
+    [Fact]
+    public async Task StatisticFromJanuary_Messages()
+    {
+        await _expenseRepository.SaveAllOutcomes(
+            new List<IMoneyTransfer>()
+            {
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+            }, default);
+        
+        // Act
+        await _botEngine.Proceed("/start");
+        await _botEngine.Proceed("Statistics");
+        await _botEngine.Proceed("Balance");
+        await _botEngine.Proceed("Another month");
+        await _botEngine.Proceed("January 2023");
+        var lastMessage = await _botEngine.Proceed("AMD");
+
+        // Assert
+        Assert.Equal(2, _messageService.SentMessages.Count);
+
+        var (firstMessage, secondMessage) = (_messageService.SentMessages[0], _messageService.SentMessages[1]);
+
+        Assert.Contains("Enter the month", firstMessage.Text);
+        Assert.NotNull(secondMessage.Table);
+    }
 }

@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Application.Events;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticBalance;
@@ -19,7 +20,17 @@ public class StatisticBalanceSaveDateCommandHandler(IUserSessionService sessionS
                 session.QuestionnaireService.Next();
 
                 await mediator.Publish(new StatisticBalanceDateSaved()
-                    { SessionId = session.Id, LastSentMessageId = (int)session.LastSentMessageId! }, cancellationToken);
+                    { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
+            }
+            else
+            {
+                await mediator.Publish(new CustomDateRequestedEvent()
+                {
+                    SessionId = session.Id,
+                    LastSentMessageId = session.LastSentMessageId,
+                    Text = $"Enter the month. Example: {dateTimeService.Today().ToString("MMMM yyyy")}",
+                }, cancellationToken);
+                session.LastSentMessageId = null;
             }
         }
     }

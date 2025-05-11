@@ -5,7 +5,7 @@ namespace Application.Events;
 public class OutcomeQuestionnaireChosenEvent : INotification
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
+    public int? LastSentMessageId { get; init; }
 }
 
 public class OutcomeQuestionnaireChosenEventHandler(

@@ -19,7 +19,7 @@ public class RequisitesRequestedDomainEventHandler(IUserSessionService userSessi
             session.CheckRequisites = new CheckRequisite();
 
             await mediator.Publish(new RequisitesCreatedEvent()
-                { SessionId = session.Id, LastSentMessageId = (int) session.LastSentMessageId! }, cancellationToken);
+                { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
         }
     }
 }
@@ -27,7 +27,7 @@ public class RequisitesRequestedDomainEventHandler(IUserSessionService userSessi
 public class RequisitesCreatedEvent : INotification
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
+    public int? LastSentMessageId { get; init; }
 }
 
 public class RequisitesCreatedEventHandler(IMessageService messageService) : INotificationHandler<RequisitesCreatedEvent>

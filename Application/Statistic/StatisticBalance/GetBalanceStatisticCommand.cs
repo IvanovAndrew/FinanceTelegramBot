@@ -5,7 +5,7 @@ namespace Application.Statistic.StatisticBalance;
 public class GetBalanceStatisticCommand : IRequest
 {
     public long SessionId { get; init; }
-    public int LastSentMessage { get; init; }
+    public int? LastSentMessage { get; init; }
 }
 
 public class BalanceStatisticCollectingStartedHandler(IMessageService messageService) : INotificationHandler<BalanceStatisticCollectingStarted>
@@ -25,7 +25,7 @@ public class BalanceStatisticCollectingStartedHandler(IMessageService messageSer
 public class NeitherIncomesNotOutcomesFoundEvent : INotification
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
+    public int? LastSentMessageId { get; init; }
 }
 
 public class NeitherIncomesNotOutcomesFoundEventHandler(IMessageService messageService) : INotificationHandler<NeitherIncomesNotOutcomesFoundEvent>
@@ -64,7 +64,7 @@ public class LongOperationCanceledEventHandler(IMessageService messageService) :
 public class BalanceStatisticCalculatedEvent : INotification
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
+    public int? LastSentMessageId { get; init; }
     public Table Table { get; init; }
 }
 
@@ -78,7 +78,6 @@ public class BalanceStatisticCalculatedEventHandler(IMessageService messageServi
                 ChatId = notification.SessionId,
                 Id = notification.LastSentMessageId,
                 Table = notification.Table
-            }
-        );
+            }, cancellationToken);
     }
 }

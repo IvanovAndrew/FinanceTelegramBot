@@ -1,9 +1,8 @@
 ﻿using Application.Events;
-using Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Commands.StatisticMonth;
+namespace Application.Statistic.StatisticByMonth;
 
 public class StatisticByMonthSaveDateCommand : IRequest
 {
@@ -34,12 +33,13 @@ public class StatisticByMonthSaveDateCommandHandler(IUserSessionService userSess
             }
             else
             {
-                session.LastSentMessageId = null;
                 await mediator.Publish(new CustomDateRequestedEvent()
                 {
                     SessionId = session.Id,
+                    LastSentMessageId = session.LastSentMessageId,
                     Text = $"Enter the day. Example: {dateTimeService.Today().ToString("MMMM yyyy")}",
                 }, cancellationToken);
+                session.LastSentMessageId = null;
             }
         }
         else

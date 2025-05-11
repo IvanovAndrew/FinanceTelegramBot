@@ -1,13 +1,15 @@
-﻿using Application.Events;
-using MediatR;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.AddMoneyTransfer;
 
-public class OutcomeCategoryEnteredEventHandler(IMessageService messageService, IUserSessionService userSessionService)
+public class OutcomeCategoryEnteredEventHandler(IMessageService messageService, IUserSessionService userSessionService, ILogger<OutcomeCategoryEnteredEventHandler> logger)
     : INotificationHandler<OutcomeCategoryEnteredEvent>
 {
     public async Task Handle(OutcomeCategoryEnteredEvent notification, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"{nameof(OutcomeCategoryEnteredEventHandler)} started");
+        
         var session = userSessionService.GetUserSession(notification.SessionId);
 
         if (session != null)
@@ -35,5 +37,7 @@ public class OutcomeCategoryEnteredEventHandler(IMessageService messageService, 
                 }, cancellationToken: cancellationToken);
             }
         }
+        
+        logger.LogInformation($"{nameof(OutcomeCategoryEnteredEventHandler)} finished");
     }
 }

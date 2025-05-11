@@ -1,7 +1,7 @@
 ﻿using Application.Events;
 using MediatR;
 
-namespace Application.AddExpense;
+namespace Application.AddMoneyTransfer;
 
 public class CreateOutcomeQuestionnaireCommand : IRequest
 {
@@ -21,7 +21,7 @@ public class CreateOutcomeQuestionnaireCommandHandler(IUserSessionService userSe
 
             await mediator.Publish(
                 new OutcomeQuestionnaireChosenEvent()
-                    { SessionId = session.Id, LastSentMessageId = (int) session.LastSentMessageId! }, cancellationToken);
+                    { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
         }
     }
 }
