@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using Application;
+using Domain;
 using Microsoft.Extensions.DependencyInjection;
 using UnitTest.Extensions;
 using UnitTest.Stubs;
@@ -22,9 +23,17 @@ public class AddExpensesFromFNSTest
     [Fact]
     public async Task AddOutcomeByManualRequisites()
     {
+        var checkRequisite = new CheckRequisite()
+        {
+            DateTime = new DateTime(2023, 6, 20),
+            TotalPrice = 1000.64m,
+            FiscalNumber = "1234567890123456",
+            FiscalDocumentNumber = "1234",
+            FiscalDocumentSign = "1234567"
+        };
+        
         // Arrange
-        _fnsService.Responses
-            ["t=20230620T0000&s=1000.64&fn=1234567890123456&i=1234&fp=1234567&n=1"] = new List<Outcome>()
+        _fnsService.Responses[checkRequisite] = new List<Outcome>()
         {
             new Outcome
             {

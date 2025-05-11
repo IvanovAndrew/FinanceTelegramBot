@@ -5,9 +5,9 @@ namespace UnitTest.Stubs;
 
 public class FnsServiceStub : IFnsService
 {
-    internal Dictionary<string, IReadOnlyCollection<Outcome>> Responses = new();
+    internal Dictionary<CheckRequisite, IReadOnlyCollection<Outcome>> Responses = new();
     
-    public Task<IReadOnlyCollection<Outcome>> GetCheck(string qrRaw)
+    public Task<IReadOnlyCollection<Outcome>> GetCheck(CheckRequisite qrRaw)
     {
         if (Responses.TryGetValue(qrRaw, out var value))
         {

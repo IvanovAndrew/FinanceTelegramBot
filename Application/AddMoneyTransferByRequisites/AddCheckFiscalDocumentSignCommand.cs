@@ -41,6 +41,6 @@ public class CheckDocumentSignSavedEventHandler(IUserSessionService userSessionS
 {
     public async Task Handle(CheckDocumentSignSavedEvent notification, CancellationToken cancellationToken)
     {
-        await mediator.Send(new DownloadExpenseFromFNSServiceCommand() { SessionId = notification.SessionId, Url = notification.CheckRequisite.ToQueryString()}, cancellationToken);
+        await mediator.Send(new DownloadExpenseFromFNSServiceCommand() { SessionId = notification.SessionId, CheckRequisite = notification.CheckRequisite}, cancellationToken);
     }
 }

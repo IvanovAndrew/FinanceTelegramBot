@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using Application.Events;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.AddMoneyTransferByRequisites;
 
@@ -8,10 +10,12 @@ public class AddCheckDateCommand : IRequest
     public string Date { get; init; }
 }
 
-public class AddCheckDateCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, IMediator mediator) : IRequestHandler<AddCheckDateCommand>
+public class AddCheckDateCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, IMediator mediator, ILogger<AddCheckDateCommandHandler> logger) : IRequestHandler<AddCheckDateCommand>
 {
     public async Task Handle(AddCheckDateCommand request, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"{nameof(AddCheckDateCommandHandler)} called");
+        
         var session = userSessionService.GetUserSession(request.SessionId);
 
         if (session != null)
@@ -22,6 +26,15 @@ public class AddCheckDateCommandHandler(IUserSessionService userSessionService, 
                 session.QuestionnaireService.Next();
 
                 await mediator.Publish(new CheckDateSavedEvent() { SessionId = session.Id }, cancellationToken);
+            }
+            else
+            {
+                session.LastSentMessageId = null;
+                await mediator.Publish(new CustomDateRequestedEvent()
+                {
+                    SessionId = session.Id,
+                    Text = $"Enter the day. Example: {dateTimeService.Today().ToString("dd MMMM yyyy")}",
+                }, cancellationToken);
             }
         }
     }

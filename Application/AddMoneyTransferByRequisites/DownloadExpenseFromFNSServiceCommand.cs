@@ -8,7 +8,7 @@ namespace Application.AddMoneyTransferByRequisites;
 public class DownloadExpenseFromFNSServiceCommand : IRequest
 {
     public long SessionId { get; init; }
-    public string Url { get; init; }
+    public CheckRequisite CheckRequisite { get; init; }
 }
 
 public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService userSessionService, IFnsService fnsService, IMediator mediator) : IRequestHandler<DownloadExpenseFromFNSServiceCommand>
@@ -28,14 +28,14 @@ public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService use
             
             using (cancellationTokenSource)
             {
-                outcomes = await fnsService.GetCheck(request.Url);
+                outcomes = await fnsService.GetCheck(request.CheckRequisite);
             }
 
             session.QuestionnaireService = null;
             
             await mediator.Publish(new DownloadingExpenseFinishedEvent(){SessionId = session.Id}, cancellationToken);
 
-            await mediator.Send(new SaveOutcomesBatchCommand() { SessionId = session.Id, MoneyTransfers = outcomes });
+            await mediator.Send(new SaveOutcomesBatchCommand() { SessionId = session.Id, MoneyTransfers = outcomes }, cancellationToken);
         }
     }
 }

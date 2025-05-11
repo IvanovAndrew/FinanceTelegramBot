@@ -1,6 +1,6 @@
 ﻿namespace Application;
 
-public class CheckRequisite
+public record CheckRequisite
 {
     public DateTime DateTime;
     public decimal TotalPrice;
@@ -12,7 +12,7 @@ public class CheckRequisite
 
     public string ToQueryString()
     {
-        return $"t={DateTime.ToString("yyyyMMdd'T'HHmm")}&" +
+        return $"t={DateTime:yyyyMMdd'T'HHmm}&" +
                $"s={TotalPrice}&" +
                $"fn={FiscalNumber}&" +
                $"i={FiscalDocumentNumber}&" +
