@@ -1,11 +1,10 @@
 ﻿using Application;
-using Infrastructure;
 
-namespace UnitTest;
+namespace UnitTest.Stubs;
 
 public class DateTimeServiceStub : IDateTimeService
 {
-    private readonly DateTime _now;
+    private DateTime _now;
 
     public DateTimeServiceStub(DateTime now)
     {
@@ -14,4 +13,6 @@ public class DateTimeServiceStub : IDateTimeService
 
     public DateOnly Today() => DateOnly.FromDateTime(_now);
     public DateTime Now() => _now;
+
+    public void SetToday(DateOnly dateOnly) => _now = dateOnly.ToDateTime(new TimeOnly());
 }

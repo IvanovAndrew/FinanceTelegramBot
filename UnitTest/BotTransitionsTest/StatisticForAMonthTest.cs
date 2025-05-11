@@ -1,33 +1,31 @@
 ﻿using Domain;
-using Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using UnitTest.Extensions;
+using UnitTest.Stubs;
 using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class StatisticForAMonthTest
 {
+    private readonly BotEngineWrapper _botEngine;
+    private readonly MessageServiceMock _messageService;
+    private readonly DateTimeServiceStub _dateTimeService;
+    private readonly FinanceRepositoryStub _expenseRepository;
+
+    public StatisticForAMonthTest()
+    {
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _messageService, out _);
+        _dateTimeService.SetToday(new DateOnly(2023, 7, 24));
+
+        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
+    }
+    
     [Fact]
     public async Task StatisticForAMonthAllowsToChooseBetweenCurrentPreviousAndEnterCustomMonth()
     {
         // Arrange
-        var telegramBot = new MessageServiceMock();
-        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
-        var categories = new Category[]
-        {
-            new()
-            {
-                Name = "Food",
-                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
-            },
-            new()
-            {
-                Name = "Cats",
-            }
-        };
-
-        var expenseRepository = new FinanceRepositoryStub();
-        await expenseRepository.SaveAllOutcomes(
+        await _expenseRepository.SaveAllOutcomes(
             new List<IMoneyTransfer>()
             {
                 new Outcome()
@@ -51,15 +49,11 @@ public class StatisticForAMonthTest
                     Amount = new Money() { Amount = 5_000m, Currency = Currency.Amd }
                 },
             }, default);
-        var userSessionService = new UserSessionService();
-        var botEngine = BotEngineWrapper.Create(categories, [], expenseRepository, dateTimeService, telegramBot,
-            userSessionService);
 
         // Act
-        await botEngine.Proceed("/start");
-        await botEngine.Proceed("Statistics");
-        var response = await botEngine.Proceed("Month expenses (by categories)");
-
+        await _botEngine.Proceed("/start");
+        await _botEngine.Proceed("Statistics");
+        var response = await _botEngine.Proceed("Month expenses (by categories)");
 
         // Assert
         Assert.NotNull(response.Options);
@@ -75,24 +69,9 @@ public class StatisticForAMonthTest
     [Fact]
     public async Task StatisticForACustomMonth()
     {
-        // Arrange
-        var telegramBot = new MessageServiceMock();
-        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
-        var categories = new Category[]
-        {
-            new()
-            {
-                Name = "Food",
-                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
-            },
-            new()
-            {
-                Name = "Cats",
-            }
-        };
-
-        var expenseRepository = new FinanceRepositoryStub();
-        await expenseRepository.SaveAllOutcomes(
+        
+        
+        await _expenseRepository.SaveAllOutcomes(
             new List<IMoneyTransfer>()
             {
                 new Outcome()
@@ -117,17 +96,13 @@ public class StatisticForAMonthTest
                 },
             }, default);
 
-        var userSessionService = new UserSessionService();
-        var botEngine = BotEngineWrapper.Create(categories, [], expenseRepository, dateTimeService, telegramBot,
-            userSessionService);
-
         // Act
-        await botEngine.Proceed("/start");
-        await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("Month expenses (by categories)");
-        await botEngine.Proceed("Another month");
-        await botEngine.Proceed("May 2023");
-        var lastMessage = await botEngine.Proceed("All");
+        await _botEngine.Proceed("/start");
+        await _botEngine.Proceed("Statistics");
+        await _botEngine.Proceed("Month expenses (by categories)");
+        await _botEngine.Proceed("Another month");
+        await _botEngine.Proceed("May 2023");
+        var lastMessage = await _botEngine.Proceed("All");
 
 
         var table = lastMessage.Table;

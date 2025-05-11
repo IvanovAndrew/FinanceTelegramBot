@@ -1,5 +1,5 @@
 ﻿using Domain;
-using Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using UnitTest.Extensions;
 using Xunit;
 
@@ -7,38 +7,30 @@ namespace UnitTest.BotTransitionsTest;
 
 public class AddIncomeManuallyTest
 {
+    private readonly BotEngineWrapper _botEngine;
+    private readonly FinanceRepositoryStub _expenseRepository;
+
+    public AddIncomeManuallyTest()
+    {
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _);
+
+        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
+    }
+    
     [Fact]
     public async Task ClickOnSaveButtonSavesTheIncome()
     {
-        // Arrange
-        var telegramBot = new MessageServiceMock();
-        var dateTimeService = new DateTimeServiceStub(new DateTime(2024, 9, 14));
-        var outcomeCategories = new Category[]
-        {
-            new CategoryBuilder("Food").WithSubcategory("Snacks").WithSubcategory("Products").Build(),
-            new CategoryBuilder("Cats").Build(),
-        };
-
-        var incomeCategories = new Category[]
-        {
-            new CategoryBuilder("Other").Build(),
-        };
-        
-        var finanseRepository = new FinanceRepositoryStub();
-        var userSession = new UserSessionService();
-        var botEngine = BotEngineWrapper.Create(outcomeCategories, incomeCategories, finanseRepository, dateTimeService, telegramBot, userSession);
-        
         // Act
-        await botEngine.Proceed("/start");
-        await botEngine.Proceed("income");
-        await botEngine.Proceed("Another day");
-        await botEngine.Proceed("08.09.2024");
-        await botEngine.Proceed("Other");
-        await botEngine.Proceed("Improvisation class");
-        await botEngine.Proceed("8000 amd");
-        var lastMessage = await botEngine.Proceed("Save");
+        await _botEngine.Proceed("/start");
+        await _botEngine.Proceed("income");
+        await _botEngine.Proceed("Another day");
+        await _botEngine.Proceed("08.09.2024");
+        await _botEngine.Proceed("Other");
+        await _botEngine.Proceed("Improvisation class");
+        await _botEngine.Proceed("8000 amd");
+        var lastMessage = await _botEngine.Proceed("Save");
 
-        var savedIncomes = await finanseRepository.ReadIncomes(new FinanceFilter(), default);
+        var savedIncomes = await _expenseRepository.ReadIncomes(new FinanceFilter(), default);
         var savedIncome = savedIncomes.First();
         
         // Assert

@@ -59,7 +59,7 @@ internal class BotEngineWrapper
         return lastMessage;
     }
     
-    internal static BotEngineWrapper Create(Category[] outcomeCategories, Category[] incomeCategories, FinanceRepositoryStub expenseRepository, DateTimeServiceStub dateTimeService, MessageServiceMock telegramBot, IUserSessionService userSessionService, IFnsService? fnsService = null)
+    internal static BotEngineWrapper Create(ICategoryProvider categoryProvider, FinanceRepositoryStub expenseRepository, DateTimeServiceStub dateTimeService, MessageServiceMock telegramBot, IUserSessionService userSessionService, IFnsService? fnsService)
     {
         var services = new ServiceCollection();
 
@@ -70,7 +70,7 @@ internal class BotEngineWrapper
         services.AddSingleton<IMessageService>(telegramBot);
         services.AddSingleton<IUserSessionService>(userSessionService);
         services.AddSingleton<IExpenseJsonParser, ExpenseJsonParser>();
-        services.AddSingleton<ICategoryProvider>(new CategoryProviderStub(outcomeCategories, incomeCategories));
+        services.AddSingleton<ICategoryProvider>(categoryProvider);
         services.AddLogging();
 
         var provider = services.BuildServiceProvider();

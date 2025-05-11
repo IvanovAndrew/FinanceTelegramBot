@@ -1,33 +1,32 @@
 ﻿using Domain;
 using Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using UnitTest.Extensions;
+using UnitTest.Stubs;
 using Xunit;
 
 namespace UnitTest.BotTransitionsTest;
 
 public class StatisticForACategoryByMonthTest
 {
+    private readonly BotEngineWrapper _botEngine;
+    private readonly FinanceRepositoryStub _expenseRepository;
+    private readonly DateTimeServiceStub _datetimeService;
+    private readonly MessageServiceMock _messageService;
+    
+
+    public StatisticForACategoryByMonthTest()
+    {
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _datetimeService, out _messageService, out _);
+        _datetimeService.SetToday(new DateOnly(2023, 7, 24));
+
+        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
+    }
+    
     [Fact]
     public async Task StatisticForACategoryWithACustomDateRange()
     {
-        // Arrange
-        var telegramBot = new MessageServiceMock();
-        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
-        var categories = new Category[]
-        {
-            new()
-            {
-                Name = "Food",
-                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
-            },
-            new()
-            {
-                Name = "Cats",
-            }
-        };
-        
-        var expenseRepository = new FinanceRepositoryStub();
-        await expenseRepository.SaveAllOutcomes(
+        await _expenseRepository.SaveAllOutcomes(
             new List<IMoneyTransfer>()
             {
                 new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
@@ -35,17 +34,15 @@ public class StatisticForACategoryByMonthTest
                 new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food", SubCategory = "Snacks", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
                 new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
-        var userSessionService = new UserSessionService();
-        var botEngine = BotEngineWrapper.Create(categories, [], expenseRepository, dateTimeService, telegramBot, userSessionService);
         
         // Act
-        await botEngine.Proceed("/start");
-        await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("Category expenses (by months)");
-        await botEngine.Proceed("Food");
-        await botEngine.Proceed("Another month");
-        await botEngine.Proceed("January 2022");
-        var lastMessage = await botEngine.Proceed("All");
+        await _botEngine.Proceed("/start");
+        await _botEngine.Proceed("Statistics");
+        await _botEngine.Proceed("Category expenses (by months)");
+        await _botEngine.Proceed("Food");
+        await _botEngine.Proceed("Another month");
+        await _botEngine.Proceed("January 2022");
+        var lastMessage = await _botEngine.Proceed("All");
         
         // Assert
         var table = lastMessage.Table;
@@ -61,23 +58,7 @@ public class StatisticForACategoryByMonthTest
     public async Task StatisticForACategoryByAPeriod()
     {
         // Arrange
-        var telegramBot = new MessageServiceMock();
-        var dateTimeService = new DateTimeServiceStub(new DateTime(2023, 7, 24));
-        var categories = new Category[]
-        {
-            new()
-            {
-                Name = "Food",
-                Subcategories = new[] { new SubCategory() { Name = "Snacks" }, new SubCategory() { Name = "Products" } }
-            },
-            new()
-            {
-                Name = "Cats",
-            }
-        };
-        
-        var expenseRepository = new FinanceRepositoryStub();
-        await expenseRepository.SaveAllOutcomes(
+        await _expenseRepository.SaveAllOutcomes(
             new List<IMoneyTransfer>()
             {
                 new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
@@ -86,16 +67,13 @@ public class StatisticForACategoryByMonthTest
                 new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food", SubCategory = "Products", Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
             }, default);
         
-        var userSession = new UserSessionService();
-        var botEngine = BotEngineWrapper.Create(categories, [], expenseRepository, dateTimeService, telegramBot, userSession);
-        
         // Act
-        await botEngine.Proceed("/start");
-        await botEngine.Proceed("Statistics");
-        await botEngine.Proceed("Category expenses (by months)");
-        await botEngine.Proceed("Food");
-        await botEngine.Proceed("January 2023");
-        var lastMessage = await botEngine.Proceed("All");
+        await _botEngine.Proceed("/start");
+        await _botEngine.Proceed("Statistics");
+        await _botEngine.Proceed("Category expenses (by months)");
+        await _botEngine.Proceed("Food");
+        await _botEngine.Proceed("January 2023");
+        var lastMessage = await _botEngine.Proceed("All");
 
         // Assert
         var table = lastMessage.Table;
