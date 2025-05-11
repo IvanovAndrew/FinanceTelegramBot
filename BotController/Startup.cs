@@ -7,6 +7,7 @@ using Infrastructure.Fns;
 using Infrastructure.Telegram;
 using MediatR;
 using Microsoft.OpenApi.Models;
+using Refit;
 using Telegram.Bot;
 
 namespace TelegramBot
@@ -41,6 +42,8 @@ namespace TelegramBot
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UserStartedEventHandler).Assembly));
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SavingExpenseNotificationBehavior<,>));
             
+            services.AddRefitClient<IFnsApi>()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://proverkacheka.com"));
             services.AddSingleton<IFnsService, FnsService>(s =>
                 ActivatorUtilities.CreateInstance<FnsService>(s, Environment.GetEnvironmentVariable("FNS_TOKEN")));
             services.AddSingleton<ICategoryProvider, CategoryProvider>();
