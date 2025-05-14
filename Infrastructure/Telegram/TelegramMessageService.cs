@@ -158,6 +158,12 @@ public class TelegramMessageService : IMessageService
             stringBuilder.AppendLine();
         }
 
+        if (!string.IsNullOrEmpty(table.PostTableInfo))
+        {
+            stringBuilder.AppendLine(table.PostTableInfo);
+            stringBuilder.AppendLine();
+        }
+
         return stringBuilder.ToString();
     }
 

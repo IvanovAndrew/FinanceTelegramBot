@@ -1,7 +1,4 @@
-﻿using Domain;
-using Xunit;
-
-namespace UnitTest;
+﻿namespace Domain.Test;
 
 public class MoneyTest
 {

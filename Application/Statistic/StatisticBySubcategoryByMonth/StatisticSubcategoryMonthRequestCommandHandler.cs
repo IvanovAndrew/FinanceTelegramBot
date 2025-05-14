@@ -17,8 +17,8 @@ public class StatisticSubcategoryMonthRequestCommandHandler(IUserSessionService 
             {
                 DateFrom = sessionStatisticsOptions.DateFrom,
                 DateTo = sessionStatisticsOptions.DateTo,
-                Category = session.StatisticsOptions.Category?.Name,
-                Subcategory = session.StatisticsOptions.Subcategory?.Name,
+                Category = session.StatisticsOptions.Category,
+                Subcategory = session.StatisticsOptions.Subcategory,
                 Currency = sessionStatisticsOptions.Currency,
             };
             
@@ -35,8 +35,8 @@ public class StatisticSubcategoryMonthRequestCommandHandler(IUserSessionService 
                     var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
                     var statistic = expenseAggregator.Aggregate(outcomes, currencies);
 
-                    var subtitle = $"Category: {filter.Category}{Environment.NewLine}" +
-                                   $"Subcategory: {filter.Subcategory}{Environment.NewLine}" +
+                    var subtitle = $"Category: {filter.Category?.Name}{Environment.NewLine}" +
+                                   $"Subcategory: {filter.Subcategory?.Name}{Environment.NewLine}" +
                                    $"Expenses from {filter.DateFrom.Value.ToString("MMMM yyyy")}";
                     
                     await mediator.Publish(new MoneyTransferReadDomainEvent<string>()

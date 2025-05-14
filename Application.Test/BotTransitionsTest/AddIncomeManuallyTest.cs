@@ -1,9 +1,10 @@
 ﻿using Domain;
 using Microsoft.Extensions.DependencyInjection;
+using UnitTest;
 using UnitTest.Extensions;
 using Xunit;
 
-namespace UnitTest.BotTransitionsTest;
+namespace Application.Test.BotTransitionsTest;
 
 public class AddIncomeManuallyTest
 {
@@ -36,7 +37,7 @@ public class AddIncomeManuallyTest
         // Assert
         Assert.EndsWith("Saved", lastMessage.Text);
         Assert.Equal(new DateOnly(2024, 9, 8), savedIncome.Date);
-        Assert.Equal("Other", savedIncome.Category);
+        Assert.Equal(Category.FromString("Other"), savedIncome.Category);
         Assert.Equal("Improvisation class", savedIncome.Description);
         Assert.Equal(new Money(){Amount = 8_000, Currency = Currency.Amd}, savedIncome.Amount);
     }

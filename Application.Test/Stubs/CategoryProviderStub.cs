@@ -1,13 +1,14 @@
-﻿using Domain;
+﻿using Application.Test.Extensions;
+using Domain;
 using UnitTest.Extensions;
 
-namespace UnitTest.Stubs;
+namespace Application.Test.Stubs;
 
 public class CategoryProviderStub : ICategoryProvider
 {
     private readonly List<Category> _outcomeCategories =
     [
-        new CategoryBuilder("Food").WithSubcategory("Snacks").WithSubcategory("Products").Build(),
+        new CategoryBuilder("Food", true).WithSubcategory("Snacks").WithSubcategory("Products").Build(),
         new CategoryBuilder("Cats").Build(),
         new CategoryBuilder("Online Services").Build(),
     ];
@@ -20,5 +21,10 @@ public class CategoryProviderStub : ICategoryProvider
     public IReadOnlyList<Category> GetCategories(bool income)
     {
         return income ? _incomeCategories : _outcomeCategories;
+    }
+
+    public Category DefaultOutcomeCategory()
+    {
+        return _outcomeCategories.First(c => c.IsDefaultCategory);
     }
 }

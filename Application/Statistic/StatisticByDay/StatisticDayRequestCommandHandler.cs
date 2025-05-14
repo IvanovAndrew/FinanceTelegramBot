@@ -18,11 +18,11 @@ public class StatisticDayRequestCommandHandler(IUserSessionService userSessionSe
             {
                 DateFrom = sessionStatisticsOptions.DateFrom,
                 DateTo = sessionStatisticsOptions.DateTo,
-                Category = session.StatisticsOptions.Category?.Name,
+                Category = session.StatisticsOptions.Category,
                 Currency = sessionStatisticsOptions.Currency,
             };
             
-            var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc: false);
+            var expenseAggregator = new ExpensesAggregator<string>(e => e.Category.Name, true, sortAsc: false);
 
             session.CancellationTokenSource = new CancellationTokenSource();
 

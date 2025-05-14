@@ -19,7 +19,7 @@ public class SaveBatchExpensesResult
         $"All expenses are saved with the following options: {Environment.NewLine}" +
         string.Join($"{Environment.NewLine}",
             $"Date: {expenses.First().Date:dd.MM.yyyy}",
-            $"Category: {expenses.First().Category}",
+            $"Category: {expenses.First().Category.Name}",
             $"Total Amount: {expenses.Aggregate(new Money(){Amount = 0, Currency = expenses.First().Amount.Currency}, (money, expense) => money + expense.Amount)}"));
     
     public static SaveBatchExpensesResult Canceled(IReadOnlyCollection<IMoneyTransfer> expenses) => new(eSaveExpense.Canceled, expenses, "Canceled by a user");

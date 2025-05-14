@@ -9,6 +9,8 @@ namespace Domain
         public Currency Currency { get; init; }
         public decimal Amount { get; init; }
 
+        public static Money Zero(Currency currency) => new Money() { Currency = currency, Amount = 0m };
+        
         public static Money operator +(Money one, Money two)
         {
             if (one.Currency != two.Currency)
@@ -23,6 +25,13 @@ namespace Domain
                 throw new MoneyAdditionException(one, two);
 
             return new Money { Currency = one.Currency, Amount = one.Amount - two.Amount };
+        }
+        
+        public static Money operator /(Money money, int denominator)
+        {
+            var result = Math.Round(money.Amount / denominator, 2, MidpointRounding.AwayFromZero);
+            
+            return new Money { Currency = money.Currency, Amount = result };
         }
 
         public static bool TryParse(string s, Currency currency, IFormatProvider formatProvider, [NotNullWhen(true)] out Money? money)

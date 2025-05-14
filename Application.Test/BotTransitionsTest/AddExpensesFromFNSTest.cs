@@ -1,11 +1,12 @@
-﻿using Application;
+﻿using Application.Test.Extensions;
 using Domain;
 using Microsoft.Extensions.DependencyInjection;
+using UnitTest;
 using UnitTest.Extensions;
 using UnitTest.Stubs;
 using Xunit;
 
-namespace UnitTest.BotTransitionsTest;
+namespace Application.Test.BotTransitionsTest;
 
 public class AddExpensesFromFNSTest
 {
@@ -37,12 +38,12 @@ public class AddExpensesFromFNSTest
         {
             new Outcome
             {
-                Category = "Food", SubCategory = "Snacks", Date = new DateOnly(2023, 06, 20),
+                Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Date = new DateOnly(2023, 06, 20),
                 Amount = new Money() { Amount = 500m, Currency = Currency.Rur },
             },
             new Outcome
             {
-                Category = "Food", SubCategory = "Products", Date = new DateOnly(2023, 06, 20),
+                Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Date = new DateOnly(2023, 06, 20),
                 Amount = new Money() { Amount = 500.64m, Currency = Currency.Rur },
             },
         };

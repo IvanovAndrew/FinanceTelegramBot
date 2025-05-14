@@ -1,9 +1,10 @@
 ﻿using System.Net.Mime;
 using Microsoft.Extensions.DependencyInjection;
+using UnitTest;
 using UnitTest.Extensions;
 using Xunit;
 
-namespace UnitTest.BotTransitionsTest;
+namespace Application.Test.BotTransitionsTest;
 
 public class AddExpensesFromJsonTest
 {

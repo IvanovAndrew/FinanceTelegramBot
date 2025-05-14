@@ -82,10 +82,10 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         string jsonContent = JsonConvert.SerializeObject(
             new
             {
-                financeFilter.DateFrom,
-                financeFilter.DateTo,
-                financeFilter.Category,
-                financeFilter.Subcategory,
+                DateFrom = financeFilter.DateFrom,
+                DateTo = financeFilter.DateTo,
+                Category = financeFilter.Category?.Name,
+                SubCategory = financeFilter.Subcategory?.Name,
                 Currency = financeFilter.Currency?.Name,
             });
         using var content = new StringContent(jsonContent, Encoding.UTF8,  MediaTypeNames.Application.Json);
@@ -161,8 +161,8 @@ public class GoogleSpreadsheetExpenseDto
         return new GoogleSpreadsheetExpenseDto()
         {
             Date = expense.Date.ToDateTime(default),
-            Category = expense.Category,
-            Subcategory = expense.SubCategory,
+            Category = expense.Category.Name,
+            Subcategory = expense.SubCategory?.Name,
             Description = expense.Description,
             Amount = expense.Amount.Amount,
             Currency = expense.Amount.Currency.Name
@@ -196,8 +196,8 @@ public class GoogleSpreadsheetExpenseDto
         return new Outcome()
         {
             Date = DateOnly.FromDateTime(dto.Date),
-            Category = dto.Category,
-            SubCategory = dto.Subcategory,
+            Category = Domain.Category.FromString(dto.Category),
+            SubCategory = SubCategory.FromString(dto.Subcategory),
             Description = dto.Description,
             Amount = new Money()
             {
@@ -222,7 +222,7 @@ public class GoogleSpreadsheetIncomeDto
         return new GoogleSpreadsheetIncomeDto()
         {
             Date = income.Date.ToDateTime(default),
-            Category = income.Category,
+            Category = income.Category.Name,
             Description = income.Description,
             Amount = income.Amount.Amount,
             Currency = income.Amount.Currency.Name
@@ -256,7 +256,7 @@ public class GoogleSpreadsheetIncomeDto
         return new Income()
         {
             Date = DateOnly.FromDateTime(dto.Date),
-            Category = dto.Category,
+            Category = Domain.Category.FromString(dto.Category),
             Description = dto.Description,
             Amount = new Money()
             {

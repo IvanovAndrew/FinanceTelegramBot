@@ -4,8 +4,8 @@ namespace Domain
     {
         bool IsIncome { get; }
         DateOnly Date { get; }
-        string Category { get; }
-        string? SubCategory { get; }
+        Category Category { get; }
+        SubCategory? SubCategory { get; }
         string? Description { get; }
         Money Amount { get; }
     }

@@ -20,4 +20,9 @@ public class CategoryProvider : ICategoryProvider
         
         return ArraySegment<Category>.Empty;
     }
+
+    public Category DefaultOutcomeCategory()
+    {
+        return Categories.First(c => c.IsDefaultCategory);
+    }
 }

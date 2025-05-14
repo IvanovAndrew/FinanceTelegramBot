@@ -1,15 +1,14 @@
-﻿using System;
-using Application;
+﻿using Application;
 using Application.Events;
-using Application.Services;
+using Application.Test.Stubs;
 using Domain;
 using Infrastructure;
 using Infrastructure.Fns;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using UnitTest.Extensions;
 using UnitTest.Stubs;
 
-namespace UnitTest.Extensions;
+namespace UnitTest;
 
 public static class TestServiceFactory
 {

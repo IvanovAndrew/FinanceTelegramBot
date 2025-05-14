@@ -16,11 +16,11 @@ public class StatisticSubcategoryRequestCommandHandler(IUserSessionService userS
             var filter = new FinanceFilter()
             {
                 DateFrom = sessionStatisticsOptions.DateFrom,
-                Category = session.StatisticsOptions.Category?.Name,
+                Category = session.StatisticsOptions.Category,
                 Currency = sessionStatisticsOptions.Currency,
             };
             
-            var expenseAggregator = new ExpensesAggregator<string>(e => e.SubCategory!, true, sortAsc: false);
+            var expenseAggregator = new ExpensesAggregator<string>(e => e.SubCategory!.Name, true, sortAsc: false);
 
             session.CancellationTokenSource = new CancellationTokenSource();
             
@@ -37,7 +37,7 @@ public class StatisticSubcategoryRequestCommandHandler(IUserSessionService userS
                         { 
                             SessionId = session.Id, 
                             Statistic = statistic,
-                            Subtitle = $"Category: {filter.Category}{Environment.NewLine}Expenses from {filter.DateFrom.Value.ToString("MMMM yyyy")}",
+                            Subtitle = $"Category: {filter.Category?.Name}{Environment.NewLine}Expenses from {filter.DateFrom.Value.ToString("MMMM yyyy")}",
                             FirstColumnName = "Subcategory",
                         }, 
                         cancellationToken);

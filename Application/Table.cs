@@ -22,7 +22,9 @@ public class Table
 
             return columns;
         }
-    } 
+    }
+
+    public string PostTableInfo { get; set; } = string.Empty;
 
     public void AddRow(Row row)
     {

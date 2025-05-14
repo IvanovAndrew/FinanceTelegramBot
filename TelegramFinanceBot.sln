@@ -8,13 +8,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotController", "BotControl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{ECDF541E-21EF-4CE5-81B7-C0375301DA98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTest\UnitTest.csproj", "{1214765B-E6D7-4CB5-BB74-60F16D5BB4F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Test", "Application.Test\Application.Test.csproj", "{1214765B-E6D7-4CB5-BB74-60F16D5BB4F4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleSpreadsheet.AzureFunction", "GoogleSpreadsheet.AzureFunction\GoogleSpreadsheet.AzureFunction.csproj", "{3A391108-A3F4-4742-9594-24C5BC9C15F8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{DDA3CB1D-973E-40DD-B641-CC01339099FD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleSheetWriter.Test", "GoogleSheetWriter.Test\GoogleSheetWriter.Test.csproj", "{5B96BD9D-C0BE-449D-87A9-646E5ED6A490}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain.Test", "Domain.Test\Domain.Test.csproj", "{6A116C60-A95F-45A6-86FE-AE7604E67B4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,5 +56,9 @@ Global
 		{5B96BD9D-C0BE-449D-87A9-646E5ED6A490}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B96BD9D-C0BE-449D-87A9-646E5ED6A490}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B96BD9D-C0BE-449D-87A9-646E5ED6A490}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A116C60-A95F-45A6-86FE-AE7604E67B4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A116C60-A95F-45A6-86FE-AE7604E67B4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A116C60-A95F-45A6-86FE-AE7604E67B4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A116C60-A95F-45A6-86FE-AE7604E67B4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

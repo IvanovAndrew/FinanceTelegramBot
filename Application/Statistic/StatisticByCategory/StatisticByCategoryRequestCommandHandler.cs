@@ -21,7 +21,7 @@ public class GetStatisticCategoryRequestCommandHandler(IUserSessionService userS
             var filter = new FinanceFilter()
             {
                 DateFrom = sessionStatisticsOptions.DateFrom,
-                Category = session.StatisticsOptions.Category?.Name,
+                Category = session.StatisticsOptions.Category,
                 Currency = sessionStatisticsOptions.Currency,
             };
         
@@ -42,7 +42,7 @@ public class GetStatisticCategoryRequestCommandHandler(IUserSessionService userS
                         { 
                             SessionId = session.Id, 
                             Statistic = statistic,
-                            Subtitle = $"Category: {filter.Category}",
+                            Subtitle = $"Category: {filter.Category?.Name}",
                             FirstColumnName = "Month",
                         }, 
                         cancellationToken);

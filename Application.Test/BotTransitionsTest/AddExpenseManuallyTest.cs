@@ -1,9 +1,11 @@
-﻿using Domain;
+﻿using Application.Test.Extensions;
+using Domain;
 using Microsoft.Extensions.DependencyInjection;
+using UnitTest;
 using UnitTest.Extensions;
 using Xunit;
 
-namespace UnitTest.BotTransitionsTest;
+namespace Application.Test.BotTransitionsTest;
 
 public class AddExpenseManuallyTest
 {
@@ -120,7 +122,7 @@ public class AddExpenseManuallyTest
         
         // Assert
         Assert.Equal(new DateOnly(2023, 6, 29), savedExpense.Date);
-        Assert.Equal("Cats", savedExpense.Category);
+        Assert.Equal(Category.FromString("Cats"), savedExpense.Category);
         Assert.Null(savedExpense.SubCategory);
         Assert.Equal("royal canin", savedExpense.Description);
         Assert.Equal(new Money(){Amount = 20_000, Currency = Currency.Amd}, savedExpense.Amount);
@@ -146,7 +148,7 @@ public class AddExpenseManuallyTest
         
         // Assert
         Assert.Equal(new DateOnly(2023, 6, 29), savedExpense.Date);
-        Assert.Equal("Cats", savedExpense.Category);
+        Assert.Equal("Cats".AsCategory(), savedExpense.Category);
         Assert.Null(savedExpense.SubCategory);
         Assert.Equal("royal canin", savedExpense.Description);
         Assert.Equal(new Money(){Amount = 10_000, Currency = Currency.Amd}, savedExpense.Amount);

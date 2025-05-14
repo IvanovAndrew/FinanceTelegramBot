@@ -6,7 +6,7 @@ using Refit;
 
 namespace Infrastructure.Fns;
 
-public class FnsService(IFnsApi api, string token) : IFnsService
+public class FnsService(IFnsApi api, ICategoryProvider categoryProvider, string token) : IFnsService
 {
     private const string Url = "https://proverkacheka.com/api/v1/check/get";
     private readonly string _token = !string.IsNullOrEmpty(token)? token : throw new WrongConfigurationFnsException(nameof(token));
@@ -23,6 +23,8 @@ public class FnsService(IFnsApi api, string token) : IFnsService
         
             var json = response.Data?.Json;
             if (json?.Items == null) return [];
+
+            var defaultCategory = categoryProvider.DefaultOutcomeCategory();
         
             var expenses = json?.Items?.Select(i => new Outcome()
             {
@@ -33,7 +35,7 @@ public class FnsService(IFnsApi api, string token) : IFnsService
                 },
                 Date = GetDate(json.DateTime),
                 Description = i.Name,
-                Category = "Еда"
+                Category = defaultCategory
             })?.ToList()?? new List<Outcome>();
 
             return expenses;
