@@ -1,7 +1,6 @@
-﻿using Application.AddMoneyTransfer;
-using MediatR;  
+﻿using MediatR;
 
-namespace Application.Events;
+namespace Application.AddMoneyTransfer;
 
 public class OutcomeDescriptionAddedEventHandler(IMessageService messageService, IUserSessionService userSessionService)
     : INotificationHandler<OutcomeDescriptionAddedEvent>
