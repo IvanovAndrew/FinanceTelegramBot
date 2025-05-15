@@ -1,11 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Events;
-
-public class OutcomePriceAddedEvent : INotification
-{
-    public long SessionId { get; init; }
-}
+namespace Application.AddMoneyTransfer;
 
 public class OutcomePriceAddedEventHandler(IUserSessionService userSessionService, IMessageService messageService)
     : INotificationHandler<OutcomePriceAddedEvent>
