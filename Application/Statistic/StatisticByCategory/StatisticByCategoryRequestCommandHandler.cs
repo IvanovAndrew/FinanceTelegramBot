@@ -25,7 +25,7 @@ public class GetStatisticCategoryRequestCommandHandler(IUserSessionService userS
                 Currency = sessionStatisticsOptions.Currency,
             };
         
-            var expenseAggregator = new ExpensesAggregator<string>(e => e.Date.ToString("MMMM yyyy"), true, sortAsc: false);
+            var expenseAggregator = new ExpensesAggregator<string>(e => e.Date.ToString("MMMM yyyy"), false, sortAsc: false);
 
             session.CancellationTokenSource = new CancellationTokenSource();
         

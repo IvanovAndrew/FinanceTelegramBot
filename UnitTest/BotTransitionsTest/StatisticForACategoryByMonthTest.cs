@@ -85,4 +85,29 @@ public class StatisticForACategoryByMonthTest
         Assert.Contains("July 2023", table.Rows.Select(r => r.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
+    
+    [Fact]
+    public async Task StatisticForACategoryByMonthsIsSortedChronologically()
+    {
+        // Arrange
+        await _expenseRepository.SaveAllOutcomes(
+            new List<IMoneyTransfer>()
+            {
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats", Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats", Amount = new Money(){Amount = 15_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats", Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
+            }, default);
+        
+        // Act
+        await _botEngine.Proceed("/start");
+        await _botEngine.Proceed("Statistics");
+        await _botEngine.Proceed("Category expenses (by months)");
+        await _botEngine.Proceed("Cats");
+        await _botEngine.Proceed("January 2023");
+        var lastMessage = await _botEngine.Proceed("All");
+
+        // Assert
+        var table = lastMessage.Table;
+        CollectionAssertExtension.AssertOrder(table.Rows.Select(row => row.FirstColumnValue).ToList(), "May 2023", "June 2023", "July 2023");
+    }
 }
