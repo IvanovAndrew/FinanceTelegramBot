@@ -1,9 +1,9 @@
-﻿using Domain;
-using Domain.Events;
+﻿using Application.AddMoneyTransfer;
+using Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Commands.StatisticByMonth;
+namespace Application.Statistic.StatisticByMonth;
 
 public class GetStatisticMonthRequestCommand : IRequest
 {
@@ -41,10 +41,10 @@ public class GetStatisticMonthRequestCommandHandler(IUserSessionService userSess
                     var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
                     var statistic = expenseAggregator.Aggregate(outcomes, currencies);
                     
-                    await mediator.Publish(new MoneyTransferReadDomainEvent<string>()
+                    await mediator.Publish(new MoneyTransferReadDomainEvent()
                         { 
                             SessionId = session.Id, 
-                            Statistic = statistic,
+                            Statistic = StatisticMapper.Map(statistic, new StringColumnFactory()),
                             Subtitle = $"Expenses for {sessionStatisticsOptions.DateTo.Value.ToString("MMMM yyyy")}",
                             FirstColumnName = "Category",
                             DateFrom = filter.DateFrom, 

@@ -1,9 +1,10 @@
-﻿using Application.Events;
+﻿using Application.AddMoneyTransfer;
+using Application.Commands.StatisticByDay;
+using Application.Events;
 using Domain;
-using Domain.Events;
 using MediatR;
 
-namespace Application.Commands.StatisticByDay;
+namespace Application.Statistic.StatisticByDay;
 
 public class StatisticDayRequestCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<StatisticDayRequestCommand>
 {
@@ -37,10 +38,10 @@ public class StatisticDayRequestCommandHandler(IUserSessionService userSessionSe
                         var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
                         var statistic = expenseAggregator.Aggregate(outcomes, currencies);
 
-                        await mediator.Publish(new MoneyTransferReadDomainEvent<string>()
+                        await mediator.Publish(new MoneyTransferReadDomainEvent()
                         {
                             SessionId = session.Id,
-                            Statistic = statistic,
+                            Statistic = StatisticMapper.Map(statistic, new StringColumnFactory()),
                             Subtitle = $"Expenses for {sessionStatisticsOptions.DateTo.Value.ToString("d MMMM yyyy")}",
                             FirstColumnName = "Category",
                             DateFrom = filter.DateFrom,
