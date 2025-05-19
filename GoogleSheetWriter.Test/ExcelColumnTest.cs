@@ -1,4 +1,4 @@
-﻿namespace GoogleSheetWriter.Tests;
+﻿using GoogleSheetWriter;
 
 public class ExcelColumnTests
 {
