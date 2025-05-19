@@ -1,5 +1,5 @@
-﻿using Domain;
-using Domain.Events;
+﻿using Application.AddMoneyTransfer;
+using Domain;
 using MediatR;
 
 namespace Application.Statistic.StatisticByCategory;
@@ -25,7 +25,7 @@ public class GetStatisticCategoryRequestCommandHandler(IUserSessionService userS
                 Currency = sessionStatisticsOptions.Currency,
             };
         
-            var expenseAggregator = new ExpensesAggregator<string>(e => e.Date.ToString("MMMM yyyy"), false, sortAsc: false);
+            var expenseAggregator = new ExpensesAggregator<DateOnly>(e => e.Date.FirstDayOfMonth(), false, sortAsc: true);
 
             session.CancellationTokenSource = new CancellationTokenSource();
         
@@ -38,10 +38,10 @@ public class GetStatisticCategoryRequestCommandHandler(IUserSessionService userS
                     var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
                     var statistic = expenseAggregator.Aggregate(outcomes, currencies);
                 
-                    await mediator.Publish(new MoneyTransferReadDomainEvent<string>()
+                    await mediator.Publish(new MoneyTransferReadDomainEvent()
                         { 
                             SessionId = session.Id, 
-                            Statistic = statistic,
+                            Statistic = StatisticMapper.Map(statistic, new DateOnlyColumnFactory()),
                             Subtitle = $"Category: {filter.Category}",
                             FirstColumnName = "Month",
                         }, 

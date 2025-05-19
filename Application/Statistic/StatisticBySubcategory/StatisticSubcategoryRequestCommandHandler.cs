@@ -1,5 +1,5 @@
-﻿using Domain;
-using Domain.Events;
+﻿using Application.AddMoneyTransfer;
+using Domain;
 using MediatR;
 
 namespace Application.Statistic.StatisticBySubcategory;
@@ -33,10 +33,10 @@ public class StatisticSubcategoryRequestCommandHandler(IUserSessionService userS
                     var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
                     var statistic = expenseAggregator.Aggregate(outcomes, currencies);
                     
-                    await mediator.Publish(new MoneyTransferReadDomainEvent<string>()
+                    await mediator.Publish(new MoneyTransferReadDomainEvent()
                         { 
                             SessionId = session.Id, 
-                            Statistic = statistic,
+                            Statistic = StatisticMapper.Map(statistic, new StringColumnFactory()),
                             Subtitle = $"Category: {filter.Category}{Environment.NewLine}Expenses from {filter.DateFrom.Value.ToString("MMMM yyyy")}",
                             FirstColumnName = "Subcategory",
                         }, 

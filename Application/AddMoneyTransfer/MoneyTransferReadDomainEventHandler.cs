@@ -1,13 +1,12 @@
 ﻿using Domain;
-using Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Events;
+namespace Application.AddMoneyTransfer;
 
-public class MoneyTransferReadDomainEventHandler(IUserSessionService userSessionService, IMessageService messageService, ILogger<MoneyTransferReadDomainEventHandler> logger) : INotificationHandler<MoneyTransferReadDomainEvent<string>>
+public class MoneyTransferReadDomainEventHandler(IUserSessionService userSessionService, IMessageService messageService, ILogger<MoneyTransferReadDomainEventHandler> logger) : INotificationHandler<MoneyTransferReadDomainEvent>
 {
-    public async Task Handle(MoneyTransferReadDomainEvent<string> notification, CancellationToken cancellationToken)
+    public async Task Handle(MoneyTransferReadDomainEvent notification, CancellationToken cancellationToken)
     {
         var session = userSessionService.GetUserSession(notification.SessionId);
 
@@ -33,7 +32,7 @@ public class MoneyTransferReadDomainEventHandler(IUserSessionService userSession
                     currencyValues[currency] = expenseInfo[currency];
                 }
                 
-                table.AddRow(new Row(){FirstColumnValue = expenseInfo.Row, CurrencyValues = currencyValues});
+                table.AddRow(new Row(){FirstColumnValue = expenseInfo.FirstColumn.GetString(), CurrencyValues = currencyValues});
             }
 
             table.AddRow(new Row());
