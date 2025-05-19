@@ -164,6 +164,9 @@ namespace GoogleSheetWriter
         private List<IList<object>> FillExcelRows(List<MoneyTransfer> expenses, ListInfo listInfo, int firstRow)
         {
             var firstExcelColumn = listInfo.GetFirstExcelColumn();
+            var lastExcelColumn = listInfo.GetLastExcelColumn();
+            _logger.LogInformation($"list is {listInfo.ListName}. First column is {firstExcelColumn} and last column is {lastExcelColumn}");
+            var count = ExcelColumn.DifferenceBetween(lastExcelColumn, firstExcelColumn) + 1;
             var result = new List<IList<object>>(expenses.Count);
 
             for (int i = 0; i < expenses.Count; i++)
@@ -172,7 +175,7 @@ namespace GoogleSheetWriter
                 var expense = expenses[i];
                 var row = firstRow + i;
 
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < count; j++)
                 {
                     excelRowValues.Add(null);
                 }
