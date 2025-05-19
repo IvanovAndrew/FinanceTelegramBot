@@ -1,7 +1,7 @@
 ﻿using Domain;
 using MediatR;
 
-namespace Application.Commands.StatisticByMonth;
+namespace Application.Statistic.StatisticByMonth;
 
 public class StatisticByMonthSaveCurrencyCommand : IRequest
 {
