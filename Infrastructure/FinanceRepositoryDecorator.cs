@@ -78,7 +78,7 @@ public class FinanceRepositoryDecorator : IFinanceRepository
                 }
                 else
                 {
-                    _logger.LogInformation($"{items.Count} expenses are taken from the cache");
+                    _logger.LogInformation($"{cachedItems.Count} expenses are taken from the cache");
                 }
                 items = cachedItems;
             }
