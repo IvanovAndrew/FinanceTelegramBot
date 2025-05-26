@@ -70,19 +70,16 @@ public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionSe
 
                 string postTableInfo = string.Empty;
                 
-                if (dateTimeService.IsCurrentMonth(financeFilter.DateFrom.Value))
+                var moneyLeft = await mediator.Send(new SpendingUntilPaydayCommand()
                 {
-                    var moneyLeft = await mediator.Send(new SpendingUntilPaydayCommand()
-                    {
-                        SessionId = session.Id,
-                        DateFrom = financeFilter.DateFrom.Value,
-                        Currency = financeFilter.Currency!,
-                        Balance = monthIncomes - monthOutcomes,
-                    }, cancellationToken);
+                    SessionId = session.Id,
+                    DateFrom = financeFilter.DateFrom.Value,
+                    Currency = financeFilter.Currency!,
+                    Balance = monthIncomes - monthOutcomes,
+                }, cancellationToken);
 
-                    postTableInfo =
-                        $"{moneyLeft.MoneyPerDay} can be spent daily till the payday {moneyLeft.Payday.ToString("dd M yyyy")}";
-                }
+                postTableInfo =
+                    $"{moneyLeft.MoneyPerDay} can be spent daily till the payday {moneyLeft.Payday.ToString("d MMMM yyyy")}";
 
                 var table = BuildTable(monthIncomes, monthOutcomes, financeFilter.DateFrom!.Value, financeFilter.Currency!, postTableInfo);
                 await mediator.Publish(new BalanceStatisticCalculatedEvent()
