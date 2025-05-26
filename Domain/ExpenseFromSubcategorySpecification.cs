@@ -13,7 +13,7 @@ public class ExpenseFromSubcategorySpecification : ISpecification<IMoneyTransfer
     
     public bool IsSatisfied(IMoneyTransfer item)
     {
-        return string.Equals(item.Category, _category.Name, StringComparison.InvariantCultureIgnoreCase) &&
-               string.Equals(item.SubCategory, _subCategory.Name, StringComparison.InvariantCultureIgnoreCase);
+        return item.Category == _category &&
+               item.SubCategory == _subCategory;
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Application;
 using Domain;
 using Telegram.Bot;
@@ -155,6 +155,19 @@ public class TelegramMessageService : IMessageService
                 }
             }
 
+            stringBuilder.AppendLine();
+        }
+
+        if (!string.IsNullOrEmpty(table.PostTableInfo))
+        {
+            stringBuilder.AppendLine(table.PostTableInfo);
+            stringBuilder.AppendLine();
+        }
+
+        if (!string.IsNullOrEmpty(table.PostTableInfo))
+        {
+            stringBuilder.AppendLine();
+            stringBuilder.AppendLine(table.PostTableInfo);
             stringBuilder.AppendLine();
         }
 

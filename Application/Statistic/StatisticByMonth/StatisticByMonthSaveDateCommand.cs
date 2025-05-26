@@ -24,7 +24,7 @@ public class StatisticByMonthSaveDateCommandHandler(IUserSessionService userSess
             
             if (dateTimeService.TryParseDate(request.Date, out var date))
             {
-                var firstDayOfMonth = date.FirstDayOfMonth();
+                var firstDayOfMonth = new DateOnly(date.Year, date.Month, 1);
                 session.StatisticsOptions.DateFrom = firstDayOfMonth;
                 session.StatisticsOptions.DateTo = firstDayOfMonth.AddMonths(1).AddDays(-1);
                 session.QuestionnaireService.Next();

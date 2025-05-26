@@ -19,7 +19,8 @@ public class StatisticByCategorySaveDateCommandHandler(IUserSessionService userS
         {
             if (dateTimeService.TryParseDate(request.DateText, out var date))
             {
-                session.StatisticsOptions.DateFrom = date.FirstDayOfMonth();
+                var firstDayOfMonth = new DateOnly(date.Year, date.Month, 1);
+                session.StatisticsOptions.DateFrom = firstDayOfMonth;
                 session.QuestionnaireService.Next();
 
                 await mediator.Publish(new StatisticByCategorySaveDateSavedEvent() { SessionId = session.Id}, cancellationToken);

@@ -1,10 +1,9 @@
-﻿using Application.AddMoneyTransfer;
-using Application.Commands.StatisticByDay;
-using Application.Events;
+﻿using Application.Events;
 using Domain;
+using Domain.Events;
 using MediatR;
 
-namespace Application.Statistic.StatisticByDay;
+namespace Application.Commands.StatisticByDay;
 
 public class StatisticDayRequestCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<StatisticDayRequestCommand>
 {
@@ -19,11 +18,11 @@ public class StatisticDayRequestCommandHandler(IUserSessionService userSessionSe
             {
                 DateFrom = sessionStatisticsOptions.DateFrom,
                 DateTo = sessionStatisticsOptions.DateTo,
-                Category = session.StatisticsOptions.Category?.Name,
+                Category = session.StatisticsOptions.Category,
                 Currency = sessionStatisticsOptions.Currency,
             };
             
-            var expenseAggregator = new ExpensesAggregator<string>(e => e.Category, true, sortAsc: false);
+            var expenseAggregator = new ExpensesAggregator<string>(e => e.Category.Name, true, sortAsc: false);
 
             session.CancellationTokenSource = new CancellationTokenSource();
 
@@ -38,10 +37,10 @@ public class StatisticDayRequestCommandHandler(IUserSessionService userSessionSe
                         var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
                         var statistic = expenseAggregator.Aggregate(outcomes, currencies);
 
-                        await mediator.Publish(new MoneyTransferReadDomainEvent()
+                        await mediator.Publish(new MoneyTransferReadDomainEvent<string>()
                         {
                             SessionId = session.Id,
-                            Statistic = StatisticMapper.Map(statistic, new StringColumnFactory()),
+                            Statistic = statistic,
                             Subtitle = $"Expenses for {sessionStatisticsOptions.DateTo.Value.ToString("d MMMM yyyy")}",
                             FirstColumnName = "Category",
                             DateFrom = filter.DateFrom,

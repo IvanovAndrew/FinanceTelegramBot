@@ -1,4 +1,4 @@
-﻿using Application.Statistic.StatisticBySubcategoryByMonth;
+﻿using Application.Commands.StatisticBySubcategoryByMonth;
 using Domain;
 using MediatR;
 

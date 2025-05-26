@@ -25,7 +25,7 @@ namespace Application
                 return new Income()
                 {
                     Date = Date!.Value,
-                    Category = Category!.Name,
+                    Category = Category,
                     Description = Description,
                     Amount = Sum!,
                 };
@@ -34,8 +34,8 @@ namespace Application
             return new Outcome
             {
                 Date = Date!.Value,
-                Category = Category!.Name,
-                SubCategory = SubCategory?.Name,
+                Category = Category,
+                SubCategory = SubCategory,
                 Description = Description,
                 Amount = Sum!,
             };

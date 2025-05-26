@@ -4,8 +4,8 @@ namespace Domain
     {
         public bool IsIncome => false;
         public DateOnly Date { get; init; }
-        public string Category { get; init; }
-        public string? SubCategory { get; init; }
+        public Category Category { get; init; }
+        public SubCategory? SubCategory { get; init; }
         public string? Description { get; init; }
         public Money Amount { get; init; }
 
@@ -14,8 +14,8 @@ namespace Domain
             return string.Join($"{Environment.NewLine}",
                 "Outcome",
                 $"Date: {Date:dd.MM.yyyy}",
-                $"Category: {Category}",
-                $"Subcategory: {SubCategory ?? string.Empty}",
+                $"Category: {Category.Name}",
+                $"Subcategory: {SubCategory?.ToString()}",
                 $"Description: {Description ?? string.Empty}",
                 $"Amount: {Amount}",
                 "");

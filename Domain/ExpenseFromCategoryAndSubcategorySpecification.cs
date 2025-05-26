@@ -1,15 +1,10 @@
 ﻿namespace Domain;
 
-public class ExpenseFromCategoryAndSubcategorySpecification : ExpenseFromCategorySpecification
+public class ExpenseFromCategoryAndSubcategorySpecification(Category category, SubCategory subCategory)
+    : ExpenseFromCategorySpecification(category)
 {
-    private readonly SubCategory _subCategory;
-    public ExpenseFromCategoryAndSubcategorySpecification(Category category, SubCategory subCategory) : base(category)
-    {
-        _subCategory = subCategory;
-    }
-    
     public override bool IsSatisfied(IMoneyTransfer item)
     {
-        return base.IsSatisfied(item) && string.Equals(item.SubCategory, _subCategory.Name, StringComparison.InvariantCultureIgnoreCase);
+        return base.IsSatisfied(item) && item.SubCategory == subCategory;
     }
 }

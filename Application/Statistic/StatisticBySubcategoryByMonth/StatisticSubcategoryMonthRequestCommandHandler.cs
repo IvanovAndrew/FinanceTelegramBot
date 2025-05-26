@@ -1,8 +1,8 @@
-﻿using Application.AddMoneyTransfer;
-using Domain;
+﻿using Domain;
+using Domain.Events;
 using MediatR;
 
-namespace Application.Statistic.StatisticBySubcategoryByMonth;
+namespace Application.Commands.StatisticBySubcategoryByMonth;
 
 public class StatisticSubcategoryMonthRequestCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<StatisticSubcategoryMonthRequestCommand>
 {
@@ -17,12 +17,12 @@ public class StatisticSubcategoryMonthRequestCommandHandler(IUserSessionService 
             {
                 DateFrom = sessionStatisticsOptions.DateFrom,
                 DateTo = sessionStatisticsOptions.DateTo,
-                Category = session.StatisticsOptions.Category?.Name,
-                Subcategory = session.StatisticsOptions.Subcategory?.Name,
+                Category = session.StatisticsOptions.Category,
+                Subcategory = session.StatisticsOptions.Subcategory,
                 Currency = sessionStatisticsOptions.Currency,
             };
             
-            var expenseAggregator = new ExpensesAggregator<DateOnly>(e => e.Date.FirstDayOfMonth(), false, sortAsc: true);
+            var expenseAggregator = new ExpensesAggregator<string>(e => e.Date.ToString("MMMM yyyy"), true, sortAsc: false);
 
             session.CancellationTokenSource = new CancellationTokenSource();
             
@@ -35,14 +35,12 @@ public class StatisticSubcategoryMonthRequestCommandHandler(IUserSessionService 
                     var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
                     var statistic = expenseAggregator.Aggregate(outcomes, currencies);
 
-                    var subtitle = $"Category: {filter.Category}{Environment.NewLine}" +
-                                   $"Subcategory: {filter.Subcategory}{Environment.NewLine}" +
+                    var subtitle = $"Category: {filter.Category?.Name}{Environment.NewLine}" +
+                                   $"Subcategory: {filter.Subcategory?.Name}{Environment.NewLine}" +
                                    $"Expenses from {filter.DateFrom.Value.ToString("MMMM yyyy")}";
                     
-                    await mediator.Publish(new MoneyTransferReadDomainEvent()
-                    { 
-                        SessionId = session.Id, 
-                        Statistic = StatisticMapper.Map(statistic, new DateOnlyColumnFactory()), 
+                    await mediator.Publish(new MoneyTransferReadDomainEvent<string>()
+                    { SessionId = session.Id, Statistic = statistic, 
                         Subtitle = subtitle,
                         FirstColumnName = "Month",
                     }, cancellationToken);

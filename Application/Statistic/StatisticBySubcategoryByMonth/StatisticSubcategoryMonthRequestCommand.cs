@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Statistic.StatisticBySubcategoryByMonth;
+namespace Application.Commands.StatisticBySubcategoryByMonth;
 
 public class StatisticSubcategoryMonthRequestCommand : IRequest
 {
