@@ -160,12 +160,6 @@ public class TelegramMessageService : IMessageService
 
         if (!string.IsNullOrEmpty(table.PostTableInfo))
         {
-            stringBuilder.AppendLine(table.PostTableInfo);
-            stringBuilder.AppendLine();
-        }
-
-        if (!string.IsNullOrEmpty(table.PostTableInfo))
-        {
             stringBuilder.AppendLine();
             stringBuilder.AppendLine(table.PostTableInfo);
             stringBuilder.AppendLine();
