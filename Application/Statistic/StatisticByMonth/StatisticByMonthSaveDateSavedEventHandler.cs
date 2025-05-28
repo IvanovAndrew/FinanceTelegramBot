@@ -8,7 +8,8 @@ public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userS
 {
     public async Task Handle(StatisticByMonthSaveDateSavedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogInformation("StatisticByMonthSaveDateSavedEventHandler is called");
+        logger.LogInformation($"{nameof(StatisticByMonthSaveDateSavedEventHandler)} is called");
+        
         var userSession = userSessionService.GetUserSession(notification.SessionId);
 
         if (userSession != null)
@@ -25,5 +26,7 @@ public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userS
 
             userSession.LastSentMessageId = message.Id;
         }
+        
+        logger.LogInformation($"{nameof(StatisticByMonthSaveDateSavedEventHandler)} finished");
     }
 }

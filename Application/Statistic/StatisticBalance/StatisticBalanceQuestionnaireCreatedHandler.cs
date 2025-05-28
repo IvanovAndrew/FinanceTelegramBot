@@ -7,15 +7,26 @@ public class StatisticBalanceQuestionnaireCreatedHandler(IMessageService message
     public async Task Handle(StatisticBalanceQuestionnaireCreated notification, CancellationToken cancellationToken)
     {
         var today = dateTimeService.Today();
-        
+
+        var options = new List<DateOnly> { today, today.AddMonths(-1) };
+
+        switch (today.Month)
+        {
+            case > 2:
+                options.Add(new(today.Year, 1, 1));
+                break;
+            case <= 2:
+                options.Add(new(today.Year - 1, 1, 1));
+                break;
+        }
+
         await messageService.EditSentTextMessageAsync(
             new Message()
             {
                 ChatId = notification.SessionId,
                 Id = notification.LastSentMessageId,
                 Text = "Enter the month",
-                Options = MessageOptions.FromListAndLastSingleLine(new []{today.ToString("MMMM yyyy"), today.AddMonths(-1).ToString("MMMM yyyy"), today.AddMonths(-6).ToString("MMMM yyyy")}, "Another month")
-            }
-        );
+                Options = MessageOptions.FromListAndLastSingleLine(options.Select(d => d.ToString("MMMM yyyy")).ToArray(), "Another month")
+            }, cancellationToken);
     }
 }

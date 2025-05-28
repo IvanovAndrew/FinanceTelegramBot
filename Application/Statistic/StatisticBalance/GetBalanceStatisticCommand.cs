@@ -17,7 +17,8 @@ public class BalanceStatisticCollectingStartedHandler(IMessageService messageSer
             {
                 ChatId = notification.SessionId,
                 Id = notification.LastSentMessageId,
-                Text = "Loading the incomes and the outcomes... It can take some time"
+                Text = $"Loading the incomes and the outcomes... {Environment.NewLine}" +
+                       "It can take some time"
             }, cancellationToken);
     }
 }
