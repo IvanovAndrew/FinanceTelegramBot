@@ -1,4 +1,4 @@
-﻿namespace StateMachine;
+﻿namespace Infrastructure;
 
 public class BotException : Exception
 {

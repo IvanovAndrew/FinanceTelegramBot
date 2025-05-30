@@ -1,9 +1,6 @@
 ﻿using Application.AddMoneyTransfer;
 using Application.AddMoneyTransferByRequisites;
 using Application.Commands.StatisticByDay;
-using Application.Commands.StatisticByMonth;
-using Application.Commands.StatisticBySubcategoryByMonth;
-using Application.Commands.StatisticBySubcategorySaveSubcategory;
 using Application.Statistic.StatisticBalance;
 using Application.Statistic.StatisticByCategory;
 using Application.Statistic.StatisticByDay;
