@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.AddMoneyTransfer;
 
@@ -8,10 +9,12 @@ public class AddMoneyTransferSubcategoryCommand : IRequest
     public string Subcategory { get; init; }
 }
 
-public class AddExpenseSubcategoryCommandHandler(IUserSessionService userSessionService, IMediator mediator) : IRequestHandler<AddMoneyTransferSubcategoryCommand>
+public class AddExpenseSubcategoryCommandHandler(IUserSessionService userSessionService, IMediator mediator, ILogger<AddExpenseSubcategoryCommandHandler> logger) : IRequestHandler<AddMoneyTransferSubcategoryCommand>
 {
     public async Task Handle(AddMoneyTransferSubcategoryCommand request, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"{nameof(AddExpenseSubcategoryCommandHandler)} started");
+            
         var session = userSessionService.GetUserSession(request.SessionId);
 
         if (session != null)
@@ -24,10 +27,23 @@ public class AddExpenseSubcategoryCommandHandler(IUserSessionService userSession
             {
                 session.MoneyTransferBuilder.SubCategory = subCategory;
                 session.QuestionnaireService.Next();
+                
+                logger.LogInformation($"Subcategory {subCategory.Name} saved");
 
                 await mediator.Publish(new OutcomeSubCategoryEnteredEvent(){SessionId = request.SessionId}, cancellationToken);
+                logger.LogInformation($"Subcategory event has been sent");
+            }
+            else
+            {
+                logger.LogWarning($"Couldn't find a subcategory {request.Subcategory}");
             }
         }
+        else
+        {
+            logger.LogWarning($"Couldn't find a session with id {request.SessionId}");
+        }
+        
+        logger.LogInformation($"{nameof(AddExpenseSubcategoryCommandHandler)} finished");
     }
 }
 

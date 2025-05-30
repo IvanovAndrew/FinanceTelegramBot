@@ -15,7 +15,7 @@ namespace Domain
                 "Outcome",
                 $"Date: {Date:dd.MM.yyyy}",
                 $"Category: {Category.Name}",
-                $"Subcategory: {SubCategory?.ToString()}",
+                $"Subcategory: {SubCategory?.Name.ToString()}",
                 $"Description: {Description ?? string.Empty}",
                 $"Amount: {Amount}",
                 "");

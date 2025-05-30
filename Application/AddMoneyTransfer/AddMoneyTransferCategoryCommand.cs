@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.AddMoneyTransfer;
 
@@ -11,11 +12,13 @@ public class AddMoneyTransferCategoryCommand : IRequest
 public class AddExpenseCategoryCommandHandler(
     IMediator mediator,
     IUserSessionService userSessionService,
-    ICategoryProvider categoryProvider)
+    ICategoryProvider categoryProvider, ILogger<AddExpenseCategoryCommandHandler> logger)
     : IRequestHandler<AddMoneyTransferCategoryCommand>
 {
     public async Task Handle(AddMoneyTransferCategoryCommand request, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"{nameof(AddExpenseCategoryCommandHandler)} started");
+        
         var session = userSessionService.GetUserSession(request.SessionId);
 
         if (session != null)
@@ -28,9 +31,17 @@ public class AddExpenseCategoryCommandHandler(
             {
                 session.MoneyTransferBuilder.Category = category;
                 session.QuestionnaireService.Next();
+                
+                logger.LogInformation($"Category {category?.Name} saved");
 
                 await mediator.Publish(new OutcomeCategoryEnteredEvent(){SessionId = request.SessionId, LastSentMessageId = session.LastSentMessageId}, cancellationToken);
             }
+            else
+            {
+                logger.LogWarning($"Category {request.Category} hasn't been found");
+            }
         }
+        
+        logger.LogInformation($"{nameof(AddExpenseCategoryCommandHandler)} finished");
     }
 }
