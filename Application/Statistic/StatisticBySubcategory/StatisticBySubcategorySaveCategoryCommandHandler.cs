@@ -10,8 +10,7 @@ public class StatisticBySubcategorySaveCategoryCommandHandler(IUserSessionServic
 
         if (session != null)
         {
-            var category = categoryProvider.GetCategories(false)
-                .FirstOrDefault(c => string.Equals(c.Name, request.Category));
+            var category = categoryProvider.GetCategoryByName(request.Category, false);
 
             if (category != null)
             {

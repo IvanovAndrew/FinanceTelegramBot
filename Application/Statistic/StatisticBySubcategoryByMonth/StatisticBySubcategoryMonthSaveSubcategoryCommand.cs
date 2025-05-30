@@ -1,7 +1,6 @@
-﻿using Application.Statistic.StatisticBySubcategoryByMonth;
-using MediatR;
+﻿using MediatR;
 
-namespace Application.Commands.StatisticBySubcategorySaveSubcategory;
+namespace Application.Statistic.StatisticBySubcategoryByMonth;
 
 public class StatisticBySubcategoryMonthSaveSubcategoryCommand : IRequest
 {
@@ -19,9 +18,7 @@ public class
         if (session?.StatisticsOptions != null)
         {
             var category = session.StatisticsOptions.Category;
-            var subcategory =
-                category.Subcategories.FirstOrDefault(sc =>
-                    string.Equals(sc.Name, request.Subcategory));
+            var subcategory = category.GetSubcategoryByName(request.Subcategory);
 
             if (subcategory != null)
             {

@@ -1,5 +1,4 @@
-﻿using Domain.Events;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.Statistic.StatisticByCategory;
 
@@ -17,7 +16,7 @@ public class StatisticByCategorySaveCategoryCommandHandler(IUserSessionService u
 
         if (session != null)
         {
-            var category = categoryProvider.GetCategories(false).FirstOrDefault(c => string.Equals(c.Name, request.Category, StringComparison.InvariantCultureIgnoreCase));
+            var category = categoryProvider.GetCategoryByName(request.Category, false);
 
             if (category != null)
             {

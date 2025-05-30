@@ -14,6 +14,13 @@ namespace Domain
         
         }
 
+        public SubCategory? GetSubcategoryByName(string name)
+        {
+            return Subcategories.FirstOrDefault(c => 
+                string.Equals(c.ShortName, name, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(c.Name, name, StringComparison.InvariantCultureIgnoreCase));
+        }
+
         public static Category FromString(string name)
         {
             return new Category() { Name = name };
@@ -108,4 +115,11 @@ public interface ICategoryProvider
 {
     public IReadOnlyList<Category> GetCategories(bool income);
     public Category DefaultOutcomeCategory();
+    public Category? GetCategoryByName(string categoryName, bool income)
+    {
+        return GetCategories(income)
+                .FirstOrDefault(c => 
+                    string.Equals(c.ShortName, categoryName, StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(c.Name, categoryName, StringComparison.InvariantCultureIgnoreCase));
+    }
 }

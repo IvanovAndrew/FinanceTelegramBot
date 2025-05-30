@@ -23,9 +23,7 @@ public class AddExpenseCategoryCommandHandler(
 
         if (session != null)
         {
-            var category = categoryProvider.GetCategories(session.MoneyTransferBuilder.IsIncome).FirstOrDefault(c =>
-                string.Equals(c.ShortName, request.Category, StringComparison.InvariantCultureIgnoreCase) ||
-                string.Equals(c.Name, request.Category, StringComparison.InvariantCultureIgnoreCase));
+            var category = categoryProvider.GetCategoryByName(request.Category, session.MoneyTransferBuilder.IsIncome);
 
             if (category != null)
             {
