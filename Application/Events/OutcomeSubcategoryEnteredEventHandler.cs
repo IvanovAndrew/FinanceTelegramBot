@@ -1,10 +1,11 @@
-﻿using MediatR;
+﻿using Application.AddMoneyTransfer;
+using MediatR;
 
 namespace Application.Events;
 
-public class OutcomeSubcategoryEnteredEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<OutcomeSubсategoryEnteredEvent>
+public class OutcomeSubcategoryEnteredEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<OutcomeSubCategoryEnteredEvent>
 {
-    public async Task Handle(OutcomeSubсategoryEnteredEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(OutcomeSubCategoryEnteredEvent notification, CancellationToken cancellationToken)
     {
         var session = userSessionService.GetUserSession(notification.SessionId);
 
