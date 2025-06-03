@@ -20,15 +20,17 @@ public interface IGoogleSpreadsheetService
 public class GoogleSpreadsheetService : IGoogleSpreadsheetService
 {
     private readonly string _baseUrl;
+    private readonly ICategoryProvider _categoryProvider;
     private readonly ILogger<IGoogleSpreadsheetService> _logger;
     private string GetExpensesUrl => $"{_baseUrl}/GetAllExpenses"; 
     private string SaveExpenseUrl => $"{_baseUrl}/SaveExpense"; 
     private string SaveAllExpensesUrl => $"{_baseUrl}/SaveAllExpenses";
     private string GetIncomesUrl => $"{_baseUrl}/GetAllIncomes";
     private string SaveIncomeUrl => $"{_baseUrl}/SaveIncome";
-    public GoogleSpreadsheetService(string url, ILogger<IGoogleSpreadsheetService> logger)
+    public GoogleSpreadsheetService(string url, ICategoryProvider categoryProvider, ILogger<IGoogleSpreadsheetService> logger)
     {
         _baseUrl = !string.IsNullOrEmpty(url)? url : throw new GoogleSpreadsheetServiceMissingParameterException(nameof(url));
+        _categoryProvider = categoryProvider;
         _logger = logger;
     }
 
@@ -101,7 +103,7 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
             if (dtos == null)
                 return new List<IMoneyTransfer>();
                 
-            return dtos.Select(c => GoogleSpreadsheetExpenseDto.ToExpense(c)).ToList();
+            return dtos.Select(c => GoogleSpreadsheetExpenseDto.ToExpense(c, _categoryProvider)).ToList();
         }
 
         return new List<IMoneyTransfer>();
@@ -169,35 +171,28 @@ public class GoogleSpreadsheetExpenseDto
         };
     }
 
-    public static IMoneyTransfer ToExpense(GoogleSpreadsheetExpenseDto dto)
+    public static IMoneyTransfer ToExpense(GoogleSpreadsheetExpenseDto dto, ICategoryProvider categoryProvider)
     {
-        Domain.Currency currency;
-        switch (int.Parse(dto.Currency))
+        Domain.Currency currency = int.Parse(dto.Currency) switch
         {
-            case 0:
-                currency = Domain.Currency.Rur;
-                break;
-            case 1:
-                currency = Domain.Currency.Amd;
-                break;
-            case 2:
-                currency = Domain.Currency.Gel;
-                break;
-            case 3:
-                currency = Domain.Currency.USD;
-                break;
-            case 4:
-                currency = Domain.Currency.EUR;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}");
-        }
+            0 => Domain.Currency.Rur,
+            1 => Domain.Currency.Amd,
+            2 => Domain.Currency.Gel,
+            3 => Domain.Currency.USD,
+            4 => Domain.Currency.EUR,
+            _ => throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}")
+        };
+
+        var domainCategory = categoryProvider.GetCategoryByName(dto.Category, false);
+        var category = domainCategory ?? Domain.Category.FromString(dto.Category);
+        
+        var domainSubcategory = category.GetSubcategoryByName(dto.Subcategory);
 
         return new Outcome()
         {
             Date = DateOnly.FromDateTime(dto.Date),
-            Category = Domain.Category.FromString(dto.Category),
-            SubCategory = SubCategory.FromString(dto.Subcategory),
+            Category = category,
+            SubCategory = domainSubcategory?? SubCategory.FromString(dto.Subcategory),
             Description = dto.Description,
             Amount = new Money()
             {
