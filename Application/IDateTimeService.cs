@@ -34,12 +34,9 @@ public interface IDateTimeService
         return false;
     }
 
-    bool IsCurrentMonth(DateOnly date) => Today().Year == date.Year && Today().Month == date.Month;
-
-    DateOnly GetFirstWorkingDayOfNextMonth()
+    DateOnly FirstWorkingDayOfMonth(DateOnly day)
     {
-        var nextMonth = Today().AddMonths(1);
-        var firstWorkingDayOfMonth = new DateOnly(nextMonth.Year, nextMonth.Month, 1);
+        var firstWorkingDayOfMonth = new DateOnly(day.Year, day.Month, 1);
 
         if (firstWorkingDayOfMonth.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
         {

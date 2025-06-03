@@ -63,14 +63,21 @@ public class SpendingUntilPaydayCommandHandler(IDateTimeService dateTimeService,
                 missingOutcomes.Add(outcome.Amount);
             }
         }
-        
-        var firstWorkingDayOfNextMonth = dateTimeService.GetFirstWorkingDayOfNextMonth();
 
-        var diff = firstWorkingDayOfNextMonth.DayNumber - today.DayNumber;
+        var salaryDay = GetSalaryDay(dateTimeService.Today());
+
+        var diff = salaryDay.DayNumber - today.DayNumber;
         var moneyPerDay = BudgetPlanner.Plan(request.Balance, diff, missingOutcomes);
         
         logger.LogInformation($"{nameof(SpendingUntilPaydayCommandHandler)} finished");
 
-        return new MoneyLeft(){MoneyPerDay = moneyPerDay, Payday = firstWorkingDayOfNextMonth};
+        return new MoneyLeft(){MoneyPerDay = moneyPerDay, Payday = salaryDay};
+    }
+
+    private DateOnly GetSalaryDay(DateOnly today)
+    {
+        var firstWorkingDay = dateTimeService.FirstWorkingDayOfMonth(today);
+
+        return today < firstWorkingDay ? firstWorkingDay : dateTimeService.FirstWorkingDayOfMonth(today.AddMonths(1));
     }
 }
