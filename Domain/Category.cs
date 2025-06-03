@@ -14,8 +14,11 @@ namespace Domain
         
         }
 
-        public SubCategory? GetSubcategoryByName(string name)
+        public SubCategory? GetSubcategoryByName(string? name)
         {
+            if (string.IsNullOrEmpty(name))
+                return null;
+            
             return Subcategories.FirstOrDefault(c => 
                 string.Equals(c.ShortName, name, StringComparison.InvariantCultureIgnoreCase) ||
                 string.Equals(c.Name, name, StringComparison.InvariantCultureIgnoreCase));
