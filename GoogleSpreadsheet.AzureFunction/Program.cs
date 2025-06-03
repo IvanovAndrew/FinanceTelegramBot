@@ -51,7 +51,7 @@ var host = new HostBuilder()
                 YearColumn = ExcelColumn.FromString("A"),
                 MonthColumn = ExcelColumn.FromString("B"),
                 DateColumn = ExcelColumn.FromString("C"),
-                CategoryColumn = ExcelColumn.FromString("D"),
+                SubCategoryColumn = ExcelColumn.FromString("D"),
                 DescriptionColumn = ExcelColumn.FromString("E"),
                 AmountRurColumn = ExcelColumn.FromString("F"),
                 AmountAmdColumn = ExcelColumn.FromString("G"),
@@ -133,7 +133,6 @@ var host = new HostBuilder()
         services.AddSingleton<GoogleSheetWrapper>(s =>
             ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<IGoogleService>(), s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), s.GetRequiredService<ILogger<GoogleSheetWrapper>>()));
         services.AddScoped<GoogleSheetAzureFunction>();
-        services.AddScoped<AzureQueueTrigger>();
     })
     .Build();
 
