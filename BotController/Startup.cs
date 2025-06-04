@@ -1,9 +1,9 @@
-using System.Reflection;
 using Application;
 using Application.Events;
 using Domain;
 using Infrastructure;
 using Infrastructure.Fns;
+using Infrastructure.GoogleSpreadsheet;
 using Infrastructure.Telegram;
 using MediatR;
 using Microsoft.OpenApi.Models;
@@ -49,9 +49,14 @@ namespace TelegramBot
             services.AddSingleton<ICategoryProvider, CategoryProvider>();
             services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s => ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
         
-            services.AddSingleton<IGoogleSpreadsheetService, GoogleSpreadsheetService>(s =>
-                ActivatorUtilities.CreateInstance<GoogleSpreadsheetService>(s, Environment.GetEnvironmentVariable("GOOGLESPREADSHEET_URL")));
+            services.AddRefitClient<IGoogleSpreadsheetApi>()
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri(Environment.GetEnvironmentVariable("GOOGLESPREADSHEET_URL"));
+                });
 
+            services.AddScoped<IGoogleSpreadsheetService, GoogleSpreadsheetService>();
+            
             // Register the core service
             services.AddScoped<FinanceRepository>();
 

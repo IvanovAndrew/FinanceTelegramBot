@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Domain;
+using Infrastructure.GoogleSpreadsheet;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
@@ -14,11 +15,11 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<F
         new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
     private readonly ConcurrentDictionary<object, SemaphoreSlim> _locks = new();
 
-    public async Task<bool> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
     {
         _logger.LogInformation($"FinanceRepository is trying to save an income");
         
-        bool result = await repository.SaveIncome(income, cancellationToken);
+        var result = await repository.SaveIncome(income, cancellationToken);
         
         _logger.LogInformation($"FinanceRepository has got result {result}");
         
@@ -29,19 +30,19 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<F
         return result;
     }
 
-    public async Task<bool> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expense, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expense, CancellationToken cancellationToken)
     {
         _logger.LogInformation($"ExpenseRepository is trying to save {expense.Count} expense(s)");
         
-        bool result = await repository.SaveAllOutcomes(expense, cancellationToken);
+        var saveResult = await repository.SaveAllOutcomes(expense, cancellationToken);
         
-        _logger.LogInformation($"ExpenseRepository has got result {result}");
+        _logger.LogInformation($"ExpenseRepository has got result {saveResult}");
         
         // TODO maybe it makes sense to add the expense to the cache
         _logger.LogInformation("Remove all cached entries");
         _cache.Clear();
 
-        return result;
+        return saveResult;
     }
 
     public async Task<List<IMoneyTransfer>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
@@ -137,23 +138,23 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<F
 
 public class FinanceRepository(IGoogleSpreadsheetService spreadsheetService) : IFinanceRepository
 {
-    public async Task<bool> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
     {
-        return await spreadsheetService.SaveIncome(income, cancellationToken);
+        return await spreadsheetService.SaveIncomeAsync(income, cancellationToken);
     }
 
-    public async Task<bool> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
     {
-        return await spreadsheetService.SaveAllExpenses(expenses, cancellationToken);
+        return await spreadsheetService.SaveAllExpensesAsync(expenses, cancellationToken);
     }
 
     public async Task<List<IMoneyTransfer>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
-        return await spreadsheetService.GetExpenses(financeFilter, cancellationToken);
+        return await spreadsheetService.GetExpensesAsync(financeFilter, cancellationToken);
     }
 
     public async Task<List<IMoneyTransfer>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
-        return await spreadsheetService.GetIncomes(financeFilter, cancellationToken);
+        return await spreadsheetService.GetIncomesAsync(financeFilter, cancellationToken);
     }
 }

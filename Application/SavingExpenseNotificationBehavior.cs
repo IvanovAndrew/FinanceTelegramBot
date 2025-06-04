@@ -1,4 +1,4 @@
-﻿using Application.Commands.SaveExpense;
+﻿using Application.AddMoneyTransfer;
 using MediatR;
 
 namespace Application;
