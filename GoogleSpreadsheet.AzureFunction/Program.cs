@@ -29,7 +29,7 @@ var host = new HostBuilder()
                     [2022] = 1,
                     [2023] = 1700, 
                     [2024] = 5400,
-                    [2025] = 10800,
+                    [2025] = 11000,
                 },
                 
                 YearColumn = ExcelColumn.FromString("A"),

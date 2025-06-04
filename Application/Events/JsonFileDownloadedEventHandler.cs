@@ -1,4 +1,4 @@
-﻿using Application.Commands.SaveOutcomesBatch;
+﻿using Application.AddMoneyTransferByRequisites;
 using Domain;
 using MediatR;
 

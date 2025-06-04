@@ -3,7 +3,7 @@ using Application.Events;
 using Domain;
 using MediatR;
 
-namespace Application.Commands.SaveOutcomesBatch;
+namespace Application.AddMoneyTransferByRequisites;
 
 public class SaveOutcomesBatchCommand : IRequest
 {
@@ -31,16 +31,9 @@ public class SaveOutcomesBatchCommandHandler(IUserSessionService userSessionServ
             {
                 using (cancellationTokenSource)
                 {
-                    bool success = await financeRepository.SaveAllOutcomes(request.MoneyTransfers, cancellationTokenSource.Token);
+                    var success = await financeRepository.SaveAllOutcomes(request.MoneyTransfers, cancellationTokenSource.Token);
 
-                    if (success)
-                    {
-                        result = SaveBatchExpensesResult.Saved(request.MoneyTransfers);
-                    }
-                    else
-                    {
-                        result = SaveBatchExpensesResult.Failed(request.MoneyTransfers, "Couldn't save expenses");
-                    }
+                    result = success.Success ? SaveBatchExpensesResult.Saved(request.MoneyTransfers) : SaveBatchExpensesResult.Failed(request.MoneyTransfers, success.ErrorMessage!);
                 }
             }
             catch (TaskCanceledException e)

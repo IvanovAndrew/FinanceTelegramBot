@@ -1,5 +1,4 @@
-﻿using Application.Commands.SaveOutcomesBatch;
-using Application.Events;
+﻿using Application.Events;
 using Domain;
 using MediatR;
 

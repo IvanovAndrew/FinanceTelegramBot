@@ -1,8 +1,8 @@
 ﻿using Application.Test.Extensions;
+using Application.Test.Stubs;
 using Domain;
 using Microsoft.Extensions.DependencyInjection;
 using UnitTest;
-using UnitTest.Extensions;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;

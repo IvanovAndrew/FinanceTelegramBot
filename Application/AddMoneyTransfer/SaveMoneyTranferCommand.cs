@@ -1,10 +1,7 @@
-﻿using Application.AddMoneyTransfer;
-using Application.Events;
-using Domain;
-using Domain.Events;
+﻿using Domain;
 using MediatR;
 
-namespace Application.Commands.SaveExpense;
+namespace Application.AddMoneyTransfer;
 
 public class SaveMoneyTransferCommand : IRequest
 {
@@ -43,7 +40,7 @@ public class SaveMoneyTransferCommandHandler : IRequestHandler<SaveMoneyTransfer
             {
                 using (cancellationTokenSource)
                 {
-                    bool success;
+                    SaveResult success;
 
                     if (moneyTransfer.IsIncome)
                     {
@@ -54,13 +51,13 @@ public class SaveMoneyTransferCommandHandler : IRequestHandler<SaveMoneyTransfer
                         success = await _financeRepository.SaveAllOutcomes(new List<IMoneyTransfer>() { moneyTransfer }, cancellationTokenSource.Token);
                     }
 
-                    if (success)
+                    if (success.Success)
                     {
                         await _mediator.Publish(new MoneyTransferSavedEvent { SessionId = request.SessionId, MoneyTransfer = moneyTransfer }, cancellationToken);
                     }
                     else
                     {
-                        await _mediator.Publish(new MoneyTransferIsNotSavedEvent { SessionId = request.SessionId },
+                        await _mediator.Publish(new MoneyTransferIsNotSavedEvent { SessionId = request.SessionId, Reason = success.ErrorMessage!},
                             cancellationToken);
                     }
                 }
