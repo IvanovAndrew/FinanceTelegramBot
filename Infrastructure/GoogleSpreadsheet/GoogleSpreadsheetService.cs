@@ -1,8 +1,5 @@
-﻿using System.Net.Mime;
-using System.Text;
-using Domain;
+﻿using Domain;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Infrastructure.GoogleSpreadsheet;
 
@@ -39,7 +36,8 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         }
     }
 
-    public async Task<List<IMoneyTransfer>> GetIncomesAsync(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public async Task<List<IMoneyTransfer>> GetIncomesAsync(FinanceFilter financeFilter,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -56,7 +54,8 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         }
     }
 
-    public async Task<List<IMoneyTransfer>> GetExpensesAsync(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public async Task<List<IMoneyTransfer>> GetExpensesAsync(FinanceFilter financeFilter,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -64,7 +63,8 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
             _logger.LogInformation("Getting expenses with filter: {Filter}", jsonPayload);
 
             var dtos = await _api.GetExpensesAsync(jsonPayload, cancellationToken);
-            return dtos?.Select(dto => GoogleSpreadsheetExpenseDto.ToExpense(dto, _categoryProvider)).ToList() ?? new List<IMoneyTransfer>();
+            return dtos?.Select(dto => GoogleSpreadsheetExpenseDto.ToExpense(dto, _categoryProvider)).ToList() ??
+                   new List<IMoneyTransfer>();
         }
         catch (Exception ex)
         {
@@ -89,11 +89,24 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         }
     }
 
-    public async Task<SaveResult> SaveAllExpensesAsync(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveAllExpensesAsync(IReadOnlyCollection<IMoneyTransfer> expenses,
+        CancellationToken cancellationToken)
     {
         try
         {
             var dtos = expenses.Select(GoogleSpreadsheetExpenseDto.FromExpense).ToArray();
+
+            if (dtos == null || dtos.Length == 0)
+            {
+                _logger.LogWarning("Attempted to save empty or null expense batch!");
+                return SaveResult.Fail("No expenses to save.");
+            }
+
+            if (dtos.Any(dto => dto == null))
+            {
+                _logger.LogWarning("Found null element in DTO array!");
+            }
+
             _logger.LogInformation("Saving batch of expenses. Count: {Count}", dtos.Length);
 
             var response = await _api.SaveAllExpensesAsync(dtos, cancellationToken);
@@ -102,7 +115,8 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
                 return SaveResult.Ok();
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            var message = $"Failed to save expenses batch. Status: {(int)response.StatusCode} {response.ReasonPhrase}. Response: {content}";
+            var message =
+                $"Failed to save expenses batch. Status: {(int)response.StatusCode} {response.ReasonPhrase}. Response: {content}";
             _logger.LogWarning(message);
             return SaveResult.Fail(message);
         }
@@ -113,13 +127,15 @@ public class GoogleSpreadsheetService : IGoogleSpreadsheetService
         }
     }
 
-    private async Task<SaveResult> HandleResponseAsync(HttpResponseMessage response, string context, CancellationToken cancellationToken)
+    private async Task<SaveResult> HandleResponseAsync(HttpResponseMessage response, string context,
+        CancellationToken cancellationToken)
     {
         if (response.IsSuccessStatusCode)
             return SaveResult.Ok();
 
         var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-        var message = $"Failed to save {context}. Status: {(int)response.StatusCode} {response.ReasonPhrase}. Response: {responseContent}";
+        var message =
+            $"Failed to save {context}. Status: {(int)response.StatusCode} {response.ReasonPhrase}. Response: {responseContent}";
 
         _logger.LogWarning(message);
         return SaveResult.Fail(message);
