@@ -39,9 +39,9 @@ public class CheckFiscalNumberNotSavedEvent : INotification
     public long SessionId { get; init; }
 }
 
-public class CheckFiscalNumberNotSavedEventHandler(IMessageService messageService) : INotificationHandler<CheckFiscalNumberSavedEvent>
+public class CheckFiscalNumberNotSavedEventHandler(IMessageService messageService) : INotificationHandler<CheckFiscalNumberNotSavedEvent>
 {
-    public async Task Handle(CheckFiscalNumberSavedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(CheckFiscalNumberNotSavedEvent notification, CancellationToken cancellationToken)
     {
         await messageService.SendTextMessageAsync(new Message()
         {

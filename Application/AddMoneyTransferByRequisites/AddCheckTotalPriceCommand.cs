@@ -29,7 +29,7 @@ public class AddCheckTotalPriceCommandHandler(IUserSessionService userSessionSer
 
 public class AddCheckTotalPriceSavedEvent : INotification
 {
-    public long SessionId { get; set; }
+    public long SessionId { get; init; }
 }
 
 public class AddCheckTotalPriceSavedEventHandler(IMessageService messageService) : INotificationHandler<AddCheckTotalPriceSavedEvent>
