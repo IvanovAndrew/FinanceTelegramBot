@@ -1,9 +1,9 @@
-using System.Reflection;
 using Application;
 using Application.Events;
 using Domain;
 using Infrastructure;
 using Infrastructure.Fns;
+using Infrastructure.GoogleSpreadsheet;
 using Infrastructure.Telegram;
 using MediatR;
 using Microsoft.OpenApi.Models;
@@ -49,9 +49,20 @@ namespace TelegramBot
             services.AddSingleton<ICategoryProvider, CategoryProvider>();
             services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s => ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
         
-            services.AddSingleton<IGoogleSpreadsheetService, GoogleSpreadsheetService>(s =>
-                ActivatorUtilities.CreateInstance<GoogleSpreadsheetService>(s, Environment.GetEnvironmentVariable("GOOGLESPREADSHEET_URL")));
+            services.AddTransient<LoggingHandler>();
+            
+            services.AddRefitClient<IGoogleSpreadsheetApi>(new RefitSettings
+                {
+                    ContentSerializer = new NewtonsoftJsonContentSerializer()
+                })
+                .ConfigureHttpClient(c =>
+                {
+                    c.BaseAddress = new Uri(Environment.GetEnvironmentVariable("GOOGLESPREADSHEET_URL"));
+                })
+                .AddHttpMessageHandler<LoggingHandler>();
 
+            services.AddScoped<IGoogleSpreadsheetService, GoogleSpreadsheetService>();
+            
             // Register the core service
             services.AddScoped<FinanceRepository>();
 
@@ -62,8 +73,6 @@ namespace TelegramBot
                 var logger = provider.GetRequiredService<ILogger<FinanceRepositoryDecorator>>();
                 return new FinanceRepositoryDecorator(coreService, logger);
             });
-            
-            // s.GetRequiredService<CategoryOptions>().Categories,
             
             services.AddSwaggerGen(c =>
                 c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Warrior's finance bot", Version = "v1" }));
@@ -87,4 +96,29 @@ namespace TelegramBot
             });
         } 
     }
+    
+    public class LoggingHandler : DelegatingHandler
+    {
+        private readonly ILogger<LoggingHandler> _logger;
+
+        public LoggingHandler(ILogger<LoggingHandler> logger)
+        {
+            _logger = logger;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            string? body = null;
+            if (request.Content != null)
+            {
+                body = await request.Content.ReadAsStringAsync(cancellationToken);
+            }
+
+            _logger.LogInformation("[HttpClient] Request to {Uri}\nMethod: {Method}\nBody:\n{Body}", request.RequestUri, request.Method, body ?? "<null>");
+
+            return await base.SendAsync(request, cancellationToken);
+        }
+    }
+
+
 }

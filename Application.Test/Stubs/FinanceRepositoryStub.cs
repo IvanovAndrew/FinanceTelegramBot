@@ -1,7 +1,6 @@
 ﻿using Domain;
-using Infrastructure;
 
-namespace UnitTest;
+namespace Application.Test.Stubs;
 
 public class FinanceRepositoryStub : IFinanceRepository
 {
@@ -9,18 +8,18 @@ public class FinanceRepositoryStub : IFinanceRepository
     private readonly List<IMoneyTransfer> _savedIncomes = new();
     public TimeSpan DelayTime { get; set; } = TimeSpan.Zero;
 
-    public Task<bool> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
+    public Task<SaveResult> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
     {
         _savedIncomes.Add(income);
-        return Task.FromResult(true);
+        return Task.FromResult(SaveResult.Ok());
     }
 
-    public async Task<bool> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
     {
         await Task.Delay(DelayTime, cancellationToken);
         _savedExpenses.AddRange(expenses);
 
-        return true;
+        return SaveResult.Ok();
     }
 
     public Task<List<IMoneyTransfer>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)

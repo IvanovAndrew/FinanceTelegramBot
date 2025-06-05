@@ -1,27 +1,18 @@
 ﻿using Application.AddMoneyTransfer;
-using Domain.Events;
 using MediatR;
 
 namespace Application.Events;
 
-public class OutcomeSavedEventHandler : INotificationHandler<MoneyTransferSavedEvent>
+public class OutcomeSavedEventHandler(IUserSessionService userSessionService, IMessageService messageService)
+    : INotificationHandler<MoneyTransferSavedEvent>
 {
-    private readonly IUserSessionService _userSessionService;
-    private readonly IMessageService _messageService;
-
-    public OutcomeSavedEventHandler(IUserSessionService userSessionService, IMessageService messageService)
-    {
-        _userSessionService = userSessionService;
-        _messageService = messageService;
-    }
-    
     public async Task Handle(MoneyTransferSavedEvent notification, CancellationToken cancellationToken)
     {
-        var session = _userSessionService.GetUserSession(notification.SessionId);
+        var session = userSessionService.GetUserSession(notification.SessionId);
 
         if (session != null)
         {
-            await _messageService.EditSentTextMessageAsync(new Message()
+            await messageService.EditSentTextMessageAsync(new Message()
                 { 
                     ChatId = notification.SessionId, 
                     Id = session.LastSentMessageId, 
@@ -31,7 +22,7 @@ public class OutcomeSavedEventHandler : INotificationHandler<MoneyTransferSavedE
                         "Saved")
                 }, cancellationToken);
 
-            _userSessionService.RemoveSession(session.Id);
+            userSessionService.RemoveSession(session.Id);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Application.Statistic.StatisticBalance;
 using Application.Test.Extensions;
+using Application.Test.Stubs;
 using Domain;
 using UnitTest;
 using UnitTest.Stubs;
