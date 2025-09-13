@@ -2,8 +2,6 @@
 using Application.Test.Stubs;
 using Domain;
 using Microsoft.Extensions.DependencyInjection;
-using UnitTest;
-using UnitTest.Extensions;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
@@ -127,6 +125,22 @@ public class AddExpenseManuallyTest
         Assert.Null(savedExpense.SubCategory);
         Assert.Equal("royal canin", savedExpense.Description);
         Assert.Equal(new Money(){Amount = 20_000, Currency = Currency.Amd}, savedExpense.Amount);
+    }
+    
+    [Fact]
+    public async Task IfWrongPriceIsEnteredThereWillBeANotification()
+    {
+        // Act
+        await _botEngine.Proceed("/start");
+        await _botEngine.Proceed("outcome");
+        await _botEngine.Proceed("By myself");
+        await _botEngine.Proceed("today");
+        await _botEngine.Proceed("cats");
+        await _botEngine.Proceed("royal canin");
+        var lastMessage = await _botEngine.Proceed("1999");
+
+        // Assert
+        Assert.Equal("Missing currency. Try again", lastMessage.Text);
     }
     
     [Fact]
