@@ -1,20 +1,19 @@
-﻿using Application;
-using Domain;
+﻿using Application.Contracts;
 
-namespace UnitTest.Stubs;
+namespace Application.Test.Stubs;
 
 public class FnsServiceStub : IFnsService
 {
-    internal Dictionary<CheckRequisite, IReadOnlyCollection<Outcome>> Responses = new();
+    internal Dictionary<CheckRequisite, IReadOnlyCollection<RawOutcomeItem>> Responses = new();
     
-    public Task<IReadOnlyCollection<Outcome>> GetCheck(CheckRequisite qrRaw)
+    public Task<IReadOnlyCollection<RawOutcomeItem>> GetCheck(CheckRequisite qrRaw)
     {
         if (Responses.TryGetValue(qrRaw, out var value))
         {
             return Task.FromResult(value);
         }
 
-        value = Array.Empty<Outcome>();
+        value = Array.Empty<RawOutcomeItem>();
         
         return Task.FromResult(value);
     }
