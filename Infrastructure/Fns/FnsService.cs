@@ -1,17 +1,16 @@
-﻿using Application;
-using Domain;
+﻿using Application.Contracts;
 using Infrastructure.Fns.DataContract;
 using Newtonsoft.Json;
 using Refit;
 
 namespace Infrastructure.Fns;
 
-public class FnsService(IFnsApi api, ICategoryProvider categoryProvider, string token) : IFnsService
+public class FnsService(IFnsApi api, string token) : IFnsService
 {
     private const string Url = "https://proverkacheka.com/api/v1/check/get";
     private readonly string _token = !string.IsNullOrEmpty(token)? token : throw new WrongConfigurationFnsException(nameof(token));
 
-    public async Task<IReadOnlyCollection<Outcome>> GetCheck(CheckRequisite checkRequisite)
+    public async Task<IReadOnlyCollection<RawOutcomeItem>> GetCheck(CheckRequisite checkRequisite)
     {
         try
         {
@@ -24,20 +23,19 @@ public class FnsService(IFnsApi api, ICategoryProvider categoryProvider, string 
             var json = response.Data?.Json;
             if (json?.Items == null) return [];
 
-            var defaultCategory = categoryProvider.DefaultOutcomeCategory();
-        
-            var expenses = json?.Items?.Select(i => new Outcome()
-            {
-                Amount = new Money
-                {
-                    Amount = i.Sum / 100m,
-                    Currency = Currency.Rur
-                },
-                Date = GetDate(json.DateTime),
-                Description = i.Name,
-                Category = defaultCategory
-            })?.ToList()?? new List<Outcome>();
+            var expenses = new List<RawOutcomeItem>();
 
+            foreach (var item in json?.Items?? [])
+            {
+                expenses.Add(
+                    new RawOutcomeItem()
+                    {
+                        Amount = item.Sum / 100m,
+                        Date = GetDate(json.DateTime),
+                        Description = item.Name,
+                    });
+            }
+        
             return expenses;
         }
         catch (ApiException ex)

@@ -1,4 +1,5 @@
-﻿using Application.Events;
+﻿using Application.Contracts;
+using Application.Events;
 using Application.Test.Extensions;
 using Application.Test.Stubs;
 using Domain;
@@ -35,6 +36,7 @@ public static class TestServiceFactory
         services.AddSingleton<IUserSessionService>(userSession);
         services.AddSingleton<IExpenseJsonParser, ExpenseJsonParser>();
         services.AddSingleton<ICategoryProvider, CategoryProviderStub>();
+        services.AddSingleton<IExpenseCategorizer, ExpenseHistoryCategorizer>();
         services.AddSingleton(provider => BotEngineWrapper.Create(
             provider.GetRequiredService<ICategoryProvider>(),
             (FinanceRepositoryStub)provider.GetRequiredService<IFinanceRepository>(),

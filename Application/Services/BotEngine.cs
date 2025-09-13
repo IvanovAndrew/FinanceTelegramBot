@@ -95,7 +95,7 @@ namespace Application.Services
             return text switch
             {
                 "/statistics" => new StatisticRequestedEvent { SessionId = chatId },
-                "/requisites" => new RequisitesRequestedDomainEvent() { SessionId = chatId },
+                "/requisites" => new RequisitesRequestedEvent() { SessionId = chatId },
                 "/check" => new CheckOutcomeQuestionnaireRequestedEvent() { SessionId = chatId },
                 "/json" => new JsonCheckRequestedEvent() { SessionId = chatId },
                 "/url" => new UrlLinkRequestedEvent() { SessionId = chatId },

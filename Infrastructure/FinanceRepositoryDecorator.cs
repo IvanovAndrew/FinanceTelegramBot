@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure;
 
-public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<FinanceRepositoryDecorator> logger)
+public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategoryProvider categoryProvider, ILogger<FinanceRepositoryDecorator> logger)
     : IFinanceRepository
 {
     private readonly ILogger _logger = logger;
@@ -30,11 +30,11 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<F
         return result;
     }
 
-    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expense, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"ExpenseRepository is trying to save {expense.Count} expense(s)");
+        _logger.LogInformation($"ExpenseRepository is trying to save {expenses.Count} expense(s)");
         
-        var saveResult = await repository.SaveAllOutcomes(expense, cancellationToken);
+        var saveResult = await repository.SaveAllOutcomes(expenses, cancellationToken);
         
         _logger.LogInformation($"ExpenseRepository has got result {saveResult}");
         
@@ -134,6 +134,51 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<F
                $"Subcategory={filter.Subcategory};" +
                $"Currency={filter.Currency?.Name}";
     }
+    
+    private FinanceFilter ParseCacheKey(string cacheKey)
+    {
+        // Пример ключа:
+        // "Outcome:DateFrom=2025-09-08;DateTo=2025-09-10;Category=Food;Subcategory=Snacks;Currency=Rur"
+
+        var parts = cacheKey.Split(':', 2); // отделяем тип (Outcome/Income)
+        if (parts.Length < 2)
+            throw new ArgumentException("Invalid cache key format", nameof(cacheKey));
+
+        var filters = parts[1].Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+        var financeFilter = new FinanceFilter();
+
+        foreach (var filterPart in filters)
+        {
+            var kv = filterPart.Split('=', 2);
+            if (kv.Length != 2) continue;
+
+            var key = kv[0];
+            var value = kv[1];
+
+            switch (key)
+            {
+                case "DateFrom":
+                    financeFilter.DateFrom = DateOnly.Parse(value);
+                    break;
+                case "DateTo":
+                    financeFilter.DateTo = DateOnly.Parse(value);
+                    break;
+                case "Category":
+                    financeFilter.Category = categoryProvider.GetCategoryByName(value, false);
+                    break;
+                case "Subcategory":
+                    financeFilter.Subcategory = financeFilter.Category?.GetSubcategoryByName(value);
+                    break;
+                case "Currency":
+                    financeFilter.Currency = Currency.TryParse(value, out var currency) ? currency : null;
+                    break;
+            }
+        }
+
+        return financeFilter;
+    }
+
 }
 
 public class FinanceRepository(IGoogleSpreadsheetService spreadsheetService) : IFinanceRepository
@@ -156,5 +201,23 @@ public class FinanceRepository(IGoogleSpreadsheetService spreadsheetService) : I
     public async Task<List<IMoneyTransfer>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         return await spreadsheetService.GetIncomesAsync(financeFilter, cancellationToken);
+    }
+}
+
+public static class MemoryCacheExtensions
+{
+    public static IEnumerable<string> GetKeys(this MemoryCache cache)
+    {
+        var entries = cache.GetType()
+            .GetProperty("EntriesCollection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            ?.GetValue(cache) as dynamic;
+
+        if (entries == null) yield break;
+
+        foreach (var entry in entries)
+        {
+            object key = entry.GetType().GetProperty("Key").GetValue(entry, null);
+            yield return (string) key;
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using Application.Contracts;
+using Domain;
 
 namespace Application;
 

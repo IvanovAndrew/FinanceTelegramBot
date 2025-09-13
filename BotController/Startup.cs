@@ -1,4 +1,5 @@
 using Application;
+using Application.Contracts;
 using Application.Events;
 using Domain;
 using Infrastructure;
@@ -70,9 +71,12 @@ namespace TelegramBot
             services.AddScoped<IFinanceRepository>(provider =>
             {
                 var coreService = provider.GetRequiredService<FinanceRepository>();
+                var categoryProvider = provider.GetRequiredService<ICategoryProvider>();
                 var logger = provider.GetRequiredService<ILogger<FinanceRepositoryDecorator>>();
-                return new FinanceRepositoryDecorator(coreService, logger);
+                return new FinanceRepositoryDecorator(coreService, categoryProvider, logger);
             });
+
+            services.AddScoped<IExpenseCategorizer, ExpenseHistoryCategorizer>();
             
             services.AddSwaggerGen(c =>
                 c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Warrior's finance bot", Version = "v1" }));
@@ -97,15 +101,8 @@ namespace TelegramBot
         } 
     }
     
-    public class LoggingHandler : DelegatingHandler
+    public class LoggingHandler(ILogger<LoggingHandler> logger) : DelegatingHandler
     {
-        private readonly ILogger<LoggingHandler> _logger;
-
-        public LoggingHandler(ILogger<LoggingHandler> logger)
-        {
-            _logger = logger;
-        }
-
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             string? body = null;
@@ -114,7 +111,7 @@ namespace TelegramBot
                 body = await request.Content.ReadAsStringAsync(cancellationToken);
             }
 
-            _logger.LogInformation("[HttpClient] Request to {Uri}\nMethod: {Method}\nBody:\n{Body}", request.RequestUri, request.Method, body ?? "<null>");
+            logger.LogInformation("[HttpClient] Request to {Uri}\nMethod: {Method}\nBody:\n{Body}", request.RequestUri, request.Method, body ?? "<null>");
 
             return await base.SendAsync(request, cancellationToken);
         }
