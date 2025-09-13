@@ -1,15 +1,16 @@
-﻿using MediatR;
+﻿using Application.Contracts;
+using MediatR;
 
 namespace Application.AddMoneyTransferByRequisites;
 
-public class RequisitesRequestedDomainEvent : INotification
+public class RequisitesRequestedEvent : INotification
 {
     public long SessionId { get; init; }
 }
 
-public class RequisitesRequestedDomainEventHandler(IUserSessionService userSessionService, IMediator mediator) : INotificationHandler<RequisitesRequestedDomainEvent>
+public class RequisitesRequestedEventHandler(IUserSessionService userSessionService, IMediator mediator) : INotificationHandler<RequisitesRequestedEvent>
 {
-    public async Task Handle(RequisitesRequestedDomainEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(RequisitesRequestedEvent notification, CancellationToken cancellationToken)
     {
         var session = userSessionService.GetUserSession(notification.SessionId);
 
