@@ -5,24 +5,21 @@ namespace Infrastructure;
 
 public class CategoryProvider : ICategoryProvider
 {
-    private List<Category> Categories { get; set; }
+    private List<Category> OutcomeCategories { get; set; }
+    private List<Category> IncomeCategories { get; set; }
     public CategoryProvider(IConfiguration configuration)
     {
-        Categories = configuration.GetSection("Categories").Get<List<Category>>();
+        OutcomeCategories = configuration.GetSection("Categories").Get<List<Category>>();
+        IncomeCategories = configuration.GetSection("IncomeCategories").Get<List<Category>>();
     }
 
     public IReadOnlyList<Category> GetCategories(bool income)
     {
-        if (!income)
-        {
-            return Categories;
-        }
-        
-        return ArraySegment<Category>.Empty;
+        return !income ? OutcomeCategories : IncomeCategories;
     }
 
     public Category DefaultOutcomeCategory()
     {
-        return Categories.First(c => c.IsDefaultCategory);
+        return OutcomeCategories.First(c => c.IsDefaultCategory);
     }
 }
