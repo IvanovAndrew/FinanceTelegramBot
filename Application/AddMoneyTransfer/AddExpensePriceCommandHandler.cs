@@ -4,29 +4,26 @@ using MediatR;
 
 namespace Application.AddMoneyTransfer;
 
-public class AddExpensePriceCommandHandler : IRequestHandler<AddMoneyTransferPriceCommand>
+public class AddExpensePriceCommandHandler(IMediator mediator, IUserSessionService userSessionService)
+    : IRequestHandler<AddMoneyTransferPriceCommand>
 {
-    private readonly IMediator _mediator;
-    private readonly IUserSessionService _userSessionService;
-
-    public AddExpensePriceCommandHandler(IMediator mediator, IUserSessionService userSessionService)
-    {
-        _mediator = mediator;
-        _userSessionService = userSessionService;
-    }
-    
     public async Task Handle(AddMoneyTransferPriceCommand request, CancellationToken cancellationToken)
     {
-        var session = _userSessionService.GetUserSession(request.SessionId);
+        var session = userSessionService.GetUserSession(request.SessionId);
 
         if (session != null)
         {
-            if (Money.TryParse(request.Price, out var price))
+            var parseResult = Money.Parse(request.Price);
+            if (parseResult.IsSuccess)
             {
-                session.MoneyTransferBuilder.Sum = price;
+                session.MoneyTransferBuilder.Sum = parseResult.Value;
                 session.QuestionnaireService.Next();
 
-                await _mediator.Publish(new OutcomePriceAddedEvent() { SessionId = session.Id }, cancellationToken);
+                await mediator.Publish(new OutcomePriceAddedEvent() { SessionId = session.Id }, cancellationToken);
+            }
+            else
+            {
+                await mediator.Publish(new WrongPriceEnteredEvent() { SessionId = session.Id, Error = parseResult.Error}, cancellationToken);
             }
         }
     }

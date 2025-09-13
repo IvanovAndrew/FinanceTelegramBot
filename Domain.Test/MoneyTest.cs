@@ -26,9 +26,11 @@ public class MoneyTest
     [InlineData("1000֏", 1000, "֏")]
     public void ParseMoney(string input, decimal expectedValue, string expectedCurrency)
     {
-        Assert.True(Money.TryParse(input, out var money));
+        var parseResult = Money.Parse(input);
         
-        Assert.Equal(expectedValue, money.Amount);
-        Assert.Equal(expectedCurrency, money.Currency.Symbol);
+        Assert.True(parseResult.IsSuccess);
+        
+        Assert.Equal(expectedValue, parseResult.Value.Amount);
+        Assert.Equal(expectedCurrency, parseResult.Value.Currency.Symbol);
     }
 }

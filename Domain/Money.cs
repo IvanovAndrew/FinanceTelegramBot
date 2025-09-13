@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -34,44 +33,42 @@ namespace Domain
             return new Money { Currency = money.Currency, Amount = result };
         }
 
-        public static bool TryParse(string s, Currency currency, IFormatProvider formatProvider, [NotNullWhen(true)] out Money? money)
+        public static Result<Money> Parse(string s, Currency currency, IFormatProvider formatProvider)
         {
             if (decimal.TryParse(s, NumberStyles.Currency, formatProvider, out var amount))
             {
-                money = new Money() { Currency = currency, Amount = amount };
-                return true;
+                return Result<Money>.Success(new Money() { Currency = currency, Amount = amount });
             }
-
-            money = null;
-            return false;
+            
+            return Result<Money>.Failure("Couldn't parse amount");
         }
         
-        public static bool TryParse(string? text, [NotNullWhen(true)] out Money? money)
+        public static Result<Money> Parse(string? text)
         {
-            money = null;
-        
             Regex amountRegex = new Regex(@"((\d+\s?)+\.?\d*)");
 
             var str = text.Replace(",", ".");
             Match match = amountRegex.Match(str);
-        
-            if (!match.Success) return false;
+
+            if (!match.Success)
+            {
+                return Result<Money>.Failure("Unknown value");
+            }
 
             var numberPart = match.Groups[0].Value;
 
             Currency? currency;
             if (!Currency.TryParse(str.Replace(numberPart, ""), out currency))
             {
-                return false;
+                return Result<Money>.Failure("Missing currency");
             }
 
-            if (decimal.TryParse(numberPart.Replace(" ", ""), out var amount))
+            if (!decimal.TryParse(numberPart.Replace(" ", ""), out var amount))
             {
-                money = new Money { Amount = amount, Currency = currency };
-                return true;
+                return Result<Money>.Failure("Missing amount");
             }
 
-            return false;
+            return Result<Money>.Success(new Money { Amount = amount, Currency = currency });
         }
     
         public override string ToString()
