@@ -1,7 +1,9 @@
-﻿using Application.Events;
+﻿using Application.Contracts;
+using Application.Events;
 using Application.Services;
 using Application.Test.Stubs;
 using Domain;
+using Infrastructure;
 using Infrastructure.Fns;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -72,6 +74,7 @@ internal class BotEngineWrapper
         services.AddSingleton<IUserSessionService>(userSessionService);
         services.AddSingleton<IExpenseJsonParser, ExpenseJsonParser>();
         services.AddSingleton<ICategoryProvider>(categoryProvider);
+        services.AddSingleton<IExpenseCategorizer, ExpenseHistoryCategorizer>();
         services.AddLogging();
 
         var provider = services.BuildServiceProvider();

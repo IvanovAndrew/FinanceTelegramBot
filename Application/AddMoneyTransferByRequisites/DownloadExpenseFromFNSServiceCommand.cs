@@ -1,4 +1,5 @@
-﻿using Application.Events;
+﻿using Application.Contracts;
+using Application.Events;
 using Domain;
 using MediatR;
 
@@ -10,7 +11,7 @@ public class DownloadExpenseFromFNSServiceCommand : IRequest
     public CheckRequisite CheckRequisite { get; init; }
 }
 
-public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService userSessionService, IFnsService fnsService, IMediator mediator) : IRequestHandler<DownloadExpenseFromFNSServiceCommand>
+public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService userSessionService, IFnsService fnsService, IExpenseCategorizer expenseCategorizer, ICategoryProvider categoryProvider, IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<DownloadExpenseFromFNSServiceCommand>
 {
     public async Task Handle(DownloadExpenseFromFNSServiceCommand request, CancellationToken cancellationToken)
     {
@@ -23,16 +24,42 @@ public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService use
             var cancellationTokenSource = new CancellationTokenSource();
             session.CancellationTokenSource = cancellationTokenSource;
 
-            IReadOnlyCollection<Outcome> outcomes = new List<Outcome>();
+            IReadOnlyCollection<RawOutcomeItem> rawOutcomeItems = new List<RawOutcomeItem>();
+            List<Outcome> outcomes = new List<Outcome>();
             
             using (cancellationTokenSource)
             {
-                outcomes = await fnsService.GetCheck(request.CheckRequisite);
-            }
-
-            session.QuestionnaireService = null;
+                var getFnsCheckTask = fnsService.GetCheck(request.CheckRequisite);
+                var getAllOutcomes = financeRepository.ReadOutcomes(new FinanceFilter() { Currency = Currency.Rur }, cancellationToken);
+                
+                rawOutcomeItems = await getFnsCheckTask; 
+                
+                session.QuestionnaireService = null;
             
-            await mediator.Publish(new DownloadingExpenseFinishedEvent(){SessionId = session.Id}, cancellationToken);
+                await mediator.Publish(new DownloadingExpenseFinishedEvent(){SessionId = session.Id}, cancellationToken);
+
+                var defaultCategory = categoryProvider.DefaultOutcomeCategory();
+
+                var knownOutcomes = await getAllOutcomes;
+                var dict = knownOutcomes.DistinctBy(t => t.Description).ToDictionary(t => t.Description,
+                    t => ExpenseCategorizerResult.Create(t.Category, t.SubCategory));
+            
+                foreach (var rawOutcome in rawOutcomeItems)
+                {
+                    var expenseCategoryResult = expenseCategorizer.GetCategory(rawOutcome.Description, dict);
+
+                    outcomes.Add(
+                        new Outcome()
+                        {
+                            Date = rawOutcome.Date,
+                            Category = expenseCategoryResult?.Category?? defaultCategory,
+                            SubCategory = expenseCategoryResult?.SubCategory,
+                            Description = rawOutcome.Description,
+                            
+                            Amount = new Money(){Amount = rawOutcome.Amount, Currency = Currency.Rur},
+                        });
+                }
+            }
 
             await mediator.Send(new SaveOutcomesBatchCommand() { SessionId = session.Id, MoneyTransfers = outcomes }, cancellationToken);
         }
