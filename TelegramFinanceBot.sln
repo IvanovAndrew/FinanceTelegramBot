@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleSheetWriter.Test", "G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain.Test", "Domain.Test\Domain.Test.csproj", "{6A116C60-A95F-45A6-86FE-AE7604E67B4E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Contracts", "Application.Contracts\Application.Contracts.csproj", "{C5D7E069-F758-4581-A29E-04E4446E5896}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +62,9 @@ Global
 		{6A116C60-A95F-45A6-86FE-AE7604E67B4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A116C60-A95F-45A6-86FE-AE7604E67B4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A116C60-A95F-45A6-86FE-AE7604E67B4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5D7E069-F758-4581-A29E-04E4446E5896}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5D7E069-F758-4581-A29E-04E4446E5896}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5D7E069-F758-4581-A29E-04E4446E5896}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5D7E069-F758-4581-A29E-04E4446E5896}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

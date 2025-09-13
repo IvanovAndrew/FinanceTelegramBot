@@ -1,4 +1,7 @@
-﻿
+﻿using System.Globalization;
+
+namespace Application.Contracts;
+
 public record CheckRequisite
 {
     public DateTime DateTime;

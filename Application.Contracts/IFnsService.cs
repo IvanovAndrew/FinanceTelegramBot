@@ -1,8 +1,6 @@
-﻿using Application.Contracts;
-
-namespace Application;
+﻿namespace Application.Contracts;
 
 public interface IFnsService
 {
-    public Task<IReadOnlyCollection<Outcome>> GetCheck(CheckRequisite checkRequisite);
+    public Task<IReadOnlyCollection<RawOutcomeItem>> GetCheck(CheckRequisite checkRequisite);
 }
