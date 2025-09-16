@@ -78,6 +78,32 @@ public class ManualRequisitesQuestionnaireService : IQuestionnaireService
     }
 }
 
+public class RequisitesFromUrlQuestionnaireService : IQuestionnaireService
+{
+    private int _current = 0;
+    
+    private Dictionary<int, Func<long, string, IRequest>> _handlers =
+        new()
+        {
+            [0] = (sessionId, input) => new ExtractRequisitesFromUrlCommand(){SessionId = sessionId, Url = input},
+        };
+    
+    public IRequest GetHandler(long sessionId, string text)
+    {
+        return _handlers[_current](sessionId, text);
+    }
+
+    public void Back()
+    {
+        _current--;
+    }
+
+    public void Next()
+    {
+        _current++;
+    }
+}
+
 public class DayStatisticQuestionnaire : IQuestionnaireService
 {
     private int _current = 0;

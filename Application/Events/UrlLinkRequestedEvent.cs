@@ -15,6 +15,8 @@ public class UrlLinkRequestedEventHandler(IUserSessionService userSessionService
 
         if (session != null)
         {
+            session.QuestionnaireService = new RequisitesFromUrlQuestionnaireService();
+            
             await messageService.EditSentTextMessageAsync(
                 new Message()
                 {
