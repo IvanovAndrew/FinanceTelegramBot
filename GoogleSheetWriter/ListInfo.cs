@@ -48,8 +48,8 @@ namespace GoogleSheetWriter
         
         [ExcelColumn(Write = true, Read = true)]
         public ExcelColumn? AmountRsdColumn;
-        
-        public Dictionary<int, int> YearToFirstExcelRow = new();
+
+        public DateRowResolver? DateRowResolver;
         
         public ExcelColumn GetLastExcelColumn()
         {
