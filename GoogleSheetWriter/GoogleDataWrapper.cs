@@ -27,10 +27,12 @@ namespace GoogleSheetWriter
         public string? SubCategory => GetByColumnName(_columnNames.SubCategoryColumn);
         public string? Description => GetByColumnName(_columnNames.DescriptionColumn);
 
-        public decimal Amount => ParseAmount(GetByColumnName(_columnNames.AmountRurColumn), GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn), GetByColumnName(_columnNames.AmountEurColumn));
+        public decimal Amount => ParseAmount(GetByColumnName(_columnNames.AmountRurColumn), GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn), GetByColumnName(_columnNames.AmountEurColumn), GetByColumnName(_columnNames.AmountRsdColumn), GetByColumnName(_columnNames.AmountTryColumn));
 
         public Currency Currency => ParseCurrency(GetByColumnName(_columnNames.AmountRurColumn),
-            GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn), GetByColumnName(_columnNames.AmountEurColumn)); 
+            GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn), GetByColumnName(_columnNames.AmountEurColumn), 
+            GetByColumnName(_columnNames.AmountRsdColumn),
+            GetByColumnName(_columnNames.AmountTryColumn)); 
 
         private string? GetByColumnName(ExcelColumn? excelColumn)
         {
@@ -54,7 +56,7 @@ namespace GoogleSheetWriter
         }
 
         private Currency ParseCurrency(
-            string? rurColumn, string? amdColumn, string? gelColumn, string? usdColumn, string? eurColumn)
+            string? rurColumn, string? amdColumn, string? gelColumn, string? usdColumn, string? eurColumn, string? rsdColumn, string? tryColumn)
         {
             var currencies = new (string? Column, Currency Type)[]
             {
@@ -63,6 +65,8 @@ namespace GoogleSheetWriter
                 (gelColumn, Currency.GEL),
                 (usdColumn, Currency.USD),
                 (eurColumn, Currency.EUR),
+                (rsdColumn, Currency.RSD),
+                (tryColumn, Currency.TRY),
             };
 
             foreach (var (column, currency) in currencies)

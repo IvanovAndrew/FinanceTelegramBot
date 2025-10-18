@@ -241,6 +241,18 @@ namespace GoogleSheetWriter
                         expense.Currency == Currency.EUR ? expense.Amount : "";
                 }
                 
+                if (listInfo.AmountRsdColumn is not null)
+                {
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountRsdColumn, firstExcelColumn)] =
+                        expense.Currency == Currency.RSD ? expense.Amount : "";
+                }
+                
+                if (listInfo.AmountTryColumn is not null)
+                {
+                    excelRowValues[ExcelColumn.DifferenceBetween(listInfo.AmountTryColumn, firstExcelColumn)] =
+                        expense.Currency == Currency.TRY ? expense.Amount : "";
+                }
+                
                 while (excelRowValues[^1] == null)
                 {
                     excelRowValues.RemoveAt(excelRowValues.Count - 1);
@@ -367,6 +379,7 @@ namespace GoogleSheetWriter
         private string BuildRange(ListInfo listInfo, ExcelColumn firstColumn, int startRow, int rowCount)
         {
             var lastColumn = listInfo.GetLastExcelColumn();
+            _logger.LogInformation($"Last column is {lastColumn}");
             return $"{listInfo.ListName}!{firstColumn.Name}{startRow}:{lastColumn}{startRow + rowCount - 1}";
         }
     }

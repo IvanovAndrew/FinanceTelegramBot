@@ -102,9 +102,9 @@ public class GoogleSheetAzureFunction(GoogleSheetWrapper googleSheetWrapper, ILo
         try
         {
             List<MoneyTransfer> expenses = JsonConvert.DeserializeObject<List<MoneyTransfer>>(request);
-            logger.LogInformation($"Deserialized as {expenses} Count: {expenses.Count}");
+            logger.LogInformation($"Deserialized as {expenses} Count: {expenses?.Count}");
             
-            await googleSheetWrapper.SaveAll(expenses.ToList(), cancellationToken);
+            await googleSheetWrapper.SaveAll(expenses?.ToList()?? [], cancellationToken);
             response.StatusCode = HttpStatusCode.OK;
             logger.LogInformation("All expenses are successfully saved");
         }

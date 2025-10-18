@@ -43,6 +43,8 @@ var host = new HostBuilder()
                 AmountGelColumn = ExcelColumn.FromString("I"),
                 AmountUsdColumn = ExcelColumn.FromString("J"),
                 AmountEurColumn = ExcelColumn.FromString("K"),
+                AmountTryColumn = ExcelColumn.FromString("L"),
+                AmountRsdColumn = ExcelColumn.FromString("M"),
             };
             instance.FlatInfo = new ListInfo()
             {
@@ -79,6 +81,8 @@ var host = new HostBuilder()
                 AmountRurColumn = ExcelColumn.FromString("H"),
                 AmountAmdColumn = ExcelColumn.FromString("I"),
                 AmountGelColumn = ExcelColumn.FromString("J"),
+                AmountTryColumn = ExcelColumn.FromString("K"),
+                AmountRsdColumn = ExcelColumn.FromString("L"),
             };
             instance.CurrencyConversionIncome = new ListInfo()
             {
@@ -86,11 +90,13 @@ var host = new HostBuilder()
                 ListName = "Обмен валюты",
                 Category = "Обмен валюты",
                 DateColumn = ExcelColumn.FromString("C"),
-                AmountRurColumn = ExcelColumn.FromString("L"),
-                AmountAmdColumn = ExcelColumn.FromString("M"),
-                AmountEurColumn = ExcelColumn.FromString("N"),
-                AmountUsdColumn = ExcelColumn.FromString("O"),
-                AmountGelColumn = ExcelColumn.FromString("P")
+                AmountRurColumn = ExcelColumn.FromString("N"),
+                AmountAmdColumn = ExcelColumn.FromString("O"),
+                AmountEurColumn = ExcelColumn.FromString("P"),
+                AmountUsdColumn = ExcelColumn.FromString("Q"),
+                AmountGelColumn = ExcelColumn.FromString("R"),
+                AmountTryColumn = ExcelColumn.FromString("S"),
+                AmountRsdColumn = ExcelColumn.FromString("T"),
             };
             instance.Incomes = new ListInfo()
             {

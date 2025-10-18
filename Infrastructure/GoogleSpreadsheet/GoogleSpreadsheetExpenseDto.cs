@@ -34,6 +34,8 @@ public class GoogleSpreadsheetExpenseDto
             2 => Domain.Currency.Gel,
             3 => Domain.Currency.USD,
             4 => Domain.Currency.EUR,
+            5 => Domain.Currency.RSD,
+            6 => Domain.Currency.TRY,
             _ => throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}")
         };
 

@@ -10,6 +10,8 @@ namespace Domain
         public static Currency Gel = new("GEL", "₾");
         public static Currency USD = new("USD", "$", "C2");
         public static Currency EUR = new("EUR", "€", "C2");
+        public static Currency RSD = new("RSD", "din");
+        public static Currency TRY = new("TRY", "\u20ba");
         
         private static Dictionary<string, Currency> _mapping = new()
         {
@@ -25,6 +27,10 @@ namespace Domain
             ["eur"] = EUR,
             ["euro"] = EUR,
             ["евро"] = EUR,
+            ["дин"] = RSD,
+            ["din"] = RSD,
+            ["lir"] = TRY,
+            ["лир"] = TRY,
         };
         
         public readonly string Name;
