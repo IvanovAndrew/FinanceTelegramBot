@@ -24,13 +24,23 @@ var host = new HostBuilder()
             {
                 ListName = "Повседневные",
                 
-                YearToFirstExcelRow = new Dictionary<int, int>()
+                DateRowResolver = new DateRowResolver(new Dictionary<DateOnly, int>()
                 {
-                    [2022] = 1,
-                    [2023] = 1700, 
-                    [2024] = 5400,
-                    [2025] = 11000,
-                },
+                    [new DateOnly(2022, 1, 1)] = 1,
+                    [new DateOnly(2023, 1, 1)] = 1700, 
+                    [new DateOnly(2024, 1, 1)] = 5555,
+                    [new DateOnly(2025, 1, 1)] = 11150,
+                    [new DateOnly(2025, 2, 1)] = 11500,
+                    [new DateOnly(2025, 3, 1)] = 12000,
+                    [new DateOnly(2025, 4, 1)] = 12750,
+                    [new DateOnly(2025, 4, 1)] = 12750,
+                    [new DateOnly(2025, 5, 1)] = 13350,
+                    [new DateOnly(2025, 6, 1)] = 13750,
+                    [new DateOnly(2025, 7, 1)] = 14000,
+                    [new DateOnly(2025, 8, 1)] = 14800,
+                    [new DateOnly(2025, 9, 1)] = 15125,
+                    [new DateOnly(2025, 10, 1)] = 15750,
+                }),
                 
                 YearColumn = ExcelColumn.FromString("A"),
                 MonthColumn = ExcelColumn.FromString("B"),

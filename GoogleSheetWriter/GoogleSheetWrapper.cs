@@ -329,17 +329,15 @@ namespace GoogleSheetWriter
             var factory = new SheetRowFactory(info, _cultureInfo);
 
             int fromRangeRow = 1;
-            if (searchOptions.DateFrom != null &&
-                info.YearToFirstExcelRow.TryGetValue(searchOptions.DateFrom.Value.Year, out var rowNumber))
+            if (searchOptions.DateFrom != null && info.DateRowResolver != null)
             {
-                fromRangeRow = rowNumber;
+                fromRangeRow = info.DateRowResolver.GetBestFirstRow(DateOnly.FromDateTime(searchOptions.DateFrom.Value), 1);
             }
             
             int lastFilledRow = await GetNumberFilledRows(info.ListName, cancellationToken);
-            
 
             ExcelColumn[] requestedColumns = ExcelColumn.ColumnsBetween(info.DateColumn, info.GetLastExcelColumn());
-            _logger.LogInformation($"List: {info.ListName} FromRange {fromRangeRow} Last Filled Row = {lastFilledRow}. ");
+            _logger.LogInformation($"List: {info.ListName} FromRange {fromRangeRow} Last Filled Row = {lastFilledRow}.");
 
             while (fromRangeRow < lastFilledRow)
             {
