@@ -38,11 +38,11 @@ public interface IDateTimeService
     {
         var firstWorkingDayOfMonth = new DateOnly(day.Year, day.Month, 1);
 
-        if (firstWorkingDayOfMonth.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+        return firstWorkingDayOfMonth.DayOfWeek switch
         {
-            firstWorkingDayOfMonth = firstWorkingDayOfMonth.AddDays(1);
-        }
-
-        return firstWorkingDayOfMonth;
+            DayOfWeek.Saturday => firstWorkingDayOfMonth.AddDays(2),
+            DayOfWeek.Sunday => firstWorkingDayOfMonth.AddDays(1),
+            _ => firstWorkingDayOfMonth
+        };
     }
 }
