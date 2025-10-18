@@ -43,6 +43,12 @@ public class GoogleSpreadsheetIncomeDto
             case 4:
                 currency = Domain.Currency.EUR;
                 break;
+            case 5:
+                currency = Domain.Currency.RSD;
+                break;
+            case 6:
+                currency = Domain.Currency.TRY;
+                break;
             default:
                 throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}");
         }

@@ -43,6 +43,12 @@ namespace GoogleSheetWriter
         [ExcelColumn(Write = true, Read = true)]
         public ExcelColumn? AmountEurColumn;
         
+        [ExcelColumn(Write = true, Read = true)]
+        public ExcelColumn? AmountTryColumn;
+        
+        [ExcelColumn(Write = true, Read = true)]
+        public ExcelColumn? AmountRsdColumn;
+        
         public Dictionary<int, int> YearToFirstExcelRow = new();
         
         public ExcelColumn GetLastExcelColumn()

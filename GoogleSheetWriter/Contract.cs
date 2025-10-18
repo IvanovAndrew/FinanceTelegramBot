@@ -18,5 +18,7 @@ public enum Currency
     AMD, 
     GEL,
     USD,
-    EUR
+    EUR,
+    RSD,
+    TRY
 }
