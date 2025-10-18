@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Events;
+namespace Application.AddMoneyTransfer;
 
 public class ExpensesBatchSavedResultEvent : INotification
 {

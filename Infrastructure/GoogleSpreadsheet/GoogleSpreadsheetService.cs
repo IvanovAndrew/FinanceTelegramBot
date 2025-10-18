@@ -3,21 +3,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.GoogleSpreadsheet;
 
-public class GoogleSpreadsheetService : IGoogleSpreadsheetService
+public class GoogleSpreadsheetService(
+    ICategoryProvider categoryProvider,
+    IGoogleSpreadsheetApi googleSpreadsheetApi,
+    ILogger<IGoogleSpreadsheetService> logger)
+    : IGoogleSpreadsheetService
 {
-    private readonly ICategoryProvider _categoryProvider;
-    private readonly IGoogleSpreadsheetApi _api;
-    private readonly ILogger<IGoogleSpreadsheetService> _logger;
-
-    public GoogleSpreadsheetService(
-        ICategoryProvider categoryProvider,
-        IGoogleSpreadsheetApi googleSpreadsheetApi,
-        ILogger<IGoogleSpreadsheetService> logger)
-    {
-        _categoryProvider = categoryProvider ?? throw new ArgumentNullException(nameof(categoryProvider));
-        _api = googleSpreadsheetApi ?? throw new ArgumentNullException(nameof(googleSpreadsheetApi));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly ICategoryProvider _categoryProvider = categoryProvider ?? throw new ArgumentNullException(nameof(categoryProvider));
+    private readonly IGoogleSpreadsheetApi _api = googleSpreadsheetApi ?? throw new ArgumentNullException(nameof(googleSpreadsheetApi));
+    private readonly ILogger<IGoogleSpreadsheetService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<SaveResult> SaveIncomeAsync(IMoneyTransfer income, CancellationToken cancellationToken)
     {

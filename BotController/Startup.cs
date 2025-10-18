@@ -50,7 +50,7 @@ namespace TelegramBot
             services.AddSingleton<ICategoryProvider, CategoryProvider>();
             services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s => ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
         
-            services.AddTransient<LoggingHandler>();
+            services.AddTransient<RefitMessageHandler>();
             
             services.AddRefitClient<IGoogleSpreadsheetApi>(new RefitSettings
                 {
@@ -60,7 +60,7 @@ namespace TelegramBot
                 {
                     c.BaseAddress = new Uri(Environment.GetEnvironmentVariable("GOOGLESPREADSHEET_URL"));
                 })
-                .AddHttpMessageHandler<LoggingHandler>();
+                .AddHttpMessageHandler<RefitMessageHandler>();
 
             services.AddScoped<IGoogleSpreadsheetService, GoogleSpreadsheetService>();
             
@@ -100,22 +100,4 @@ namespace TelegramBot
             });
         } 
     }
-    
-    public class LoggingHandler(ILogger<LoggingHandler> logger) : DelegatingHandler
-    {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            string? body = null;
-            if (request.Content != null)
-            {
-                body = await request.Content.ReadAsStringAsync(cancellationToken);
-            }
-
-            logger.LogInformation("[HttpClient] Request to {Uri}\nMethod: {Method}\nBody:\n{Body}", request.RequestUri, request.Method, body ?? "<null>");
-
-            return await base.SendAsync(request, cancellationToken);
-        }
-    }
-
-
 }
