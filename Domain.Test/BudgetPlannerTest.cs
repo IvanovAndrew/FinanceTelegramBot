@@ -5,7 +5,7 @@ public class BudgetPlannerTest
     [Fact]
     public void Plan_WithPositiveBalanceAndNoCompulsoryOutcomes_ReturnsEqualDailyAmount()
     {
-        var balance = new Money { Amount = 300m, Currency = Currency.Rur };
+        var balance = new Money { Amount = 300m, Currency = Currency.RUR };
         var result = BudgetPlanner.Plan(balance, 30, []);
         
         Assert.Equal(new Money { Amount = 10m, Currency = Currency.RUR }, result);
