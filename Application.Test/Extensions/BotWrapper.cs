@@ -62,13 +62,13 @@ internal class BotEngineWrapper
         return lastMessage;
     }
     
-    internal static BotEngineWrapper Create(ICategoryProvider categoryProvider, FinanceRepositoryStub expenseRepository, DateTimeServiceStub dateTimeService, MessageServiceMock telegramBot, IUserSessionService userSessionService, IFnsService? fnsService)
+    internal static BotEngineWrapper Create(ICategoryProvider categoryProvider, FinanceRepositoryStub expenseRepository, DateTimeServiceStub dateTimeService, MessageServiceMock telegramBot, IUserSessionService userSessionService, IFnsAPIService? fnsService)
     {
         var services = new ServiceCollection();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UserStartedEventHandler).Assembly));
         services.AddSingleton<IFinanceRepository>(expenseRepository);
-        services.AddSingleton<IFnsService>(fnsService?? new FnsServiceStub());
+        services.AddSingleton<IFnsAPIService>(fnsService?? new FnsApiServiceStub());
         services.AddSingleton<IDateTimeService>(dateTimeService);
         services.AddSingleton<IMessageService>(telegramBot);
         services.AddSingleton<IUserSessionService>(userSessionService);

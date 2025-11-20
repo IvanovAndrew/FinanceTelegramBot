@@ -4,16 +4,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticBalance;
 
-public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IDateTimeService dateTimeService, IMediator mediator, ILogger<GetBalanceStatisticCommandHandler> logger) : IRequestHandler<GetBalanceStatisticCommand, Unit>
+public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IDateTimeService dateTimeService, IMediator mediator, ILogger<GetBalanceStatisticCommandHandler> logger) : IRequestHandler<GetBalanceStatisticCommand>
 {
-    public async Task<Unit> Handle(GetBalanceStatisticCommand request, CancellationToken cancellationToken)
+    public async Task Handle(GetBalanceStatisticCommand request, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"{nameof(GetBalanceStatisticCommandHandler)} started");
+        logger.LogInformation($"{nameof(GetBalanceStatisticCommandHandler)} started. {request}");
         var session = userSessionService.GetUserSession(request.SessionId);
 
         if (session == null)
         {
-            return Unit.Value;
+            logger.LogWarning($"{nameof(GetBalanceStatisticCommandHandler)} session {request.SessionId} hasn't been found");
+            return;
         }
         
         await mediator.Publish(new BalanceStatisticCollectingStarted(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId}, cancellationToken);
@@ -50,14 +51,14 @@ public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionSe
 
             if (expenses.Any() || incomes.Any())
             {
-                Money monthOutcomes = new Money() { Amount = 0, Currency = financeFilter.Currency ?? Currency.Rur };
+                Money monthOutcomes = new Money() { Amount = 0, Currency = financeFilter.Currency ?? Currency.RUR };
 
                 foreach (var expense in expenses)
                 {
                     monthOutcomes += expense.Amount;
                 }
 
-                Money monthIncomes = new Money() { Amount = 0, Currency = financeFilter.Currency ?? Currency.Rur };
+                Money monthIncomes = new Money() { Amount = 0, Currency = financeFilter.Currency ?? Currency.RUR };
                 foreach (var income in incomes)
                 {
                     if (income.Amount.Currency != financeFilter.Currency || income.Date < financeFilter.DateFrom)
@@ -110,9 +111,7 @@ public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionSe
             cancellationTokenSource.Dispose();
         }
         
-        logger.LogInformation($"{nameof(GetBalanceStatisticCommandHandler)} finished");
-        
-        return Unit.Value;
+        logger.LogInformation($"{nameof(GetBalanceStatisticCommandHandler)} finishes");
     }
 
     private static Table BuildTable(Money monthIncomes, Money monthOutcomes, DateOnly dateFrom, Currency currency, string postTableInfo)

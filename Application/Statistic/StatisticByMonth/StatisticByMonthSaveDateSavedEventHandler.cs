@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticByMonth;
 
-public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userSessionService, IMessageService messageService, ILogger<StatisticByMonthSaveDateSavedEventHandler> logger) : INotificationHandler<StatisticByMonthSaveDateSavedEvent>
+public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userSessionService, ICurrencyPreferencesProvider currencyPreferencesProvider, IMessageService messageService, ILogger<StatisticByMonthSaveDateSavedEventHandler> logger) : INotificationHandler<StatisticByMonthSaveDateSavedEvent>
 {
     public async Task Handle(StatisticByMonthSaveDateSavedEvent notification, CancellationToken cancellationToken)
     {

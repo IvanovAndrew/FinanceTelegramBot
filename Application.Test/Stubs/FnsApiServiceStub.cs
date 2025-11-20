@@ -2,7 +2,7 @@
 
 namespace Application.Test.Stubs;
 
-public class FnsServiceStub : IFnsService
+public class FnsApiServiceStub : IFnsAPIService
 {
     internal Dictionary<CheckRequisite, IReadOnlyCollection<RawOutcomeItem>> Responses = new();
     

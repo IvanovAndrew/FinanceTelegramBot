@@ -5,7 +5,7 @@ using Refit;
 
 namespace Infrastructure.Fns;
 
-public class FnsService(IFnsApi api, string token) : IFnsService
+public class FnsApiService(IFnsApi api, string token) : IFnsAPIService
 {
     private const string Url = "https://proverkacheka.com/api/v1/check/get";
     private readonly string _token = !string.IsNullOrEmpty(token)? token : throw new WrongConfigurationFnsException(nameof(token));

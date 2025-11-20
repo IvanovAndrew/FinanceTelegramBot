@@ -11,11 +11,11 @@ public class AddExpensesFromFNSTest
 {
     private readonly BotEngineWrapper _botEngine;
     private readonly FinanceRepositoryStub _expenseRepository;
-    private readonly FnsServiceStub _fnsService;
+    private readonly FnsApiServiceStub _fnsApiService;
 
     public AddExpensesFromFNSTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _fnsService);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _fnsApiService);
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
     }
@@ -49,7 +49,7 @@ public class AddExpensesFromFNSTest
         );
         
         // Arrange
-        _fnsService.Responses[checkRequisite] = new List<RawOutcomeItem>()
+        _fnsApiService.Responses[checkRequisite] = new List<RawOutcomeItem>()
         {
             new ()
             {

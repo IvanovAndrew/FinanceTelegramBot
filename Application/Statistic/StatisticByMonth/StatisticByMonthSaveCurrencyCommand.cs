@@ -1,18 +1,21 @@
 ﻿using Domain;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticByMonth;
 
-public class StatisticByMonthSaveCurrencyCommand : IRequest
+public record StatisticByMonthSaveCurrencyCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Currency { get; init; }
 }
 
-public class StatisticByMonthSaveCurrencyCommandHandler(IUserSessionService userSessionService, IMediator mediator) : IRequestHandler<StatisticByMonthSaveCurrencyCommand>
+public class StatisticByMonthSaveCurrencyCommandHandler(IUserSessionService userSessionService, IMediator mediator, ILogger<StatisticByMonthSaveCurrencyCommandHandler> logger) : IRequestHandler<StatisticByMonthSaveCurrencyCommand>
 {
     public async Task Handle(StatisticByMonthSaveCurrencyCommand request, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"{nameof(StatisticByMonthSaveCurrencyCommandHandler)} starts {request}");
+        
         var session = userSessionService.GetUserSession(request.SessionId);
 
         if (session != null)
@@ -33,5 +36,7 @@ public class StatisticByMonthSaveCurrencyCommandHandler(IUserSessionService user
                 await mediator.Send(new GetStatisticMonthRequestCommand(){SessionId = session.Id});
             }
         }
+        
+        logger.LogInformation($"{nameof(StatisticByMonthSaveCurrencyCommandHandler)} finishes");
     }
 }

@@ -11,7 +11,7 @@ public class DownloadExpenseFromFNSServiceCommand : IRequest
     public CheckRequisite CheckRequisite { get; init; }
 }
 
-public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService userSessionService, IFnsService fnsService, IExpenseCategorizer expenseCategorizer, ICategoryProvider categoryProvider, IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<DownloadExpenseFromFNSServiceCommand>
+public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService userSessionService, ICheckDownloader checkDownloader, IExpenseCategorizer expenseCategorizer, ICategoryProvider categoryProvider, IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<DownloadExpenseFromFNSServiceCommand>
 {
     public async Task Handle(DownloadExpenseFromFNSServiceCommand request, CancellationToken cancellationToken)
     {
@@ -24,15 +24,9 @@ public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService use
             var cancellationTokenSource = new CancellationTokenSource();
             session.CancellationTokenSource = cancellationTokenSource;
 
-            IReadOnlyCollection<RawOutcomeItem> rawOutcomeItems = new List<RawOutcomeItem>();
-            List<Outcome> outcomes = new List<Outcome>();
-            
             using (cancellationTokenSource)
             {
-                var getFnsCheckTask = fnsService.GetCheck(request.CheckRequisite);
-                var getAllOutcomes = financeRepository.ReadOutcomes(new FinanceFilter() { Currency = Currency.Rur }, cancellationToken);
-                
-                rawOutcomeItems = await getFnsCheckTask; 
+                var getAllOutcomes = financeRepository.ReadOutcomes(new FinanceFilter() { Currency = checkDownloader.Currency }, cancellationToken);
                 
                 session.QuestionnaireService = null;
             
@@ -44,24 +38,9 @@ public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService use
                 var dict = knownOutcomes.DistinctBy(t => t.Description).ToDictionary(t => t.Description,
                     t => ExpenseCategorizerResult.Create(t.Category, t.SubCategory));
             
-                foreach (var rawOutcome in rawOutcomeItems)
-                {
-                    var expenseCategoryResult = expenseCategorizer.GetCategory(rawOutcome.Description, dict);
-
-                    outcomes.Add(
-                        new Outcome()
-                        {
-                            Date = rawOutcome.Date,
-                            Category = expenseCategoryResult?.Category?? defaultCategory,
-                            SubCategory = expenseCategoryResult?.SubCategory,
-                            Description = rawOutcome.Description,
-                            
-                            Amount = new Money(){Amount = rawOutcome.Amount, Currency = Currency.Rur},
-                        });
-                }
+                var outcomes = await checkDownloader.DownloadExpenses(request.CheckRequisite, expenseCategorizer, dict, defaultCategory);
+                await mediator.Send(new SaveOutcomesBatchCommand() { SessionId = session.Id, MoneyTransfers = outcomes }, cancellationToken);
             }
-
-            await mediator.Send(new SaveOutcomesBatchCommand() { SessionId = session.Id, MoneyTransfers = outcomes }, cancellationToken);
         }
     }
 }

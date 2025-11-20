@@ -45,8 +45,8 @@ namespace TelegramBot
             
             services.AddRefitClient<IFnsApi>()
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://proverkacheka.com"));
-            services.AddSingleton<IFnsService, FnsService>(s =>
-                ActivatorUtilities.CreateInstance<FnsService>(s, Environment.GetEnvironmentVariable("FNS_TOKEN")));
+            services.AddSingleton<IFnsAPIService, FnsApiService>(s =>
+                ActivatorUtilities.CreateInstance<FnsApiService>(s, Environment.GetEnvironmentVariable("FNS_TOKEN")));
             services.AddSingleton<ICategoryProvider, CategoryProvider>();
             services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s => ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
         

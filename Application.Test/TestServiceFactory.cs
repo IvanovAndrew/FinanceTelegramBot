@@ -17,20 +17,20 @@ public static class TestServiceFactory
         out FinanceRepositoryStub financeRepository,
         out DateTimeServiceStub dateTimeService,
         out MessageServiceMock messageService, 
-        out FnsServiceStub fnsService)
+        out FnsApiServiceStub fnsApiService)
     {
         var services = new ServiceCollection();
 
         financeRepository = new FinanceRepositoryStub();
         dateTimeService = new DateTimeServiceStub(new DateTime(2023, 6, 29));
         messageService = new MessageServiceMock();
-        fnsService = new FnsServiceStub();
+        fnsApiService = new FnsApiServiceStub();
         var userSession = new UserSessionService();
         
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UserStartedEventHandler).Assembly));
         services.AddSingleton<IFinanceRepository>(financeRepository);
-        services.AddSingleton<IFnsService>(fnsService);
+        services.AddSingleton<IFnsAPIService>(fnsApiService);
         services.AddSingleton<IDateTimeService>(dateTimeService);
         services.AddSingleton<IMessageService>(messageService);
         services.AddSingleton<IUserSessionService>(userSession);
@@ -43,7 +43,7 @@ public static class TestServiceFactory
             (DateTimeServiceStub)provider.GetRequiredService<IDateTimeService>(),
             (MessageServiceMock)provider.GetRequiredService<IMessageService>(),
             provider.GetRequiredService<IUserSessionService>(),
-            provider.GetRequiredService<IFnsService>()
+            provider.GetRequiredService<IFnsAPIService>()
         ));
 
 

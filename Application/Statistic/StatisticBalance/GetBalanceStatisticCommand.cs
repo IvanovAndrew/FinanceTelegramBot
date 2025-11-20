@@ -2,7 +2,7 @@
 
 namespace Application.Statistic.StatisticBalance;
 
-public class GetBalanceStatisticCommand : IRequest<Unit>
+public record GetBalanceStatisticCommand : IRequest
 {
     public long SessionId { get; init; }
     public int? LastSentMessage { get; init; }

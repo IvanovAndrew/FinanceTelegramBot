@@ -8,7 +8,7 @@ public class JsonFileDownloadedEventHandler(IExpenseJsonParser parser, ICategory
 {
     public async Task Handle(JsonFileDownloadedEvent notification, CancellationToken cancellationToken)
     {
-        var expenses = parser.Parse(notification.Json, categoryProvider.DefaultOutcomeCategory(), Currency.Rur);
+        var expenses = parser.Parse(notification.Json, categoryProvider.DefaultOutcomeCategory(), Currency.RUR);
         
         await mediator.Send(new SaveOutcomesBatchCommand()
             { SessionId = notification.SessionId, MoneyTransfers = expenses }, cancellationToken);
