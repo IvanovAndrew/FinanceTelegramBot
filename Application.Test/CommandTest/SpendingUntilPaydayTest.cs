@@ -19,7 +19,7 @@ public class SpendingUntilPaydayTest
         // Arrange
         var today = new DateOnly(2025, 6, 1);
 
-        var balance = new Money { Amount = 10_000, Currency = Currency.Amd };
+        var balance = new Money { Amount = 10_000, Currency = Currency.AMD };
 
         var dateTimeServiceStub = new DateTimeServiceStub(today.ToDateTime(new TimeOnly()));
 
@@ -43,7 +43,7 @@ public class SpendingUntilPaydayTest
         var request = new SpendingUntilPaydayCommand
         {
             Balance = balance,
-            Currency = Currency.Amd
+            Currency = Currency.AMD
         };
 
         // Act
@@ -51,7 +51,7 @@ public class SpendingUntilPaydayTest
 
         // Assert
         Assert.Equal(10_000, result.MoneyPerDay.Amount);
-        Assert.Equal(Currency.Amd, result.MoneyPerDay.Currency);
+        Assert.Equal(Currency.AMD, result.MoneyPerDay.Currency);
         Assert.Equal(new DateOnly(2025, 6, 2), result.Payday);
     }
 }

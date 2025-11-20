@@ -37,12 +37,12 @@ public class AddExpensesFromFNSTest
             {
                 new Outcome()
                 {
-                    Amount = new Money() { Amount = 1, Currency = Currency.Rur }, Category = "Food".AsCategory(),
+                    Amount = new Money() { Amount = 1, Currency = Currency.RUR }, Category = "Food".AsCategory(),
                     SubCategory = "Snacks".AsSubcategory(), Description = "Lays"
                 },
                 new Outcome()
                 {
-                    Amount = new Money() { Amount = 10, Currency = Currency.Rur }, Category = "Food".AsCategory(),
+                    Amount = new Money() { Amount = 10, Currency = Currency.RUR }, Category = "Food".AsCategory(),
                     SubCategory = "Products".AsSubcategory(), Description = "Marianna"
                 },
             }, new CancellationToken()

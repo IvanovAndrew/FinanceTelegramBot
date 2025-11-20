@@ -5,7 +5,7 @@ public class MoneyTest
     [Fact]
     public void AmdFormat()
     {
-        var money = new Money() { Currency = Currency.Amd, Amount = 1000 };
+        var money = new Money() { Currency = Currency.AMD, Amount = 1000 };
 
         var s = money.ToString();
         Assert.Equal($"1{TestConstants.NBSP}000 ֏", s);

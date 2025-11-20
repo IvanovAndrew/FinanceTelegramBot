@@ -29,9 +29,9 @@ public class GoogleSpreadsheetExpenseDto
     {
         Domain.Currency currency = int.Parse(dto.Currency) switch
         {
-            0 => Domain.Currency.Rur,
-            1 => Domain.Currency.Amd,
-            2 => Domain.Currency.Gel,
+            0 => Domain.Currency.RUR,
+            1 => Domain.Currency.AMD,
+            2 => Domain.Currency.GEL,
             3 => Domain.Currency.USD,
             4 => Domain.Currency.EUR,
             5 => Domain.Currency.RSD,

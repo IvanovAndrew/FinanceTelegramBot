@@ -5,9 +5,9 @@ namespace Domain
     public class Currency
     {
         // the order is important! Rur/Amd/Gel should follow before _mapping 
-        public static Currency Rur = new("RUR", "₽");
-        public static Currency Amd = new("AMD", "֏");
-        public static Currency Gel = new("GEL", "₾");
+        public static Currency RUR = new("RUR", "₽");
+        public static Currency AMD = new("AMD", "֏");
+        public static Currency GEL = new("GEL", "₾");
         public static Currency USD = new("USD", "$", "C2");
         public static Currency EUR = new("EUR", "€", "C2");
         public static Currency RSD = new("RSD", "din");
@@ -15,16 +15,11 @@ namespace Domain
         
         private static Dictionary<string, Currency> _mapping = new()
         {
-            ["драм"] = Amd, 
-            ["amd"] = Amd, 
-            ["rur"] = Rur, 
-            ["рубл"] = Rur, 
-            ["gel"] = Gel, 
-            ["lari"] = Gel, 
-            ["лари"] = Gel, 
-            ["usd"] = USD,
+            ["драм"] = AMD, 
+            ["рубл"] = RUR, 
+            ["lari"] = GEL, 
+            ["лари"] = GEL, 
             ["доллар"] = USD,
-            ["eur"] = EUR,
             ["euro"] = EUR,
             ["евро"] = EUR,
             ["дин"] = RSD,
@@ -44,6 +39,16 @@ namespace Domain
             Format = format;
         }
 
+        public static Currency Parse(string text)
+        {
+            if (TryParse(text, out var currency))
+            {
+                return currency;
+            }
+
+            throw new ArgumentOutOfRangeException($"Couldn't parse a currency for {text}");
+        }
+        
         public static bool TryParse(string text, [NotNullWhen(true)] out Currency? currency)
         {
             var stringToParse = text.Trim();
@@ -57,7 +62,16 @@ namespace Domain
                 if (currency != null)
                     return true;
             }
-            
+            else
+            {
+                currency = availableCurrencies.FirstOrDefault(c =>
+                    string.Equals(c.Name, text, StringComparison.InvariantCultureIgnoreCase));
+                    
+                if (currency != null)
+                {
+                    return true;
+                }
+            }
             
             foreach (var (mask, mappedCurrency) in _mapping)
             {

@@ -33,22 +33,22 @@ public class StatisticForAMonthTest
                 new Outcome()
                 {
                     Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(),
-                    Amount = new Money() { Amount = 10_000m, Currency = Currency.Amd }
+                    Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
                     Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(),
-                    Amount = new Money() { Amount = 5_000m, Currency = Currency.Amd }
+                    Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
                     Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(),
-                    Amount = new Money() { Amount = 1_000m, Currency = Currency.Amd }
+                    Amount = new Money() { Amount = 1_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
                     Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(),
-                    Amount = new Money() { Amount = 5_000m, Currency = Currency.Amd }
+                    Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
             }, default);
 
@@ -79,22 +79,22 @@ public class StatisticForAMonthTest
                 new Outcome()
                 {
                     Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(),
-                    Amount = new Money() { Amount = 10_000m, Currency = Currency.Amd }
+                    Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
                     Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(),
-                    Amount = new Money() { Amount = 5_000m, Currency = Currency.Amd }
+                    Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
                     Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(),
-                    Amount = new Money() { Amount = 1_000m, Currency = Currency.Amd }
+                    Amount = new Money() { Amount = 1_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
                     Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(),
-                    Amount = new Money() { Amount = 5_000m, Currency = Currency.Amd }
+                    Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
             }, default);
 

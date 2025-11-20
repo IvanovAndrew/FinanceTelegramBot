@@ -29,13 +29,13 @@ public class GoogleSpreadsheetIncomeDto
         switch (int.Parse(dto.Currency))
         {
             case 0:
-                currency = Domain.Currency.Rur;
+                currency = Domain.Currency.RUR;
                 break;
             case 1:
-                currency = Domain.Currency.Amd;
+                currency = Domain.Currency.AMD;
                 break;
             case 2:
-                currency = Domain.Currency.Gel;
+                currency = Domain.Currency.GEL;
                 break;
             case 3:
                 currency = Domain.Currency.USD;

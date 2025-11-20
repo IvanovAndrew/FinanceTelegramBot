@@ -124,7 +124,7 @@ public class AddExpenseManuallyTest
         Assert.Equal(Category.FromString("Cats"), savedExpense.Category);
         Assert.Null(savedExpense.SubCategory);
         Assert.Equal("royal canin", savedExpense.Description);
-        Assert.Equal(new Money(){Amount = 20_000, Currency = Currency.Amd}, savedExpense.Amount);
+        Assert.Equal(new Money(){Amount = 20_000, Currency = Currency.AMD}, savedExpense.Amount);
     }
     
     [Fact]
@@ -166,6 +166,6 @@ public class AddExpenseManuallyTest
         Assert.Equal("Cats".AsCategory(), savedExpense.Category);
         Assert.Null(savedExpense.SubCategory);
         Assert.Equal("royal canin", savedExpense.Description);
-        Assert.Equal(new Money(){Amount = 10_000, Currency = Currency.Amd}, savedExpense.Amount);
+        Assert.Equal(new Money(){Amount = 10_000, Currency = Currency.AMD}, savedExpense.Amount);
     }
 }

@@ -31,22 +31,22 @@ public class StatisticForASubcategoryByMonthsTest
             new Outcome()
             {
                 Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(),
-                Amount = new Money() { Amount = 10_000m, Currency = Currency.Amd }
+                Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
             },
             new Outcome()
             {
                 Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(),
-                Amount = new Money() { Amount = 5_000m, Currency = Currency.Amd }
+                Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
             },
             new Outcome()
             {
                 Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(),
-                Amount = new Money() { Amount = 1_000m, Currency = Currency.Amd }
+                Amount = new Money() { Amount = 1_000m, Currency = Currency.AMD }
             },
             new Outcome()
             {
                 Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(),
-                Amount = new Money() { Amount = 5_000m, Currency = Currency.Amd }
+                Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
             }
         ], default);
         
@@ -70,7 +70,7 @@ public class StatisticForASubcategoryByMonthsTest
         Assert.Contains("Category: Food", table.Subtitle);
         Assert.Contains("Subcategory: Snacks", table.Subtitle);
         Assert.Equivalent(new string[] {"Month", "AMD"}, table.ColumnNames);
-        Assert.Equal(1000m, table.Rows.First().CurrencyValues[Currency.Amd].Amount);
+        Assert.Equal(1000m, table.Rows.First().CurrencyValues[Currency.AMD].Amount);
         Assert.Contains("Total", table.Rows.Last().FirstColumnValue);
     }
     
@@ -81,15 +81,15 @@ public class StatisticForASubcategoryByMonthsTest
         await _expenseRepository.SaveAllOutcomes(
             new List<IMoneyTransfer>()
             {
-                new Outcome(){Date = new DateOnly(2022, 12, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 16_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 1, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 17_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 2, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 6_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 3, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 7_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 4, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 14_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 2_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 15_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2022, 12, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 16_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 1, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 17_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 2, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 6_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 3, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 7_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 4, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 14_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 2_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 15_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
 
         // Act
@@ -116,10 +116,10 @@ public class StatisticForASubcategoryByMonthsTest
         await _expenseRepository.SaveAllOutcomes(
             new List<IMoneyTransfer>()
             {
-                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.Amd}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.Amd}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
         
         // Act

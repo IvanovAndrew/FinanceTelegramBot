@@ -54,16 +54,16 @@ public class ExpenseJsonParserTest
     ""fiscalDocumentFormatVer"":2}
 ";
         var parser = new ExpenseJsonParser();
-        var expenses = parser.Parse(text, "Еда".AsCategory(), Currency.Rur).ToList();
+        var expenses = parser.Parse(text, "Еда".AsCategory(), Currency.RUR).ToList();
 
         Assert.Equal(4, expenses.Count);
         Assert.Equivalent(
             new []
             {
-                new Money(){Currency = Currency.Rur, Amount = 334},
-                new Money(){Currency = Currency.Rur, Amount = 580},
-                new Money(){Currency = Currency.Rur, Amount = 312},
-                new Money(){Currency = Currency.Rur, Amount = 319},
+                new Money(){Currency = Currency.RUR, Amount = 334},
+                new Money(){Currency = Currency.RUR, Amount = 580},
+                new Money(){Currency = Currency.RUR, Amount = 312},
+                new Money(){Currency = Currency.RUR, Amount = 319},
             }, expenses.Select(c => c.Amount));
     }
     
@@ -260,23 +260,23 @@ public class ExpenseJsonParserTest
 }
 ";
         var parser = new ExpenseJsonParser();
-        var expenses = parser.Parse(text, "Еда".AsCategory(), Currency.Rur).ToList();
+        var expenses = parser.Parse(text, "Еда".AsCategory(), Currency.RUR).ToList();
 
         Assert.Equal(11, expenses.Count);
         Assert.Equivalent(
             new []
             {
-                new Money(){Currency = Currency.Rur, Amount = 39.99m},
-                new Money(){Currency = Currency.Rur, Amount = 38.97m},
-                new Money(){Currency = Currency.Rur, Amount = 49.99m},
-                new Money(){Currency = Currency.Rur, Amount = 9.99m},
-                new Money(){Currency = Currency.Rur, Amount = 49.99m},
-                new Money(){Currency = Currency.Rur, Amount = 19.99m},
-                new Money(){Currency = Currency.Rur, Amount = 24.99m},
-                new Money(){Currency = Currency.Rur, Amount = 39.99m},
-                new Money(){Currency = Currency.Rur, Amount = 89.99m},
-                new Money(){Currency = Currency.Rur, Amount = 49.99m},
-                new Money(){Currency = Currency.Rur, Amount = 29.99m},
+                new Money(){Currency = Currency.RUR, Amount = 39.99m},
+                new Money(){Currency = Currency.RUR, Amount = 38.97m},
+                new Money(){Currency = Currency.RUR, Amount = 49.99m},
+                new Money(){Currency = Currency.RUR, Amount = 9.99m},
+                new Money(){Currency = Currency.RUR, Amount = 49.99m},
+                new Money(){Currency = Currency.RUR, Amount = 19.99m},
+                new Money(){Currency = Currency.RUR, Amount = 24.99m},
+                new Money(){Currency = Currency.RUR, Amount = 39.99m},
+                new Money(){Currency = Currency.RUR, Amount = 89.99m},
+                new Money(){Currency = Currency.RUR, Amount = 49.99m},
+                new Money(){Currency = Currency.RUR, Amount = 29.99m},
             }, expenses.Select(c => c.Amount));
     }
 }
