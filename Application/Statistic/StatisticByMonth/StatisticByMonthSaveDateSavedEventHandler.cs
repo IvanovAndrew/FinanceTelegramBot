@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticByMonth;
 
-public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userSessionService, ICurrencyPreferencesProvider currencyPreferencesProvider, IMessageService messageService, ILogger<StatisticByMonthSaveDateSavedEventHandler> logger) : INotificationHandler<StatisticByMonthSaveDateSavedEvent>
+public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userSessionService, ICurrencyProvider currencyProvider, IMessageService messageService, ILogger<StatisticByMonthSaveDateSavedEventHandler> logger) : INotificationHandler<StatisticByMonthSaveDateSavedEvent>
 {
     public async Task Handle(StatisticByMonthSaveDateSavedEvent notification, CancellationToken cancellationToken)
     {
@@ -19,7 +19,7 @@ public class StatisticByMonthSaveDateSavedEventHandler(IUserSessionService userS
                     ChatId = notification.SessionId,
                     Id = userSession.LastSentMessageId,
                     Text = "Enter the currency",
-                    Options = MessageOptions.FromListAndLastSingleLine(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList(), "All")
+                    Options = MessageOptions.FromListAndLastSingleLine(currencyProvider.GetCurrencies().Select(c => c.Name).ToList(), "All")
                 },
             cancellationToken);
 

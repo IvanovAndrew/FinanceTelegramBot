@@ -73,6 +73,7 @@ internal class BotEngineWrapper
         services.AddSingleton<IMessageService>(telegramBot);
         services.AddSingleton<IUserSessionService>(userSessionService);
         services.AddSingleton<IExpenseJsonParser, ExpenseJsonParser>();
+        services.AddSingleton<ICurrencyProvider, CurrencyProviderStub>();
         services.AddSingleton<ICategoryProvider>(categoryProvider);
         services.AddSingleton<IExpenseCategorizer, ExpenseHistoryCategorizer>();
         services.AddLogging();

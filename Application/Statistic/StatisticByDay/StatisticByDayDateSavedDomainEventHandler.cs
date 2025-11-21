@@ -1,9 +1,8 @@
-﻿using Domain;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.Statistic.StatisticByDay;
 
-public class StatisticByDayDateSavedDomainEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticByDayDateSavedEvent>
+public class StatisticByDayDateSavedDomainEventHandler(IUserSessionService userSessionService, ICurrencyProvider currencyProvider, IMessageService messageService) : INotificationHandler<StatisticByDayDateSavedEvent>
 {
     public async Task Handle(StatisticByDayDateSavedEvent notification, CancellationToken cancellationToken)
     {
@@ -17,7 +16,7 @@ public class StatisticByDayDateSavedDomainEventHandler(IUserSessionService userS
                     ChatId = notification.SessionId,
                     Id = session.LastSentMessageId,
                     Text = "Enter the currency",
-                    Options = MessageOptions.FromListAndLastSingleLine(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList(), "All")
+                    Options = MessageOptions.FromListAndLastSingleLine(currencyProvider.GetCurrencies().Select(c => c.Name).ToList(), "All")
                 }, cancellationToken);
 
             session.LastSentMessageId = message.Id;

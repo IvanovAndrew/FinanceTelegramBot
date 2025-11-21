@@ -45,7 +45,7 @@ public record StatisticBySubcategoryByMonthDateSavedEvent : INotification
     public int? LastSentMessageId { get; init; }
 }
 
-public class StatisticBySubcategoryByMonthDateSavedEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticBySubcategoryByMonthDateSavedEvent>
+public class StatisticBySubcategoryByMonthDateSavedEventHandler(IUserSessionService userSessionService, ICurrencyProvider currencyProvider, IMessageService messageService) : INotificationHandler<StatisticBySubcategoryByMonthDateSavedEvent>
 {
     public async Task Handle(StatisticBySubcategoryByMonthDateSavedEvent notification, CancellationToken cancellationToken)
     {
@@ -55,7 +55,7 @@ public class StatisticBySubcategoryByMonthDateSavedEventHandler(IUserSessionServ
                 ChatId = notification.SessionId,
                 Id = notification.LastSentMessageId,
                 Text = "Enter the currency",
-                Options = MessageOptions.FromListAndLastSingleLine(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList(), "All")
+                Options = MessageOptions.FromListAndLastSingleLine(currencyProvider.GetCurrencies().Select(c => c.Name).ToList(), "All")
             }, cancellationToken);
 
         var session = userSessionService.GetUserSession(notification.SessionId);
