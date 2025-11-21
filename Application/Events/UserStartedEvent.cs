@@ -2,7 +2,7 @@
 
 namespace Application.Events;
 
-public class UserStartedEvent : INotification
+public record UserStartedEvent : INotification
 {
     public long SessionID { get; init; }
 }

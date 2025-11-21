@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Statistic.StatisticByCategory;
 
-public class StatisticByCategorySaveDateCommand : IRequest
+public record StatisticByCategorySaveDateCommand : IRequest
 {
     public long SessionId { get; init; }
     public string DateText { get; init; } = string.Empty;

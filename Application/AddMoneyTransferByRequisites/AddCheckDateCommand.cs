@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.AddMoneyTransferByRequisites;
 
-public class AddCheckDateCommand : IRequest
+public record AddCheckDateCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Date { get; init; }

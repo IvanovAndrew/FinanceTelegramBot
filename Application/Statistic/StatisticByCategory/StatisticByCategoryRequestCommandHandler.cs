@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Application.Statistic.StatisticByCategory;
 
-public class GetStatisticCategoryRequestCommand : IRequest
+public record GetStatisticCategoryRequestCommand : IRequest
 {
     public long SessionId { get; init; }
 }

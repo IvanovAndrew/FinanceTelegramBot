@@ -1,4 +1,4 @@
-﻿using Domain.Events;
+﻿using Application.Statistic.StatisticBySubcategory;
 using MediatR;
 
 namespace Application.Statistic;

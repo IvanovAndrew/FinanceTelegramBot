@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.AddMoneyTransferByRequisites;
 
-public class AddCheckFiscalNumberCommand : IRequest
+public record AddCheckFiscalNumberCommand : IRequest
 {
     public long SessionId { get; init; }
     public string FiscalNumber { get; init; }
@@ -34,7 +34,7 @@ public class AddCheckFiscalNumberCommandHandler(IUserSessionService userSessionS
     }
 }
 
-public class CheckFiscalNumberNotSavedEvent : INotification
+public record CheckFiscalNumberNotSavedEvent : INotification
 {
     public long SessionId { get; init; }
 }

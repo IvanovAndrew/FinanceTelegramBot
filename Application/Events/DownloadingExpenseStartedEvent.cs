@@ -2,12 +2,12 @@
 
 namespace Application.Events;
 
-public class DownloadingExpenseStartedEvent : INotification
+public record DownloadingExpenseStartedEvent : INotification
 {
     public long SessionId { get; init; }
 }
 
-public class DownloadingExpenseFinishedEvent : INotification
+public record DownloadingExpenseFinishedEvent : INotification
 {
     public long SessionId { get; init; }
 }

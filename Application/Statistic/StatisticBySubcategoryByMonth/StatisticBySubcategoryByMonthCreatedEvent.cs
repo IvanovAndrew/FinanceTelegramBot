@@ -2,7 +2,7 @@
 
 namespace Application.Statistic.StatisticBySubcategoryByMonth;
 
-public class StatisticBySubcategoryByMonthCreatedEvent : INotification
+public record StatisticBySubcategoryByMonthCreatedEvent : INotification
 {
     public long SessionId { get; init; }
 }

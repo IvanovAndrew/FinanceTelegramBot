@@ -2,7 +2,7 @@
 
 namespace Application.Commands;
 
-public class StartSessionCommand : IRequest
+public record StartSessionCommand : IRequest
 {
     public long SessionId { get; init; }
 }

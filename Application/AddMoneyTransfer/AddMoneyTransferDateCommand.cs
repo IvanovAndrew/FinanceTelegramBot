@@ -2,7 +2,7 @@
 
 namespace Application.AddMoneyTransfer;
 
-public class AddMoneyTransferDateCommand : IRequest
+public record AddMoneyTransferDateCommand : IRequest
 {
     public long SessionId { get; init; }
     public string DateText { get; init; }

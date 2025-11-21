@@ -2,7 +2,7 @@
 
 namespace Application.Statistic.StatisticBySubcategoryByMonth;
 
-public class StatisticBySubcategoryMonthSaveCategoryCommand : IRequest
+public record StatisticBySubcategoryMonthSaveCategoryCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Category { get; init; }

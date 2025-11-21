@@ -1,8 +1,8 @@
 ﻿using MediatR;
 
-namespace Application.Commands.StatisticBySubcategory;
+namespace Application.Statistic.StatisticBySubcategory;
 
-public class StatisticBySubcategoryCommand : IRequest
+public record StatisticBySubcategoryCommand : IRequest
 {
     public long SessionId { get; init; }
 }

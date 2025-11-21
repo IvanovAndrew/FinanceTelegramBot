@@ -2,7 +2,7 @@
 
 namespace Application.Events;
 
-public class UrlLinkRequestedEvent : INotification
+public record UrlLinkRequestedEvent : INotification
 {
     public long SessionId { get; init; }
 }

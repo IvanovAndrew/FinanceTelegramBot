@@ -2,7 +2,7 @@
 
 namespace Application.Events;
 
-public class WrongFileExtensionReceivedEvent : INotification
+public record WrongFileExtensionReceivedEvent : INotification
 {
     public long SessionId { get; init; }
 }

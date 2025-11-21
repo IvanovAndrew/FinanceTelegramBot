@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.AddMoneyTransfer;
 
-public class CreateOutcomeQuestionnaireCommand : IRequest
+public record CreateOutcomeQuestionnaireCommand : IRequest
 {
     public long SessionId { get; init; }
 }

@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Application.AddMoneyTransferByRequisites;
 
-public class DownloadExpenseFromFNSServiceCommand : IRequest
+public record DownloadExpenseFromFNSServiceCommand : IRequest
 {
     public long SessionId { get; init; }
     public CheckRequisite CheckRequisite { get; init; }

@@ -1,5 +1,5 @@
 ﻿using Application.Statistic;
-using Domain.Events;
+using Application.Statistic.StatisticBySubcategory;
 using MediatR;
 
 namespace Application.Commands.StatisticBySubcategory;

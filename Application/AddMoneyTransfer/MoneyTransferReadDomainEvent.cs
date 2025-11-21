@@ -1,9 +1,8 @@
-﻿using Domain;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.AddMoneyTransfer;
 
-public class MoneyTransferReadDomainEvent : INotification
+public record MoneyTransferReadDomainEvent : INotification
 {
     public long SessionId { get; init; }
     public StatisticWrapper Statistic { get; init; }

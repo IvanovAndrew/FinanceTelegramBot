@@ -1,9 +1,9 @@
 ﻿using Domain;
 using MediatR;
 
-namespace Application.Commands.StatisticByDay;
+namespace Application.Statistic.StatisticByDay;
 
-public class StatisticByDaySaveCurrencyCommand : IRequest
+public record StatisticByDaySaveCurrencyCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Currency { get; init; }

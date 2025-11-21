@@ -1,9 +1,8 @@
-﻿using Domain.Events;
-using MediatR;
+﻿using MediatR;
 
-namespace Application.Commands.StatisticByMonth;
+namespace Application.Statistic.StatisticByMonth;
 
-public class StatisticByMonthCommand : IRequest
+public record StatisticByMonthCommand : IRequest
 {
     public long SessionId { get; init; }
 }

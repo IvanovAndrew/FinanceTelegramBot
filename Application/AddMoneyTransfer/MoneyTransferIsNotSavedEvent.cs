@@ -2,7 +2,7 @@
 
 namespace Application.AddMoneyTransfer;
 
-public class MoneyTransferIsNotSavedEvent : INotification
+public record MoneyTransferIsNotSavedEvent : INotification
 {
     public long SessionId { get; init; }
     public string Reason { get; init; }

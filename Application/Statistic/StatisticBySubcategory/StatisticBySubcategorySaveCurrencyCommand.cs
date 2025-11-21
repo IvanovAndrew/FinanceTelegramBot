@@ -1,16 +1,17 @@
 ﻿using Application.Commands.StatisticBySubcategoryByMonth;
+using Application.Statistic.StatisticBySubcategoryByMonth;
 using Domain;
 using MediatR;
 
 namespace Application.Statistic.StatisticBySubcategory;
 
-public class StatisticBySubcategorySaveCurrencyCommand : IRequest
+public record StatisticBySubcategorySaveCurrencyCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Currency { get; init; }
 }
 
-public class StatisticBySubcategoryMonthSaveCurrencyCommand : IRequest
+public record StatisticBySubcategoryMonthSaveCurrencyCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Currency { get; init; }

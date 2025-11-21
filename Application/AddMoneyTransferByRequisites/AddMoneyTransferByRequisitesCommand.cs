@@ -2,7 +2,7 @@
 
 namespace Application.AddMoneyTransferByRequisites;
 
-public class AddMoneyTransferByRequisitesCommand : IRequest
+public record AddMoneyTransferByRequisitesCommand : IRequest
 {
     public long SessionId { get; init; }
 }

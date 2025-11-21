@@ -1,42 +1,39 @@
-﻿using Domain.Events;
-using MediatR;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.AddMoneyTransfer;
 
-public class AddMoneyTransferDateCommandHandler : IRequestHandler<AddMoneyTransferDateCommand>
+public class AddMoneyTransferDateCommandHandler(
+    IMediator mediator,
+    IUserSessionService userSessionService,
+    IDateTimeService dateTimeService, ILogger<AddMoneyTransferDateCommandHandler> logger)
+    : IRequestHandler<AddMoneyTransferDateCommand>
 {
-    private readonly IMediator _mediator;
-    private readonly IUserSessionService _userSessionService;
-    private readonly IDateTimeService _dateTimeService;
-
-    public AddMoneyTransferDateCommandHandler(IMediator mediator, IUserSessionService userSessionService,
-        IDateTimeService dateTimeService)
-    {
-        _mediator = mediator;
-        _userSessionService = userSessionService;
-        _dateTimeService = dateTimeService;
-    }
-
     public async Task Handle(AddMoneyTransferDateCommand request, CancellationToken cancellationToken)
     {
-        var session = _userSessionService.GetUserSession(request.SessionId);
+        logger.LogInformation($"{nameof(AddMoneyTransferDateCommandHandler)}.Handle({request})");
+        
+        var session = userSessionService.GetUserSession(request.SessionId);
 
         if (session != null)
         {
             var builder = session.MoneyTransferBuilder;
 
-            if (_dateTimeService.TryParseDate(request.DateText, out var date))
+            if (dateTimeService.TryParseDate(request.DateText, out var date))
             {
                 builder.Date = date;
                 session.QuestionnaireService.Next();
-                await _mediator.Publish(new MoneyTransferDateEnteredEvent() { SessionId = request.SessionId },
+                await mediator.Publish(new MoneyTransferDateEnteredEvent() { SessionId = request.SessionId },
                     cancellationToken);
             }
             else
             {
-                await _mediator.Publish(new CustomDateChosenEvent() { SessionId = request.SessionId },
+                logger.LogWarning($"Couldn't parse {request.DateText} as a date");
+                await mediator.Publish(new CustomDateChosenEvent() { SessionId = request.SessionId },
                     cancellationToken);
             }
         }
+        
+        logger.LogInformation($"{nameof(AddMoneyTransferDateCommandHandler)} finished)");
     }
 }

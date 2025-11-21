@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.AddMoneyTransferByRequisites;
 
-public class ExtractRequisitesFromUrlCommand : IRequest
+public record ExtractRequisitesFromUrlCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Url { get; init; }

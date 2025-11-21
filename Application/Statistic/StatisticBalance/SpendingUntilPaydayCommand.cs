@@ -22,8 +22,8 @@ public class SpendingUntilPaydayCommandHandler(IDateTimeService dateTimeService,
 {
     public async Task<MoneyLeft> Handle(SpendingUntilPaydayCommand request, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"{nameof(SpendingUntilPaydayCommandHandler)} started");
-        
+        logger.LogInformation($"{nameof(SpendingUntilPaydayCommandHandler)} started {request}");
+
         var today = dateTimeService.Today();
         var monthAgo = today.AddMonths(-1);
         var theFirstDayOfPreviousMonth = new DateOnly(monthAgo.Year, monthAgo.Month, 1);
@@ -39,6 +39,9 @@ public class SpendingUntilPaydayCommandHandler(IDateTimeService dateTimeService,
 
         var previousMonth = new HashSet<IMoneyTransfer>();
         var currentMonth = new HashSet<IMoneyTransfer>();
+
+        bool hasExpensesToday = false;
+        
         foreach (var outcome in outcomes)
         {
             if (outcome.SubCategory?.IsRecurringMonthly is true)
@@ -49,6 +52,11 @@ public class SpendingUntilPaydayCommandHandler(IDateTimeService dateTimeService,
                 }
                 else if (outcome.Date.Year == today.Year && outcome.Date.Month == today.Month)
                 {
+                    if (outcome.Date == today)
+                    {
+                        hasExpensesToday = true;
+                    }
+                    
                     currentMonth.Add(outcome);
                 }
             }
@@ -64,20 +72,32 @@ public class SpendingUntilPaydayCommandHandler(IDateTimeService dateTimeService,
             }
         }
 
-        var salaryDay = GetSalaryDay(dateTimeService.Today());
+        var incomes = await repository.ReadIncomes(new FinanceFilter()
+        {
+            Currency = request.Currency,
+            Income = false,
+            DateFrom = theFirstDayOfPreviousMonth,
+            DateTo = today
+        }, cancellationToken);
 
-        var diff = salaryDay.DayNumber - today.DayNumber;
-        var moneyPerDay = BudgetPlanner.Plan(request.Balance, diff, missingOutcomes);
+        var salaryDay = GetSalaryDay(today, incomes.Where(i => i.Category == Category.FromString("Зарплата")).Max(c => c.Date));
+
+        var moneyPerDay = BudgetPlanner.Plan(request.Balance, today, salaryDay, missingOutcomes, hasExpensesToday);
         
         logger.LogInformation($"{nameof(SpendingUntilPaydayCommandHandler)} finished");
 
         return new MoneyLeft(){MoneyPerDay = moneyPerDay, Payday = salaryDay};
     }
 
-    private DateOnly GetSalaryDay(DateOnly today)
+    private DateOnly GetSalaryDay(DateOnly today, DateOnly? lastSalaryDay)
     {
-        var firstWorkingDay = dateTimeService.FirstWorkingDayOfMonth(today);
-
-        return today < firstWorkingDay ? firstWorkingDay : dateTimeService.FirstWorkingDayOfMonth(today.AddMonths(1));
+        DateOnly firstWorkingDay;
+        if (lastSalaryDay == null)
+        {
+            firstWorkingDay = dateTimeService.FirstWorkingDayOfMonth(today.AddMonths(1));
+            return today < firstWorkingDay ? firstWorkingDay : dateTimeService.FirstWorkingDayOfMonth(today.AddMonths(1));
+        }
+        
+        return dateTimeService.FirstWorkingDayOfMonth(lastSalaryDay.Value.AddMonths(1));
     }
 }

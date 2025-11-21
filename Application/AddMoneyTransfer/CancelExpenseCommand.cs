@@ -1,8 +1,8 @@
 ﻿using MediatR;
 
-namespace Application.AddExpense;
+namespace Application.AddMoneyTransfer;
 
-public class CancelExpenseCommand : IRequest
+public record CancelExpenseCommand : IRequest
 {
     public long SessionId { get; init; }
 }

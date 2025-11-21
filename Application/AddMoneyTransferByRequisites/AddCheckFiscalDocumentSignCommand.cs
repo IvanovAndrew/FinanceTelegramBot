@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Application.AddMoneyTransferByRequisites;
 
-public class AddCheckFiscalDocumentSignCommand : IRequest
+public record AddCheckFiscalDocumentSignCommand : IRequest
 {
     public long SessionId { get; init; }
     public string DocumentSign { get; init; }

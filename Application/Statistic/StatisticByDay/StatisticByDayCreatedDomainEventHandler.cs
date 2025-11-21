@@ -1,4 +1,4 @@
-﻿using Domain.Events;
+﻿using Application.Statistic.StatisticByDay;
 using Infrastructure;
 using MediatR;
 

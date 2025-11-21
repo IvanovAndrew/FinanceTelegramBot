@@ -2,7 +2,7 @@
 
 namespace Application.Statistic.StatisticByCategory;
 
-public class StatisticByCategoryCommand : IRequest
+public record StatisticByCategoryCommand : IRequest
 {
     public long SessionId { get; init; }
 }

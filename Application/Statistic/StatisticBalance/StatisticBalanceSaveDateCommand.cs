@@ -3,21 +3,21 @@ using MediatR;
 
 namespace Application.Statistic.StatisticBalance;
 
-public class StatisticBalanceSaveDateCommand : IRequest
+public record StatisticBalanceSaveDateCommand : IRequest
 {
     public long SessionId { get; init; }
     public string DateFrom { get; set; }
 }
 
-public class StatisticBalanceDateSaved : INotification
+public record StatisticBalanceDateSavedEvent : INotification
 {
     public long SessionId { get; init; }
     public int? LastSentMessageId { get; init; }
 }
 
-public class StatisticBalanceDateSavedHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticBalanceDateSaved>
+public class StatisticBalanceDateSavedHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticBalanceDateSavedEvent>
 {
-    public async Task Handle(StatisticBalanceDateSaved notification, CancellationToken cancellationToken)
+    public async Task Handle(StatisticBalanceDateSavedEvent notification, CancellationToken cancellationToken)
     {
         var message = await messageService.EditSentTextMessageAsync(
             new Message()

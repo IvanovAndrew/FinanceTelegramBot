@@ -1,8 +1,8 @@
 ﻿using MediatR;
 
-namespace Application.Commands.StatisticByDay;
+namespace Application.Statistic.StatisticByDay;
 
-public class StatisticByDayCommand : IRequest
+public record StatisticByDayCommand : IRequest
 {
     public long SessionId { get; init; }
 }

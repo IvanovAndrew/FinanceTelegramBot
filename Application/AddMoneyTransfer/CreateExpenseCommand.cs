@@ -1,8 +1,8 @@
 ﻿using MediatR;
 
-namespace Application.AddExpense;
+namespace Application.AddMoneyTransfer;
 
-public class CreateExpenseCommand : IRequest
+public record CreateExpenseCommand : IRequest
 {
     public long SessionID { get; init; }
 }

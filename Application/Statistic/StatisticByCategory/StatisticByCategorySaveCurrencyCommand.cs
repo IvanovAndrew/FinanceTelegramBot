@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Statistic.StatisticByCategory;
 
-public class StatisticByCategorySaveCurrencyCommand : IRequest
+public record StatisticByCategorySaveCurrencyCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Currency { get; init; }

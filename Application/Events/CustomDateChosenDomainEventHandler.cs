@@ -1,5 +1,4 @@
 ﻿using Application.AddMoneyTransfer;
-using Domain.Events;
 using MediatR;
 
 namespace Application.Events;

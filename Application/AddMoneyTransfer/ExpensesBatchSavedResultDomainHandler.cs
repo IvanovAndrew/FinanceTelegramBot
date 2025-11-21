@@ -2,7 +2,7 @@
 
 namespace Application.AddMoneyTransfer;
 
-public class ExpensesBatchSavedResultEvent : INotification
+public record ExpensesBatchSavedResultEvent : INotification
 {
     public long SessionId { get; init; }
     public SaveBatchExpensesResult Result { get; init; }

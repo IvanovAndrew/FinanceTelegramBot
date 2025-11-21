@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Application.Statistic.StatisticBySubcategoryByMonth;
 
-public class StatisticBySubcategoryMonthSaveDateCommand : IRequest
+public record StatisticBySubcategoryMonthSaveDateCommand : IRequest
 {
     public long SessionId { get; init; }
     public string DateFromText { get; init; }
@@ -39,7 +39,7 @@ public class StatisticBySubcategoryMonthSaveDateCommandHandler(IUserSessionServi
     }
 }
 
-public class StatisticBySubcategoryByMonthDateSavedEvent : INotification
+public record StatisticBySubcategoryByMonthDateSavedEvent : INotification
 {
     public long SessionId { get; init; }
     public int? LastSentMessageId { get; init; }

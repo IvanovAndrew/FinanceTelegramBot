@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.AddMoneyTransfer;
 
-public class AddMoneyTransferCategoryCommand : IRequest
+public record AddMoneyTransferCategoryCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Category { get; init; }

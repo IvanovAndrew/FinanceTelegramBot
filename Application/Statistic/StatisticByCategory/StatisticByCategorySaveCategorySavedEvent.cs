@@ -2,7 +2,7 @@
 
 namespace Application.Statistic.StatisticByCategory;
 
-public class StatisticByCategorySaveCategorySavedEvent : INotification
+public record StatisticByCategorySaveCategorySavedEvent : INotification
 {
     public long SessionId { get; init; }
 }

@@ -1,8 +1,8 @@
 ﻿using MediatR;
 
-namespace Application.Statistic;
+namespace Application.Statistic.StatisticBySubcategory;
 
-public class StatisticBySubcategoryDateFromSavedEvent : INotification
+public record StatisticBySubcategoryDateFromSavedEvent : INotification
 {
     public long SessionId { get; init; }
 }

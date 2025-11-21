@@ -1,34 +1,24 @@
-﻿using Application.AddMoneyTransfer;
-using Domain.Events;
-using MediatR;
+﻿using MediatR;
 
-namespace Application.Commands.CreateIncome;
+namespace Application.AddMoneyTransfer;
 
-public class CreateIncomeCommand : IRequest
+public record CreateIncomeCommand : IRequest
 {
     public long SessionID { get; init; }
 }
 
-public class CreateIncomeCommandHandler : IRequestHandler<CreateIncomeCommand>
+public class CreateIncomeCommandHandler(IUserSessionService userSessionService, IMediator mediator)
+    : IRequestHandler<CreateIncomeCommand>
 {
-    private readonly IUserSessionService _userSessionService;
-    private readonly IMediator _mediator;
-
-    public CreateIncomeCommandHandler(IUserSessionService userSessionService, IMediator mediator)
-    {
-        _userSessionService = userSessionService;
-        _mediator = mediator;
-    }
-    
     public async Task Handle(CreateIncomeCommand request, CancellationToken cancellationToken)
     {
-        var session = _userSessionService.GetUserSession(request.SessionID);
+        var session = userSessionService.GetUserSession(request.SessionID);
 
         if (session != null)
         {
             session.QuestionnaireService = new ManualMoneyTransferQuestionnaireService();
             session.MoneyTransferBuilder = new MoneyTransferBuilder(true);
-            await _mediator.Publish(new IncomeCreatedEvent() { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
+            await mediator.Publish(new IncomeCreatedEvent() { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
         }
     }
 }

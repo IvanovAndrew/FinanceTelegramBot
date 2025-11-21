@@ -1,6 +1,6 @@
-﻿using Application;
+﻿using System.Globalization;
 
-namespace UnitTest.Stubs;
+namespace Application.Test.Stubs;
 
 public class DateTimeServiceStub : IDateTimeService
 {
@@ -11,6 +11,7 @@ public class DateTimeServiceStub : IDateTimeService
         _now = now;
     }
 
+    public CultureInfo CultureInfo => new CultureInfo("ru-RU");
     public DateOnly Today() => DateOnly.FromDateTime(_now);
     public DateTime Now() => _now;
 

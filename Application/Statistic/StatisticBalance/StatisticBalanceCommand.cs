@@ -2,7 +2,7 @@
 
 namespace Application.Statistic.StatisticBalance;
 
-public class StatisticBalanceCommand : IRequest
+public record StatisticBalanceCommand : IRequest
 {
     public long SessionId { get; init; }
 }

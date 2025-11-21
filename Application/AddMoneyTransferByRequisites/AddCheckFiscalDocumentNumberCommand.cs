@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.AddMoneyTransferByRequisites;
 
-public class AddCheckFiscalDocumentNumberCommand : IRequest
+public record AddCheckFiscalDocumentNumberCommand : IRequest
 {
     public long SessionId { get; init; }
     public string DocumentNumber { get; init; }

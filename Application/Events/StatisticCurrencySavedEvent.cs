@@ -2,7 +2,7 @@
 
 namespace Application.Events;
 
-public class StatisticCurrencySavedEvent : INotification
+public record StatisticCurrencySavedEvent : INotification
 {
     public long SessionId { get; init; }
 }

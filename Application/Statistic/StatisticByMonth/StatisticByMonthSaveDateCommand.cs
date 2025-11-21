@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticByMonth;
 
-public class StatisticByMonthSaveDateCommand : IRequest
+public record StatisticByMonthSaveDateCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Date { get; init; } = string.Empty;

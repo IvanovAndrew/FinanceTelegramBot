@@ -8,7 +8,7 @@ public class StatisticBalanceSaveDateCommandHandler(IUserSessionService sessionS
 {
     public async Task Handle(StatisticBalanceSaveDateCommand request, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"StatisticBalanceSaveDateCommandHandler called");
+        logger.LogInformation($"{nameof(StatisticBalanceSaveDateCommandHandler)} called {request}");
         
         var session = sessionService.GetUserSession(request.SessionId);
 
@@ -19,7 +19,7 @@ public class StatisticBalanceSaveDateCommandHandler(IUserSessionService sessionS
                 session.StatisticsOptions.DateFrom = date;
                 session.QuestionnaireService.Next();
 
-                await mediator.Publish(new StatisticBalanceDateSaved()
+                await mediator.Publish(new StatisticBalanceDateSavedEvent()
                     { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
             }
             else

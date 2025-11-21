@@ -1,5 +1,4 @@
-﻿using Domain.Events;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.Events;
 

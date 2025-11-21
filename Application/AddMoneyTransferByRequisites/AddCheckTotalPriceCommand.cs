@@ -2,7 +2,7 @@
 
 namespace Application.AddMoneyTransferByRequisites;
 
-public class AddCheckTotalPriceCommand : IRequest
+public record AddCheckTotalPriceCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Price { get; init; }
@@ -27,7 +27,7 @@ public class AddCheckTotalPriceCommandHandler(IUserSessionService userSessionSer
     }
 }
 
-public class AddCheckTotalPriceSavedEvent : INotification
+public record AddCheckTotalPriceSavedEvent : INotification
 {
     public long SessionId { get; init; }
 }

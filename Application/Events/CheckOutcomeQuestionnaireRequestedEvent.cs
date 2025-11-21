@@ -2,7 +2,7 @@
 
 namespace Application.Events;
 
-public class CheckOutcomeQuestionnaireRequestedEvent : INotification
+public record CheckOutcomeQuestionnaireRequestedEvent : INotification
 {
     public long SessionId { get; init; }
 }

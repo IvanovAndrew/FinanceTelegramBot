@@ -1,4 +1,4 @@
-﻿using UnitTest.Stubs;
+﻿using Application.Test.Stubs;
 using Xunit;
 
 namespace Application.Test;

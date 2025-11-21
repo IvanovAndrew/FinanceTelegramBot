@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Statistic.StatisticBalance;
 
-public class SpendingPerDayCalculatedEvent : INotification
+public record SpendingPerDayCalculatedEvent : INotification
 {
     public long ChatId { get; set; }
     public Money MoneyPerDay { get; set; }

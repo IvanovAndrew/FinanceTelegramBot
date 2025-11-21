@@ -2,7 +2,7 @@
 
 namespace Application.Events;
 
-public class StatisticRequestedEvent : INotification
+public record StatisticRequestedEvent : INotification
 {
     public long SessionId { get; init; }
 }

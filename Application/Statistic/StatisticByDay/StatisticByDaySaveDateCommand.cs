@@ -1,10 +1,9 @@
 ﻿using Application.Events;
-using Domain.Events;
 using MediatR;
 
 namespace Application.Statistic.StatisticByDay;
 
-public class StatisticByDaySaveDateCommand : IRequest
+public record StatisticByDaySaveDateCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Date { get; init; }

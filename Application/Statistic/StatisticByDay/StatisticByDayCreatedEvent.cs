@@ -1,8 +1,8 @@
 ﻿using MediatR;
 
-namespace Domain.Events;
+namespace Application.Statistic.StatisticByDay;
 
-public class StatisticByDayCreatedEvent : INotification
+public record StatisticByDayCreatedEvent : INotification
 {
     public long SessionId { get; set; }
 }

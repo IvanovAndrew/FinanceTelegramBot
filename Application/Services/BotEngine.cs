@@ -1,15 +1,13 @@
-using Application.AddExpense;
 using Application.AddMoneyTransfer;
 using Application.AddMoneyTransferByRequisites;
 using Application.Commands;
-using Application.Commands.CreateIncome;
-using Application.Commands.StatisticByDay;
-using Application.Commands.StatisticByMonth;
-using Application.Commands.StatisticBySubcategory;
-using Application.Commands.StatisticBySubcategoryByMonth;
 using Application.Events;
 using Application.Statistic.StatisticBalance;
 using Application.Statistic.StatisticByCategory;
+using Application.Statistic.StatisticByDay;
+using Application.Statistic.StatisticByMonth;
+using Application.Statistic.StatisticBySubcategory;
+using Application.Statistic.StatisticBySubcategoryByMonth;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

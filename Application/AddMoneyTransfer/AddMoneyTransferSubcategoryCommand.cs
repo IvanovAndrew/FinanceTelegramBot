@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.AddMoneyTransfer;
 
-public class AddMoneyTransferSubcategoryCommand : IRequest
+public record AddMoneyTransferSubcategoryCommand : IRequest
 {
     public long SessionId { get; init; }
     public string Subcategory { get; init; }
@@ -46,7 +46,7 @@ public class AddMoneyTransferSubcategoryCommandHandler(IUserSessionService userS
     }
 }
 
-public class OutcomeSubCategoryEnteredEvent : INotification
+public record OutcomeSubCategoryEnteredEvent : INotification
 {
     public long SessionId { get; init; }
 }

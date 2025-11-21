@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticByMonth;
 
-public class GetStatisticMonthRequestCommand : IRequest
+public record GetStatisticMonthRequestCommand : IRequest
 {
     public long SessionId { get; init; }
 }

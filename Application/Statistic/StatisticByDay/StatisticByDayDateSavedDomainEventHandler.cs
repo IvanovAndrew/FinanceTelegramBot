@@ -1,5 +1,4 @@
 ﻿using Domain;
-using Domain.Events;
 using MediatR;
 
 namespace Application.Statistic.StatisticByDay;

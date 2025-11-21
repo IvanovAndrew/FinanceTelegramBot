@@ -1,6 +1,5 @@
 ﻿using Application.AddMoneyTransfer;
 using Domain;
-using Domain.Events;
 using MediatR;
 
 namespace Application.Statistic.StatisticBySubcategory;
