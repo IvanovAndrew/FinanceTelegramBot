@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Statistic.StatisticBySubcategory;
 
-public class StatisticBySubcategoryDateFromSavedEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticBySubcategoryDateFromSavedEvent>
+public class StatisticBySubcategoryDateFromSavedEventHandler(IUserSessionService userSessionService, ICurrencyProvider currencyProvider, IMessageService messageService) : INotificationHandler<StatisticBySubcategoryDateFromSavedEvent>
 {
     public async Task Handle(StatisticBySubcategoryDateFromSavedEvent notification, CancellationToken cancellationToken)
     {
@@ -17,7 +17,7 @@ public class StatisticBySubcategoryDateFromSavedEventHandler(IUserSessionService
                     ChatId = session.Id,
                     Id = session.LastSentMessageId,
                     Text = "Enter the currency",
-                    Options = MessageOptions.FromListAndLastSingleLine(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList(), "All")
+                    Options = MessageOptions.FromListAndLastSingleLine(currencyProvider.GetCurrencies().Select(c => c.Name).ToList(), "All")
                 }
                 , cancellationToken);
 

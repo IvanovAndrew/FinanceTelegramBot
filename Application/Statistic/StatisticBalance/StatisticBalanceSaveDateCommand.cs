@@ -1,5 +1,4 @@
-﻿using Domain;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.Statistic.StatisticBalance;
 
@@ -15,7 +14,7 @@ public record StatisticBalanceDateSavedEvent : INotification
     public int? LastSentMessageId { get; init; }
 }
 
-public class StatisticBalanceDateSavedHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticBalanceDateSavedEvent>
+public class StatisticBalanceDateSavedHandler(IUserSessionService userSessionService, ICurrencyProvider currencyProvider, IMessageService messageService) : INotificationHandler<StatisticBalanceDateSavedEvent>
 {
     public async Task Handle(StatisticBalanceDateSavedEvent notification, CancellationToken cancellationToken)
     {
@@ -25,7 +24,7 @@ public class StatisticBalanceDateSavedHandler(IUserSessionService userSessionSer
                 ChatId = notification.SessionId,
                 Id = notification.LastSentMessageId,
                 Text = "Enter the currency",
-                Options = MessageOptions.FromList(Currency.GetAvailableCurrencies().Select(c => c.Name).ToList())
+                Options = MessageOptions.FromList(currencyProvider.GetCurrencies().Select(c => c.Name).ToList())
             }, cancellationToken);
 
         var session = userSessionService.GetUserSession(notification.SessionId);

@@ -36,6 +36,7 @@ public static class TestServiceFactory
         services.AddSingleton<IUserSessionService>(userSession);
         services.AddSingleton<IExpenseJsonParser, ExpenseJsonParser>();
         services.AddSingleton<ICategoryProvider, CategoryProviderStub>();
+        services.AddSingleton<ICurrencyProvider, CurrencyProviderStub>();
         services.AddSingleton<IExpenseCategorizer, ExpenseHistoryCategorizer>();
         services.AddSingleton(provider => BotEngineWrapper.Create(
             provider.GetRequiredService<ICategoryProvider>(),

@@ -48,6 +48,7 @@ namespace TelegramBot
             services.AddSingleton<IFnsAPIService, FnsApiService>(s =>
                 ActivatorUtilities.CreateInstance<FnsApiService>(s, Environment.GetEnvironmentVariable("FNS_TOKEN")));
             services.AddSingleton<ICategoryProvider, CategoryProvider>();
+            services.AddSingleton<ICurrencyProvider, CurrencyProvider>();
             services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s => ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
         
             services.AddTransient<RefitMessageHandler>();
