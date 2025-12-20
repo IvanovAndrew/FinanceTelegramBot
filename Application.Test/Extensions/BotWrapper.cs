@@ -3,12 +3,12 @@ using Application.Events;
 using Application.Services;
 using Application.Test.Stubs;
 using Domain;
+using Domain.Services;
 using Infrastructure;
 using Infrastructure.Fns;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using UnitTest;
-using UnitTest.Stubs;
 
 namespace Application.Test.Extensions;
 
@@ -75,6 +75,7 @@ internal class BotEngineWrapper
         services.AddSingleton<IExpenseJsonParser, ExpenseJsonParser>();
         services.AddSingleton<ICurrencyProvider, CurrencyProviderStub>();
         services.AddSingleton<ICategoryProvider>(categoryProvider);
+        services.AddSingleton<ISalaryDayService, SalaryDayServiceStub>();
         services.AddSingleton<IExpenseCategorizer, ExpenseHistoryCategorizer>();
         services.AddLogging();
 

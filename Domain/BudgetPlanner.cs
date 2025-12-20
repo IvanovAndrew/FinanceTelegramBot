@@ -2,24 +2,31 @@
 
 public static class BudgetPlanner
 {
-    public static Money Plan(Money balance, int days, IReadOnlyList<Money> compulsoryOutcomes)
+    public static Money Plan(Money balance, int remainingDays, IReadOnlyList<Money> actualExpenses, IReadOnlyList<Money> compulsoryLeftToPay)
     {
-        if (days <= 0)
+        if (remainingDays < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(days), "Number of days must be positive.");
+            throw new ArgumentOutOfRangeException(nameof(remainingDays), "Number of days must be positive.");
         }
         
         var zero = Money.Zero(balance.Currency);
+        
+        var expenses = actualExpenses.Aggregate(zero, (current, outcome) => current + outcome);
 
-        var allMandatoryOutcomes = compulsoryOutcomes.Aggregate(zero, (current, outcome) => current + outcome);
+        var allMandatoryOutcomes = compulsoryLeftToPay.Aggregate(zero, (current, outcome) => current + outcome);
 
-        var leftMoney = balance - allMandatoryOutcomes;
+        var leftMoney = balance - expenses - allMandatoryOutcomes;
 
         if (leftMoney.Amount < 0)
         {
             return zero;
         }
 
-        return leftMoney / days;
+        if (remainingDays == 0)
+        {
+            return leftMoney;
+        }
+
+        return leftMoney / remainingDays;
     }
 }

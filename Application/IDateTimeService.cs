@@ -4,6 +4,7 @@ namespace Application;
 
 public interface IDateTimeService
 {
+    protected CultureInfo CultureInfo { get; }
     DateOnly Today();
     DateTime Now();
 
@@ -20,7 +21,7 @@ public interface IDateTimeService
             return true;
         }
 
-        if (DateOnly.TryParse(text, new CultureInfo("ru-RU"), DateTimeStyles.None, out date))
+        if (DateOnly.TryParse(text, CultureInfo, DateTimeStyles.None, out date))
             return true;
 
         return false;
@@ -28,21 +29,9 @@ public interface IDateTimeService
     
     bool TryParseDateTime(string text, out DateTime date)
     {
-        if (DateTime.TryParse(text, new CultureInfo("ru-RU"), DateTimeStyles.None, out date))
+        if (DateTime.TryParse(text, CultureInfo, DateTimeStyles.None, out date))
             return true;
 
         return false;
-    }
-
-    DateOnly FirstWorkingDayOfMonth(DateOnly day)
-    {
-        var firstWorkingDayOfMonth = new DateOnly(day.Year, day.Month, 1);
-
-        return firstWorkingDayOfMonth.DayOfWeek switch
-        {
-            DayOfWeek.Saturday => firstWorkingDayOfMonth.AddDays(2),
-            DayOfWeek.Sunday => firstWorkingDayOfMonth.AddDays(1),
-            _ => firstWorkingDayOfMonth
-        };
     }
 }

@@ -1,7 +1,9 @@
+using System.Globalization;
 using Application;
 using Application.Contracts;
 using Application.Events;
 using Domain;
+using Domain.Services;
 using Infrastructure;
 using Infrastructure.Fns;
 using Infrastructure.GoogleSpreadsheet;
@@ -49,7 +51,12 @@ namespace TelegramBot
                 ActivatorUtilities.CreateInstance<FnsApiService>(s, Environment.GetEnvironmentVariable("FNS_TOKEN")));
             services.AddSingleton<ICategoryProvider, CategoryProvider>();
             services.AddSingleton<ICurrencyProvider, CurrencyProvider>();
+            services.AddSingleton<IRecurringExpensesService, RecurringExpensesService>();
+            services.AddTransient<FinanceStatisticsService>();
             services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s => ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
+            
+            services.Configure<SalarySettings>(_configuration.GetSection("SalarySettings"));
+            services.AddSingleton<ISalaryDayService, SalaryDayService>();
         
             services.AddTransient<RefitMessageHandler>();
             
@@ -85,6 +92,9 @@ namespace TelegramBot
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
+            CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

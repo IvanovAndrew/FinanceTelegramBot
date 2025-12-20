@@ -1,105 +1,105 @@
 ﻿using Domain;
+using Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticBalance;
 
-public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IDateTimeService dateTimeService, IMediator mediator, ILogger<GetBalanceStatisticCommandHandler> logger) : IRequestHandler<GetBalanceStatisticCommand>
+public class GetBalanceStatisticCommandHandler(
+    IUserSessionService userSessionService,
+    IFinanceRepository financeRepository,
+    FinanceStatisticsService financeStatistics,
+    ISalaryDayService salaryDayService,
+    IDateTimeService dateTimeService,
+    IMediator mediator,
+    ILogger<GetBalanceStatisticCommandHandler> logger) : IRequestHandler<GetBalanceStatisticCommand>
 {
     public async Task Handle(GetBalanceStatisticCommand request, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"{nameof(GetBalanceStatisticCommandHandler)} started. {request}");
+        logger.LogInformation($"[{nameof(GetBalanceStatisticCommandHandler)}] started {request}");
         var session = userSessionService.GetUserSession(request.SessionId);
 
         if (session == null)
         {
-            logger.LogWarning($"{nameof(GetBalanceStatisticCommandHandler)} session {request.SessionId} hasn't been found");
+            logger.LogWarning(
+                $"[{nameof(GetBalanceStatisticCommandHandler)}] session {request.SessionId} hasn't been found");
             return;
         }
-        
-        await mediator.Publish(new BalanceStatisticCollectingStarted(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId}, cancellationToken);
-        
+
+        await mediator.Publish(
+            new BalanceStatisticCollectingStarted()
+                { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
+
         var cancellationTokenSource = session.CancellationTokenSource = new CancellationTokenSource();
 
         try
         {
-            List<IMoneyTransfer> expenses;
+            List<IMoneyTransfer> outcomes;
             List<IMoneyTransfer> incomes;
+
+            var dateFrom = session.StatisticsOptions.DateFrom.Value;
 
             var financeFilter = new FinanceFilter()
             {
                 Currency = session.StatisticsOptions.Currency,
-                DateFrom = session.StatisticsOptions.DateFrom
+                DateFrom = dateFrom.FirstDayOfMonth()
             };
 
             Task<List<IMoneyTransfer>>[] tasks;
             using (cancellationTokenSource)
             {
-                tasks = new[]
-                {
+                tasks =
+                [
                     financeRepository.ReadOutcomes(financeFilter, cancellationTokenSource.Token),
                     financeRepository.ReadIncomes(financeFilter, cancellationTokenSource.Token)
-                };
+                ];
 
                 var results = await Task.WhenAll(tasks);
-                expenses = results[0];
+                outcomes = results[0];
                 incomes = results[1];
             }
 
-            logger.LogInformation($"{expenses.Count} expenses satisfy the requirements");
+            logger.LogInformation($"{outcomes.Count} outcomes satisfy the requirements");
             logger.LogInformation($"{incomes.Count} incomes satisfy the requirements");
 
-            if (expenses.Any() || incomes.Any())
+            if (!outcomes.Any() && !incomes.Any())
             {
-                Money monthOutcomes = new Money() { Amount = 0, Currency = financeFilter.Currency ?? Currency.RUR };
-
-                foreach (var expense in expenses)
-                {
-                    monthOutcomes += expense.Amount;
-                }
-
-                Money monthIncomes = new Money() { Amount = 0, Currency = financeFilter.Currency ?? Currency.RUR };
-                foreach (var income in incomes)
-                {
-                    if (income.Amount.Currency != financeFilter.Currency || income.Date < financeFilter.DateFrom)
-                    {
-                        continue;
-                    }
-
-                    monthIncomes += income.Amount;
-                }
-
-                string postTableInfo = string.Empty;
-                
-                var moneyLeft = await mediator.Send(new SpendingUntilPaydayCommand()
+                await mediator.Publish(new NeitherIncomesNotOutcomesFoundEvent
                 {
                     SessionId = session.Id,
-                    DateFrom = financeFilter.DateFrom.Value,
-                    Currency = financeFilter.Currency!,
-                    Balance = monthIncomes - monthOutcomes,
+                    LastSentMessageId = session.LastSentMessageId
                 }, cancellationToken);
-
-                postTableInfo =
-                    $"{moneyLeft.MoneyPerDay} can be spent daily till the payday {moneyLeft.Payday.ToString("d MMMM yyyy")}";
-
-                var table = BuildTable(monthIncomes, monthOutcomes, financeFilter.DateFrom!.Value, financeFilter.Currency!, postTableInfo);
-                await mediator.Publish(new BalanceStatisticCalculatedEvent()
-                {
-                    SessionId = session.Id,
-                    LastSentMessageId = session.LastSentMessageId,
-                    Table = table
-                }, cancellationToken);
-
-                session.LastSentMessageId = null;
-                session.QuestionnaireService = null;
-
-                
+                return;
             }
-            else
+
+            Money monthOutcomes = FinanceCalculator.Sum(outcomes, financeFilter.Currency ?? Currency.RUR,
+                dateFrom);
+            Money monthIncomes = FinanceCalculator.Sum(incomes, financeFilter.Currency ?? Currency.RUR,
+                dateFrom);
+
+            var salaryCategory = Category.FromString("Зарплата");
+            var previousSalaryDay = incomes.Where(c => c.Category == salaryCategory).Max(c => c.Date);
+            var salaryDay = salaryDayService.GetSalaryDay(previousSalaryDay);
+
+            bool includeToday = dateTimeService.Now().Hour <= 18;
+
+            var moneyLeft = financeStatistics.CalculateMoneyPerDay(monthIncomes, outcomes, dateTimeService.Today(), salaryDay);
+
+            string postTableInfo = 
+                $"{moneyLeft} can be spent daily till the payday {salaryDay.ToString("d MMMM yyyy")} (today {(includeToday? "is" : "isn't")} included)";
+
+            var table = BuildTable(monthIncomes, monthOutcomes, dateFrom,
+                financeFilter.Currency!, postTableInfo);
+            
+            await mediator.Publish(new BalanceStatisticCalculatedEvent()
             {
-                await mediator.Publish(new NeitherIncomesNotOutcomesFoundEvent()
-                    { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
-            }
+                SessionId = session.Id,
+                LastSentMessageId = session.LastSentMessageId,
+                Table = table
+            }, cancellationToken);
+
+            session.LastSentMessageId = null;
+            session.QuestionnaireService = null;
         }
         catch (OperationCanceledException)
         {
@@ -110,18 +110,19 @@ public class GetBalanceStatisticCommandHandler(IUserSessionService userSessionSe
         {
             cancellationTokenSource.Dispose();
         }
-        
-        logger.LogInformation($"{nameof(GetBalanceStatisticCommandHandler)} finishes");
+
+        logger.LogInformation($"[{nameof(GetBalanceStatisticCommandHandler)}] finishes");
     }
 
-    private static Table BuildTable(Money monthIncomes, Money monthOutcomes, DateOnly dateFrom, Currency currency, string postTableInfo)
+    private static Table BuildTable(Money monthIncomes, Money monthOutcomes, DateOnly dateFrom, Currency currency,
+        string postTableInfo)
     {
         var table = new Table()
         {
             Title = "Balance",
             Subtitle = $"From {dateFrom.ToString("MMMM yyyy")}",
             FirstColumnName = "Balance",
-            Currencies = new []{currency},
+            Currencies = [currency],
             PostTableInfo = postTableInfo
         };
         table.AddRow(new Row()
