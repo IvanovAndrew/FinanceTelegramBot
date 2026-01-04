@@ -2,6 +2,7 @@ using System.Text;
 using Application;
 using Domain;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBot.Services;
@@ -76,6 +77,16 @@ public class TelegramMessageService : IMessageService
             cancellationToken: cancellationToken);
 
         return new Message(){Id = message.Id, ChatId = message.Chat.Id};
+    }
+
+    public async Task SendPictureAsync(IMessage messageToSend, CancellationToken cancellationToken = default)
+    {
+        if (messageToSend.PictureBytes is { } bytes)
+        {
+            using var stream = new MemoryStream(bytes);
+            await _telegramBotClient.SendPhoto(messageToSend.ChatId, new InputFileStream(stream), caption:messageToSend.Text, cancellationToken: cancellationToken);
+        }
+        
     }
 
     private string FormatTable(Table table)

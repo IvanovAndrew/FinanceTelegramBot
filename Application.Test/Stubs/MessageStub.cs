@@ -14,4 +14,5 @@ public class MessageStub : IMessage
     public MessageOptions? Options { get; internal set; }
     public Table? Table { get; internal set; }
     public IFileInfo? FileInfo { get; set; }
+    public byte[]? PictureBytes { get; set; }
 }

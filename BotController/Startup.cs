@@ -71,6 +71,8 @@ namespace TelegramBot
                 .AddHttpMessageHandler<RefitMessageHandler>();
 
             services.AddScoped<IGoogleSpreadsheetService, GoogleSpreadsheetService>();
+
+            services.AddSingleton<IPictureGenerator, ScottPlotPictureGenerator>();
             
             // Register the core service
             services.AddScoped<FinanceRepository>();

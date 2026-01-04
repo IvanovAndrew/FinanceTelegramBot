@@ -42,6 +42,11 @@ public class MessageServiceMock : IMessageService
         return SendTextMessageAsync(messageToSend, cancellationToken);
     }
 
+    public Task SendPictureAsync(IMessage messageToSend, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task DeleteMessageAsync(IMessage message, CancellationToken cancellationToken)
     {
         var messageToDelete = FindSentMessageById(message.ChatId, message.Id?? 0);
