@@ -10,6 +10,7 @@ public interface IMessage
     MessageOptions? Options { get; }
     Table? Table { get; }
     IFileInfo? FileInfo { get; }
+    byte[]? PictureBytes { get; }
 }
 
 public class Message : IMessage
@@ -22,6 +23,7 @@ public class Message : IMessage
     public MessageOptions? Options { get; init; }
     public Table? Table { get; init; }
     public IFileInfo? FileInfo { get; init; }
+    public byte[]? PictureBytes { get; init; }
 }
 
 public class Option

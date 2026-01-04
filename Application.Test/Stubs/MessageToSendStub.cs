@@ -12,4 +12,5 @@ public class MessageToSendStub : IMessage
     public MessageOptions? Options { get; }
     public Table? Table { get; }
     public IFileInfo? FileInfo { get; }
+    public byte[]? PictureBytes { get; set; }
 }
