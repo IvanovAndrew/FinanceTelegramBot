@@ -61,24 +61,3 @@ public class LongOperationCanceledEventHandler(IMessageService messageService) :
         );
     }
 }
-
-public class BalanceStatisticCalculatedEvent : INotification
-{
-    public long SessionId { get; init; }
-    public int? LastSentMessageId { get; init; }
-    public Table Table { get; init; }
-}
-
-public class BalanceStatisticCalculatedEventHandler(IMessageService messageService) : INotificationHandler<BalanceStatisticCalculatedEvent>
-{
-    public async Task Handle(BalanceStatisticCalculatedEvent notification, CancellationToken cancellationToken)
-    {
-        await messageService.EditSentTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Id = notification.LastSentMessageId,
-                Table = notification.Table
-            }, cancellationToken);
-    }
-}

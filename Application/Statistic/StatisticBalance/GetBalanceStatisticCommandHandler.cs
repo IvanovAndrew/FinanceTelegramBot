@@ -45,10 +45,9 @@ public class GetBalanceStatisticCommandHandler(
                 DateFrom = dateFrom.FirstDayOfMonth()
             };
 
-            Task<List<IMoneyTransfer>>[] tasks;
             using (cancellationTokenSource)
             {
-                tasks =
+                Task<List<IMoneyTransfer>>[] tasks =
                 [
                     financeRepository.ReadOutcomes(financeFilter, cancellationTokenSource.Token),
                     financeRepository.ReadIncomes(financeFilter, cancellationTokenSource.Token)
@@ -71,31 +70,42 @@ public class GetBalanceStatisticCommandHandler(
                 }, cancellationToken);
                 return;
             }
-
-            Money monthOutcomes = FinanceCalculator.Sum(outcomes, financeFilter.Currency ?? Currency.RUR,
-                dateFrom);
-            Money monthIncomes = FinanceCalculator.Sum(incomes, financeFilter.Currency ?? Currency.RUR,
-                dateFrom);
-
-            var salaryCategory = Category.FromString("Зарплата");
-            var previousSalaryDay = incomes.Where(c => c.Category == salaryCategory).Max(c => c.Date);
-            var salaryDay = salaryDayService.GetSalaryDay(previousSalaryDay);
-
-            bool includeToday = dateTimeService.Now().Hour <= 18;
-
-            var moneyLeft = financeStatistics.CalculateMoneyPerDay(monthIncomes, outcomes, dateTimeService.Today(), salaryDay);
-
-            string postTableInfo = 
-                $"{moneyLeft} can be spent daily till the payday {salaryDay.ToString("d MMMM yyyy")} (today {(includeToday? "is" : "isn't")} included)";
-
-            var table = BuildTable(monthIncomes, monthOutcomes, dateFrom,
-                financeFilter.Currency!, postTableInfo);
             
+            var now = dateTimeService.Now();
+            var today = dateTimeService.Today();
+
+            var period = new BalancePeriod(incomes, outcomes, financeFilter.Currency);
+
+            var monthlyBalances = period.ByMonths(
+                YearMonth.From(dateFrom),
+                YearMonth.From(today)
+            );
+
+            var moneyLeft = Money.Zero(financeFilter.Currency);
+            
+            var salaryCategory = Category.FromString("Зарплата");
+            DateOnly? salaryDay = null;
+
+            if (incomes.Any(c => c.Category == salaryCategory))
+            {
+                var previousSalaryDay = incomes.Where(c => c.Category == salaryCategory).Max(c => c.Date);
+                salaryDay = salaryDayService.GetSalaryDay(previousSalaryDay);
+                moneyLeft = financeStatistics.CalculateMoneyPerDay(period.TotalIncome, outcomes, today, salaryDay!.Value);
+            }
+            
+            bool includeToday = now.Hour <= 18;
+
             await mediator.Publish(new BalanceStatisticCalculatedEvent()
             {
                 SessionId = session.Id,
                 LastSentMessageId = session.LastSentMessageId,
-                Table = table
+                
+                DateFrom = dateFrom,
+                MonthBalances = monthlyBalances,
+                MoneyLeft = moneyLeft,
+                Currency = session.StatisticsOptions.Currency,
+                SalaryDay = salaryDay,
+                IncludeToday = includeToday
             }, cancellationToken);
 
             session.LastSentMessageId = null;
@@ -112,37 +122,5 @@ public class GetBalanceStatisticCommandHandler(
         }
 
         logger.LogInformation($"[{nameof(GetBalanceStatisticCommandHandler)}] finishes");
-    }
-
-    private static Table BuildTable(Money monthIncomes, Money monthOutcomes, DateOnly dateFrom, Currency currency,
-        string postTableInfo)
-    {
-        var table = new Table()
-        {
-            Title = "Balance",
-            Subtitle = $"From {dateFrom.ToString("MMMM yyyy")}",
-            FirstColumnName = "Balance",
-            Currencies = [currency],
-            PostTableInfo = postTableInfo
-        };
-        table.AddRow(new Row()
-        {
-            FirstColumnValue = "Income",
-            CurrencyValues = new Dictionary<Currency, Money>()
-                { [currency] = monthIncomes }
-        });
-        table.AddRow(new Row()
-        {
-            FirstColumnValue = "Outcome",
-            CurrencyValues = new Dictionary<Currency, Money>() { [currency] = monthOutcomes }
-        });
-        table.AddRow(new Row());
-        table.AddRow(new Row()
-        {
-            FirstColumnValue = "Total",
-            CurrencyValues = new Dictionary<Currency, Money>()
-                { [currency] = monthIncomes - monthOutcomes }
-        });
-        return table;
     }
 }
