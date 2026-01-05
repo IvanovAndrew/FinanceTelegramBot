@@ -5,7 +5,6 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using TelegramBot.Services;
 using FileInfo = TelegramBot.Services.FileInfo;
 using Message = Telegram.Bot.Types.Message;
 

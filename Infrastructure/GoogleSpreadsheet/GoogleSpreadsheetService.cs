@@ -39,7 +39,8 @@ public class GoogleSpreadsheetService(
             _logger.LogInformation("Getting incomes with filter: {Filter}", jsonPayload);
 
             var dtos = await _api.GetIncomesAsync(jsonPayload, cancellationToken);
-            return dtos?.Select(GoogleSpreadsheetIncomeDto.ToIncome).ToList() ?? new List<IMoneyTransfer>();
+
+            return dtos?.Select(dto => GoogleSpreadsheetIncomeDto.ToIncome(dto, _categoryProvider)).ToList() ?? new List<IMoneyTransfer>();
         }
         catch (Exception ex)
         {

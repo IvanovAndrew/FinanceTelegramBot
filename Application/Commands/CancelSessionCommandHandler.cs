@@ -10,11 +10,6 @@ public class CancelSessionCommandHandler(IUserSessionService userSessionService)
 
         if (session != null)
         {
-            if (session.CancellationTokenSource != null)
-            {
-                await session.CancellationTokenSource.CancelAsync();
-            }
-            
             userSessionService.RemoveSession(session);
         }
     }

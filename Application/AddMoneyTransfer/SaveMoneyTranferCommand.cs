@@ -33,33 +33,27 @@ public class SaveMoneyTransferCommandHandler : IRequestHandler<SaveMoneyTransfer
                 new MoneyTransferSavingStartedEvent()
                     { SessionId = session.Id, MessageId = (int)session.LastSentMessageId! }, cancellationToken);
                 
-            var cancellationTokenSource = new CancellationTokenSource();
-            session.CancellationTokenSource = cancellationTokenSource;
-
             try
             {
-                using (cancellationTokenSource)
+                SaveResult success;
+
+                if (moneyTransfer.IsIncome)
                 {
-                    SaveResult success;
+                    success = await _financeRepository.SaveIncome(moneyTransfer, cancellationToken);
+                }
+                else
+                {
+                    success = await _financeRepository.SaveAllOutcomes(new List<IMoneyTransfer>() { moneyTransfer }, cancellationToken);
+                }
 
-                    if (moneyTransfer.IsIncome)
-                    {
-                        success = await _financeRepository.SaveIncome(moneyTransfer, cancellationTokenSource.Token);
-                    }
-                    else
-                    {
-                        success = await _financeRepository.SaveAllOutcomes(new List<IMoneyTransfer>() { moneyTransfer }, cancellationTokenSource.Token);
-                    }
-
-                    if (success.Success)
-                    {
-                        await _mediator.Publish(new MoneyTransferSavedEvent { SessionId = request.SessionId, MoneyTransfer = moneyTransfer }, cancellationToken);
-                    }
-                    else
-                    {
-                        await _mediator.Publish(new MoneyTransferIsNotSavedEvent { SessionId = request.SessionId, Reason = success.ErrorMessage!},
-                            cancellationToken);
-                    }
+                if (success.Success)
+                {
+                    await _mediator.Publish(new MoneyTransferSavedEvent { SessionId = request.SessionId, MoneyTransfer = moneyTransfer }, cancellationToken);
+                }
+                else
+                {
+                    await _mediator.Publish(new MoneyTransferIsNotSavedEvent { SessionId = request.SessionId, Reason = success.ErrorMessage!},
+                        cancellationToken);
                 }
             }
             catch (TaskCanceledException e)

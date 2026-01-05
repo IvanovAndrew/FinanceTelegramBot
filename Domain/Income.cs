@@ -3,11 +3,13 @@
 public class Income : IMoneyTransfer
 {
     public bool IsIncome => true;
-    public DateOnly Date { get; set; }
-    public Category Category { get; set; }
+    public DateOnly Date { get; init; }
+    public Category Category { get; init; }
     public SubCategory? SubCategory { get; }
-    public string? Description { get; set;}
-    public Money Amount { get; set; }
+    public string? Description { get; init;}
+    public Money Amount { get; init; }
+    
+    public bool IsSalary() => Category.Type == CategoryType.Salary;
         
     public override string ToString()
     {

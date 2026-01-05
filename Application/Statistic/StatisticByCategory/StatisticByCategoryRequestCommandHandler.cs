@@ -27,26 +27,21 @@ public class GetStatisticCategoryRequestCommandHandler(IUserSessionService userS
         
             var expenseAggregator = new ExpensesAggregator<DateOnly>(e => e.Date.FirstDayOfMonth(), false, sortAsc: true);
 
-            session.CancellationTokenSource = new CancellationTokenSource();
-        
-            using (session.CancellationTokenSource)
-            {
-                var outcomes = await financeRepository.ReadOutcomes(filter, session.CancellationTokenSource.Token);
+            var outcomes = await financeRepository.ReadOutcomes(filter, cancellationToken);
 
-                if (outcomes.Any())
-                {
-                    var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
-                    var statistic = expenseAggregator.Aggregate(outcomes, currencies);
-                
-                    await mediator.Publish(new MoneyTransferReadDomainEvent()
-                        { 
-                            SessionId = session.Id, 
-                            Statistic = StatisticMapper.Map(statistic, new DateOnlyColumnFactory()),
-                            Subtitle = $"Category: {filter.Category?.Name}",
-                            FirstColumnName = "Month",
-                        }, 
-                        cancellationToken);
-                }
+            if (outcomes.Any())
+            {
+                var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
+                var statistic = expenseAggregator.Aggregate(outcomes, currencies);
+            
+                await mediator.Publish(new MoneyTransferReadDomainEvent()
+                    { 
+                        SessionId = session.Id, 
+                        Statistic = StatisticMapper.Map(statistic, new DateOnlyColumnFactory()),
+                        Subtitle = $"Category: {filter.Category?.Name}",
+                        FirstColumnName = "Month",
+                    }, 
+                    cancellationToken);
             }
         }
     }

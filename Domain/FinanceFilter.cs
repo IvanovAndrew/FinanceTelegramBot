@@ -1,6 +1,6 @@
 ﻿namespace Domain;
 
-public class FinanceFilter
+public record FinanceFilter
 {
     public bool Income { get; init; }
     public DateOnly? DateFrom { get; set; }

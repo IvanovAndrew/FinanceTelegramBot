@@ -1,5 +1,4 @@
 ﻿using Application.AddMoneyTransfer;
-using Application.Events;
 using Domain;
 using MediatR;
 
@@ -24,17 +23,11 @@ public class SaveOutcomesBatchCommandHandler(IUserSessionService userSessionServ
             await mediator.Publish(new MoneyTransferSavingStartedEvent()
                 { SessionId = session.Id, MessageId = (int)session.LastSentMessageId! }, cancellationToken);
             
-            var cancellationTokenSource = new CancellationTokenSource();
-            session.CancellationTokenSource = cancellationTokenSource;
-
             try
             {
-                using (cancellationTokenSource)
-                {
-                    var success = await financeRepository.SaveAllOutcomes(request.MoneyTransfers, cancellationTokenSource.Token);
+                var success = await financeRepository.SaveAllOutcomes(request.MoneyTransfers, cancellationToken);
 
-                    result = success.Success ? SaveBatchExpensesResult.Saved(request.MoneyTransfers) : SaveBatchExpensesResult.Failed(request.MoneyTransfers, success.ErrorMessage!);
-                }
+                result = success.Success ? SaveBatchExpensesResult.Saved(request.MoneyTransfers) : SaveBatchExpensesResult.Failed(request.MoneyTransfers, success.ErrorMessage!);
             }
             catch (TaskCanceledException e)
             {

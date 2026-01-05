@@ -23,7 +23,7 @@ public class GoogleSpreadsheetIncomeDto
         };
     }
 
-    public static IMoneyTransfer ToIncome(GoogleSpreadsheetIncomeDto dto)
+    public static IMoneyTransfer ToIncome(GoogleSpreadsheetIncomeDto dto, ICategoryProvider categoryProvider)
     {
         Domain.Currency currency;
         switch (int.Parse(dto.Currency))
@@ -52,11 +52,11 @@ public class GoogleSpreadsheetIncomeDto
             default:
                 throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}");
         }
-
+        
         return new Income()
         {
             Date = DateOnly.FromDateTime(dto.Date),
-            Category = Domain.Category.FromString(dto.Category),
+            Category = categoryProvider.GetCategoryByName(dto.Category?? string.Empty, true)?? Domain.Category.FromString(dto.Category),
             Description = dto.Description,
             Amount = new Money()
             {

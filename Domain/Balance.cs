@@ -42,13 +42,20 @@ public readonly struct YearMonth : IEquatable<YearMonth>, IComparable<YearMonth>
     public static YearMonth From(DateOnly date) => new(date.Year, date.Month);
     public static YearMonth From(DateTime date) => new(date.Year, date.Month);
 
-    
     public YearMonth Next()
     {
         return Month == 12
             ? new YearMonth(Year + 1, 1)
             : new YearMonth(Year, Month + 1);
     }
+    
+    public YearMonth Previous()
+    {
+        return Month == 1? new YearMonth(Year - 1, 12): new YearMonth(Year, Month - 1);
+    }
+
+    public DateOnly ToDateOnly(int day = 1) => new DateOnly(Year, Month, 1);
+    public DateTime ToDateTime(int day = 1) => new DateTime(Year, Month, 1);
 
     public bool Equals(YearMonth other)
     {

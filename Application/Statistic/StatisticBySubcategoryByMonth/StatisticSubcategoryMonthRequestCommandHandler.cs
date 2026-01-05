@@ -25,29 +25,24 @@ public class StatisticSubcategoryMonthRequestCommandHandler(IUserSessionService 
             
             var expenseAggregator = new ExpensesAggregator<DateOnly>(e => e.Date.FirstDayOfMonth(), false, sortAsc: true);
 
-            session.CancellationTokenSource = new CancellationTokenSource();
-            
-            using (session.CancellationTokenSource)
+            var outcomes = await financeRepository.ReadOutcomes(filter, cancellationToken);
+
+            if (outcomes.Any())
             {
-                var outcomes = await financeRepository.ReadOutcomes(filter, session.CancellationTokenSource.Token);
+                var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
+                var statistic = expenseAggregator.Aggregate(outcomes, currencies);
 
-                if (outcomes.Any())
-                {
-                    var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
-                    var statistic = expenseAggregator.Aggregate(outcomes, currencies);
-
-                    var subtitle = $"Category: {filter.Category?.Name}{Environment.NewLine}" +
-                                   $"Subcategory: {filter.Subcategory?.Name}{Environment.NewLine}" +
-                                   $"Expenses from {filter.DateFrom.Value.ToString("MMMM yyyy")}";
-                    
-                    await mediator.Publish(new MoneyTransferReadDomainEvent()
-                    { 
-                        SessionId = session.Id, 
-                        Statistic = StatisticMapper.Map(statistic, new DateOnlyColumnFactory()), 
-                        Subtitle = subtitle,
-                        FirstColumnName = "Month",
-                    }, cancellationToken);
-                }
+                var subtitle = $"Category: {filter.Category?.Name}{Environment.NewLine}" +
+                               $"Subcategory: {filter.Subcategory?.Name}{Environment.NewLine}" +
+                               $"Expenses from {filter.DateFrom.Value.ToString("MMMM yyyy")}";
+                
+                await mediator.Publish(new MoneyTransferReadDomainEvent()
+                { 
+                    SessionId = session.Id, 
+                    Statistic = StatisticMapper.Map(statistic, new DateOnlyColumnFactory()), 
+                    Subtitle = subtitle,
+                    FirstColumnName = "Month",
+                }, cancellationToken);
             }
         }
     }

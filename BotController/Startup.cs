@@ -2,6 +2,7 @@ using System.Globalization;
 using Application;
 using Application.Contracts;
 using Application.Events;
+using Application.Services;
 using Domain;
 using Domain.Services;
 using Infrastructure;
@@ -55,8 +56,13 @@ namespace TelegramBot
             services.AddTransient<FinanceStatisticsService>();
             services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s => ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
             
+            services.AddSingleton<ICheckDownloader, CheckDownloader>();
+            
             services.Configure<SalarySettings>(_configuration.GetSection("SalarySettings"));
             services.AddSingleton<ISalaryDayService, SalaryDayService>();
+            services.AddSingleton<ISalaryScheduleProvider, SalaryScheduleProvider>();
+            services.AddSingleton<ISpendingDayPolicy, SpendingDayPolicy>();
+            services.AddSingleton<IBalanceStatisticService, BalanceStatisticService>();
         
             services.AddTransient<RefitMessageHandler>();
             

@@ -25,38 +25,29 @@ public class StatisticDayRequestCommandHandler(IUserSessionService userSessionSe
             
             var expenseAggregator = new ExpensesAggregator<string>(e => e.Category.Name, true, sortAsc: false);
 
-            session.CancellationTokenSource = new CancellationTokenSource();
-
             try
             {
-                using (session.CancellationTokenSource)
+                var outcomes = await financeRepository.ReadOutcomes(filter, cancellationToken);
+
+                if (outcomes.Any())
                 {
-                    var outcomes = await financeRepository.ReadOutcomes(filter, session.CancellationTokenSource.Token);
+                    var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
+                    var statistic = expenseAggregator.Aggregate(outcomes, currencies);
 
-                    if (outcomes.Any())
+                    await mediator.Publish(new MoneyTransferReadDomainEvent()
                     {
-                        var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
-                        var statistic = expenseAggregator.Aggregate(outcomes, currencies);
-
-                        await mediator.Publish(new MoneyTransferReadDomainEvent()
-                        {
-                            SessionId = session.Id,
-                            Statistic = StatisticMapper.Map(statistic, new StringColumnFactory()),
-                            Subtitle = $"Expenses for {sessionStatisticsOptions.DateTo.Value.ToString("d MMMM yyyy")}",
-                            FirstColumnName = "Category",
-                            DateFrom = filter.DateFrom,
-                            DateTo = filter.DateTo,
-                        }, cancellationToken);
-                    }
+                        SessionId = session.Id,
+                        Statistic = StatisticMapper.Map(statistic, new StringColumnFactory()),
+                        Subtitle = $"Expenses for {sessionStatisticsOptions.DateTo.Value.ToString("d MMMM yyyy")}",
+                        FirstColumnName = "Category",
+                        DateFrom = filter.DateFrom,
+                        DateTo = filter.DateTo,
+                    }, cancellationToken);
                 }
             }
             catch (OperationCanceledException e)
             {
                 await mediator.Publish(new TaskCanceledEvent(){SessionId = session.Id}, cancellationToken);
-            }
-            finally
-            {
-                session.CancellationTokenSource = null;
             }
         }
     }

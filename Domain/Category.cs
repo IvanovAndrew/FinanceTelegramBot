@@ -6,6 +6,7 @@ namespace Domain
         public string? ShortName { get; init; }
         public SubCategory[] Subcategories { get; set; } = Array.Empty<SubCategory>();
         public bool IsDefaultCategory { get; set; } = false;
+        public CategoryType Type { get; init; } = CategoryType.RegularExpense;
 
         public Category()
         {

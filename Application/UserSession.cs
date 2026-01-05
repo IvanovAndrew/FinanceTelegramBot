@@ -7,7 +7,6 @@ public class UserSession
 {
     public long Id { get; init; }
     public int? LastSentMessageId { get; set; }
-    public CancellationTokenSource? CancellationTokenSource { get; set; }
 
     public MoneyTransferBuilder? MoneyTransferBuilder { get; set; }
     public StatisticsOptions StatisticsOptions { get; set; }
