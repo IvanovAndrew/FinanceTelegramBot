@@ -7,7 +7,7 @@ namespace Application.AddMoneyTransferByRequisites;
 public record SaveOutcomesBatchCommand : IRequest
 {
     public long SessionId { get; init; }
-    public IReadOnlyCollection<IMoneyTransfer> MoneyTransfers { get; init; }
+    public IReadOnlyCollection<Outcome> MoneyTransfers { get; init; }
 }
 
 public class SaveOutcomesBatchCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<SaveOutcomesBatchCommand>

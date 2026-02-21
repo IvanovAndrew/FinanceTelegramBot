@@ -25,7 +25,7 @@ public class GoogleSpreadsheetExpenseDto
         };
     }
 
-    public static IMoneyTransfer ToExpense(GoogleSpreadsheetExpenseDto dto, ICategoryProvider categoryProvider)
+    public static Outcome ToExpense(GoogleSpreadsheetExpenseDto dto, ICategoryProvider categoryProvider)
     {
         Domain.Currency currency = int.Parse(dto.Currency) switch
         {

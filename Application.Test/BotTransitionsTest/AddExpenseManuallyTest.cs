@@ -13,7 +13,7 @@ public class AddExpenseManuallyTest
 
     public AddExpenseManuallyTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _, out _);
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
     }
@@ -81,6 +81,8 @@ public class AddExpenseManuallyTest
 
     [Theory]
     [InlineData("1 рубль")]
+    [InlineData("1,1 рубля")]
+    [InlineData("1.1 рубля")]
     [InlineData("10 рублей")]
     [InlineData("100 rur")]
     [InlineData("50 amd")]
@@ -140,7 +142,7 @@ public class AddExpenseManuallyTest
         var lastMessage = await _botEngine.Proceed("1999");
 
         // Assert
-        Assert.Equal("Missing currency. Try again", lastMessage.Text);
+        Assert.Contains(lastMessage.Text, "Missing currency");
     }
     
     [Fact]

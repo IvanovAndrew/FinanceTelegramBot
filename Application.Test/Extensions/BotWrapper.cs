@@ -1,13 +1,5 @@
-﻿using Application.Contracts;
-using Application.Events;
-using Application.Services;
+﻿using Application.Services;
 using Application.Test.Stubs;
-using Domain;
-using Domain.Services;
-using Infrastructure;
-using Infrastructure.Fns;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using UnitTest;
 
 namespace Application.Test.Extensions;
@@ -17,7 +9,7 @@ internal class BotEngineWrapper
     private readonly BotEngine _botEngine;
     private readonly MessageServiceMock _messageService;
     
-    private BotEngineWrapper(BotEngine botEngine, MessageServiceMock messageService)
+    public BotEngineWrapper(BotEngine botEngine, MessageServiceMock messageService)
     {
         _botEngine = botEngine;
         _messageService = messageService;
@@ -60,28 +52,5 @@ internal class BotEngineWrapper
         var lastMessage = _messageService.SentMessages.OrderBy(m => m.Id).Last();
             
         return lastMessage;
-    }
-    
-    internal static BotEngineWrapper Create(ICategoryProvider categoryProvider, FinanceRepositoryStub expenseRepository, DateTimeServiceStub dateTimeService, MessageServiceMock telegramBot, IUserSessionService userSessionService, IFnsAPIService? fnsService)
-    {
-        var services = new ServiceCollection();
-
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UserStartedEventHandler).Assembly));
-        services.AddSingleton<IFinanceRepository>(expenseRepository);
-        services.AddSingleton<IFnsAPIService>(fnsService?? new FnsApiServiceStub());
-        services.AddSingleton<IDateTimeService>(dateTimeService);
-        services.AddSingleton<IMessageService>(telegramBot);
-        services.AddSingleton<IUserSessionService>(userSessionService);
-        services.AddSingleton<IExpenseJsonParser, ExpenseJsonParser>();
-        services.AddSingleton<ICurrencyProvider, CurrencyProviderStub>();
-        services.AddSingleton<ICategoryProvider>(categoryProvider);
-        services.AddSingleton<ISalaryDayService, SalaryDayServiceStub>();
-        services.AddSingleton<IExpenseCategorizer, ExpenseHistoryCategorizer>();
-        services.AddLogging();
-
-        var provider = services.BuildServiceProvider();
-        var mediator = provider.GetRequiredService<IMediator>();
-
-        return new BotEngineWrapper(new BotEngine(mediator, userSessionService, new LoggerStub<BotEngine>()), telegramBot);
     }
 }

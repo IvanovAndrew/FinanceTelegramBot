@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 namespace Application.Statistic.StatisticBalance;
 
 public class GetBalanceStatisticCommandHandler(
-    IUserSessionService userSessionService,
     IBalanceStatisticService balanceStatisticService,
     IMediator mediator,
     ILogger<GetBalanceStatisticCommandHandler> logger) : IRequestHandler<GetBalanceStatisticCommand>
@@ -14,51 +13,42 @@ public class GetBalanceStatisticCommandHandler(
     {
         logger.LogInformation("Started {Command}", request);
 
-        var session = userSessionService.GetUserSession(request.SessionId);
-        if (session == null)
-        {
-            logger.LogWarning("Session {SessionId} not found", request.SessionId);
-            return;
-        }
-
         await mediator.Publish(new BalanceStatisticCollectingStarted
         {
-            SessionId = session.Id,
-            LastSentMessageId = session.LastSentMessageId
+            SessionId = request.SessionId,
+            LastSentMessageId = request.LastSentMessageId
         }, cancellationToken);
 
         try
         {
-            var result = await balanceStatisticService.Calculate(session.StatisticsOptions.DateFrom.Value, session.StatisticsOptions.Currency, cancellationToken);
+            var result = await balanceStatisticService.Calculate(request.Query.MonthRange.From, request.Query.Currency, cancellationToken);
 
             await mediator.Publish(new BalanceStatisticCalculatedEvent
             {
-                SessionId = session.Id,
-                LastSentMessageId = session.LastSentMessageId,
-                DateFrom = result.DateFrom,
+                SessionId = request.SessionId,
+                LastSentMessageId = request.LastSentMessageId,
                 Currency = result.Currency,
-                IncludeToday = result.IncludeToday,
                 MonthBalances = result.MonthBalances,
-                MoneyLeft = result.MoneyLeft,
-                SalaryDay = result.SalaryDay
+                MandatoryExpenses = result.UnpaidRecurring,
+                Saldo = result.Saldo,
+                DailyBudget = result.DailyBudget,
+                MonthRange = result.MonthRange,
+                PeriodLeft = result.PeriodLeft,
             }, cancellationToken);
-
-            session.LastSentMessageId = null;
-            session.QuestionnaireService = null;
         }
         catch (NoFinanceDataException)
         {
             await mediator.Publish(new NeitherIncomesNotOutcomesFoundEvent
             {
-                SessionId = session.Id,
-                LastSentMessageId = session.LastSentMessageId
+                SessionId = request.SessionId,
+                LastSentMessageId = request.LastSentMessageId
             }, cancellationToken);
         }
         catch (OperationCanceledException)
         {
             await mediator.Publish(new LongOperationCanceledEvent
             {
-                SessionId = session.Id
+                SessionId = request.SessionId
             }, cancellationToken);
         }
 

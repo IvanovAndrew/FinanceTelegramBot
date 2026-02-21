@@ -2,6 +2,7 @@
 using Application.Test.Extensions;
 using Application.Test.Stubs;
 using Domain;
+using Domain.Check;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -15,7 +16,7 @@ public class AddExpensesFromFNSTest
 
     public AddExpensesFromFNSTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _fnsApiService);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _fnsApiService, out _);
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
     }
@@ -27,9 +28,9 @@ public class AddExpensesFromFNSTest
         {
             DateTime = new DateTime(2023, 6, 20),
             TotalPrice = 1000.64m,
-            FiscalNumber = "1234567890123456",
-            FiscalDocumentNumber = "1234",
-            FiscalDocumentSign = "1234567"
+            FiscalNumber = FiscalNumber.Create("1234567890123456").Value,
+            FiscalDocumentNumber = FiscalDocumentNumber.Create("1234").Value,
+            FiscalDocumentSign = FiscalDocumentSign.Create("1234567").Value,
         };
 
         await _expenseRepository.SaveAllOutcomes(

@@ -16,7 +16,7 @@ public class StatisticByMonthCreatedDomainEventHandler(IUserSessionService userS
                     dateTimeService.Today(), dateTimeService.Today().AddMonths(-1),
                     dateTimeService.Today().AddMonths(-6)
                 }
-                .Select(_ => _.ToString("MMMM yyyy")).ToList();
+                .Select(_ => _.ToString(DateFormat.FullMonthName)).ToList();
             options.Add("Another month");
             
             await messageService.EditSentTextMessageAsync(new Message()

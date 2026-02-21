@@ -2,9 +2,7 @@ using Application.Test.Extensions;
 using Application.Test.Stubs;
 using Domain;
 using Microsoft.Extensions.DependencyInjection;
-using UnitTest;
 using UnitTest.Extensions;
-using UnitTest.Stubs;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
@@ -17,14 +15,14 @@ public class StatisticForASubcategoryByMonthsTest
 
     public StatisticForASubcategoryByMonthsTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _, out _);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _, out _, out _);
         _dateTimeService.SetToday(new DateOnly(2023, 7, 24));
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
     }
     
     [Fact]
-    public async Task StatisticForASubcategoryByMonths()
+    public async Task Subcategory_By_Month_With_Custom_Month()
     {
         await _expenseRepository.SaveAllOutcomes(
         [
@@ -59,7 +57,7 @@ public class StatisticForASubcategoryByMonthsTest
         await _botEngine.Proceed("Snacks");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("July 2023");
-        var lastMessage = await _botEngine.Proceed("All");
+        var lastMessage = await _botEngine.Proceed("AMD");
         
         // Assert
         var table = lastMessage.Table;
@@ -79,7 +77,7 @@ public class StatisticForASubcategoryByMonthsTest
     {
         // Arrange
         await _expenseRepository.SaveAllOutcomes(
-            new List<IMoneyTransfer>()
+            new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2022, 12, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 16_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 1, 22), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 17_000m, Currency = Currency.AMD}},
@@ -114,7 +112,7 @@ public class StatisticForASubcategoryByMonthsTest
     public async Task StatisticForASubCategoryWithCustomDateRange()
     {
         await _expenseRepository.SaveAllOutcomes(
-            new List<IMoneyTransfer>()
+            new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
@@ -130,7 +128,7 @@ public class StatisticForASubcategoryByMonthsTest
         await _botEngine.Proceed("Snacks");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2022");
-        var lastMessage = await _botEngine.Proceed("All");
+        var lastMessage = await _botEngine.Proceed("AMD");
         
 
         // Assert

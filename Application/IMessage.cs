@@ -9,6 +9,7 @@ public interface IMessage
     bool Edited { get; }
     MessageOptions? Options { get; }
     Table? Table { get; }
+    bool UseMarkdown { get; }
     IFileInfo? FileInfo { get; }
     byte[]? PictureBytes { get; }
 }
@@ -22,6 +23,7 @@ public class Message : IMessage
     public bool Edited { get; init;}
     public MessageOptions? Options { get; init; }
     public Table? Table { get; init; }
+    public bool UseMarkdown { get; init;}
     public IFileInfo? FileInfo { get; init; }
     public byte[]? PictureBytes { get; init; }
 }

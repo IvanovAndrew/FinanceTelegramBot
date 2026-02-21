@@ -4,7 +4,6 @@ using Domain;
 using Microsoft.Extensions.DependencyInjection;
 using UnitTest;
 using UnitTest.Extensions;
-using UnitTest.Stubs;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
@@ -18,7 +17,7 @@ public class StatisticForACategoryByMonthTest
 
     public StatisticForACategoryByMonthTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _datetimeService, out _, out _);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _datetimeService, out _, out _, out _);
         _datetimeService.SetToday(new DateOnly(2023, 7, 24));
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
@@ -28,7 +27,7 @@ public class StatisticForACategoryByMonthTest
     public async Task StatisticForACategoryWithACustomDateRange()
     {
         await _expenseRepository.SaveAllOutcomes(
-            new List<IMoneyTransfer>()
+            new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
@@ -43,7 +42,7 @@ public class StatisticForACategoryByMonthTest
         await _botEngine.Proceed("Food");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2022");
-        var lastMessage = await _botEngine.Proceed("All");
+        var lastMessage = await _botEngine.Proceed("AMD");
         
         // Assert
         var table = lastMessage.Table;
@@ -60,7 +59,7 @@ public class StatisticForACategoryByMonthTest
     {
         // Arrange
         await _expenseRepository.SaveAllOutcomes(
-            new List<IMoneyTransfer>()
+            new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
@@ -73,8 +72,8 @@ public class StatisticForACategoryByMonthTest
         await _botEngine.Proceed("Statistics");
         await _botEngine.Proceed("Category expenses (by months)");
         await _botEngine.Proceed("Food");
-        await _botEngine.Proceed("January 2023");
-        var lastMessage = await _botEngine.Proceed("All");
+        await _botEngine.Proceed("June 2023");
+        var lastMessage = await _botEngine.Proceed("AMD");
 
         // Assert
         var table = lastMessage.Table;
@@ -92,7 +91,7 @@ public class StatisticForACategoryByMonthTest
     {
         // Arrange
         await _expenseRepository.SaveAllOutcomes(
-            new List<IMoneyTransfer>()
+            new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2022, 12, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 7_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 1, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 167_000m, Currency = Currency.AMD}},
@@ -111,7 +110,7 @@ public class StatisticForACategoryByMonthTest
         await _botEngine.Proceed("Cats");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2022");
-        var lastMessage = await _botEngine.Proceed("All");
+        var lastMessage = await _botEngine.Proceed("AMD");
 
         // Assert
         var table = lastMessage.Table;

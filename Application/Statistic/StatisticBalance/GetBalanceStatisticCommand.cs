@@ -5,7 +5,8 @@ namespace Application.Statistic.StatisticBalance;
 public record GetBalanceStatisticCommand : IRequest
 {
     public long SessionId { get; init; }
-    public int? LastSentMessage { get; init; }
+    public int? LastSentMessageId { get; init; }
+    public StatisticsQuery Query { get; init; }
 }
 
 public class BalanceStatisticCollectingStartedHandler(IMessageService messageService) : INotificationHandler<BalanceStatisticCollectingStarted>

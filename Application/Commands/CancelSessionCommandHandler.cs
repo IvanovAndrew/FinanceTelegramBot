@@ -10,7 +10,7 @@ public class CancelSessionCommandHandler(IUserSessionService userSessionService)
 
         if (session != null)
         {
-            userSessionService.RemoveSession(session);
+            userSessionService.RemoveSession(session.Id);
         }
     }
 }

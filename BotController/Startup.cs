@@ -43,6 +43,9 @@ namespace TelegramBot
                 supportChatId = 0;
             }
             
+            services.AddMemoryCache();
+            services.AddScoped<IExpenseCategoryMappingCache, ExpenseCategoryMappingCache>();
+            
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UserStartedEventHandler).Assembly));
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SavingExpenseNotificationBehavior<,>));
             

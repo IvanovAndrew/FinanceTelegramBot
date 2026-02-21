@@ -30,7 +30,7 @@ public class GoogleSpreadsheetService(
         }
     }
 
-    public async Task<List<IMoneyTransfer>> GetIncomesAsync(FinanceFilter financeFilter,
+    public async Task<List<Income>> GetIncomesAsync(FinanceFilter financeFilter,
         CancellationToken cancellationToken)
     {
         try
@@ -40,16 +40,16 @@ public class GoogleSpreadsheetService(
 
             var dtos = await _api.GetIncomesAsync(jsonPayload, cancellationToken);
 
-            return dtos?.Select(dto => GoogleSpreadsheetIncomeDto.ToIncome(dto, _categoryProvider)).ToList() ?? new List<IMoneyTransfer>();
+            return dtos?.Select(dto => GoogleSpreadsheetIncomeDto.ToIncome(dto, _categoryProvider)).ToList() ?? [];
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while getting incomes.");
-            return new List<IMoneyTransfer>();
+            return new List<Income>();
         }
     }
 
-    public async Task<List<IMoneyTransfer>> GetExpensesAsync(FinanceFilter financeFilter,
+    public async Task<List<Outcome>> GetExpensesAsync(FinanceFilter financeFilter,
         CancellationToken cancellationToken)
     {
         try
@@ -59,12 +59,12 @@ public class GoogleSpreadsheetService(
 
             var dtos = await _api.GetExpensesAsync(jsonPayload, cancellationToken);
             return dtos?.Select(dto => GoogleSpreadsheetExpenseDto.ToExpense(dto, _categoryProvider)).ToList() ??
-                   new List<IMoneyTransfer>();
+                   [];
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while getting expenses.");
-            return new List<IMoneyTransfer>();
+            return [];
         }
     }
 

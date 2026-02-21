@@ -39,5 +39,5 @@ public class DateOnlyColumnValue : IFirstColumnValue
     public DateOnly Value { get; }
 
     public DateOnlyColumnValue(DateOnly value) => Value = value;
-    public string GetString() => Value.ToString("MMMM yyyy");
+    public string GetString() => Value.ToString(DateFormat.FullMonthName);
 }

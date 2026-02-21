@@ -8,6 +8,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends locales \
     && sed -i 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen \
     && locale-gen
 
+# Scott Plot dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgdiplus \
+    libx11-dev \
+    fontconfig \
+    libfreetype6 \
+    fonts-dejavu-core \
+    && ln -s /usr/lib/libgdiplus.so /usr/lib/gdiplus.dll \
+    && fc-cache -f -v \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set environment variables for proper locale handling in .NET
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8

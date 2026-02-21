@@ -1,21 +1,25 @@
-﻿using Application.Events;
-using MediatR;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticByCategory;
 
-public class StatisticByCategoryCommandHandler(IUserSessionService userSessionService, IMediator mediator)
+public class StatisticByCategoryCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, IMediator mediator)
     : IRequestHandler<StatisticByCategoryCommand>
 {
     public async Task Handle(StatisticByCategoryCommand request, CancellationToken cancellationToken)
     {
         var session = userSessionService.GetUserSession(request.SessionId);
 
-        if (session != null)
+        if (session == null)
         {
-            session.StatisticsOptions = new StatisticsOptions();
-            session.QuestionnaireService = new CategoryStatisticQuestionnaire();
-            
-            await mediator.Publish(new StatisticByCategoryCreatedEvent { SessionId = request.SessionId }, cancellationToken);
+            session = new UserSession(){Id = request.SessionId};
+            userSessionService.SaveUserSession(session);
         }
+
+        StatisticsFlow flow;
+        session.ActiveFlow = flow = new StatisticsFlow(dateTimeService, categoryProvider);
+        flow.Draft.Mode = StatisticsQueryMode.CategoryByMonths;
+            
+        await mediator.Publish(new DraftUpdatedEvent() { SessionId = request.SessionId }, cancellationToken);
     }
 }

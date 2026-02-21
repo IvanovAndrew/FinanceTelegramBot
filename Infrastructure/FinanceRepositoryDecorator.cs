@@ -15,7 +15,7 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategory
         new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
     private readonly ConcurrentDictionary<object, SemaphoreSlim> _locks = new();
 
-    public async Task<SaveResult> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveIncome(Income income, CancellationToken cancellationToken)
     {
         _logger.LogInformation($"FinanceRepository is trying to save an income");
         
@@ -30,7 +30,7 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategory
         return result;
     }
 
-    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<Outcome> expenses, CancellationToken cancellationToken)
     {
         _logger.LogInformation($"ExpenseRepository is trying to save {expenses.Count} expense(s)");
         
@@ -45,13 +45,13 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategory
         return saveResult;
     }
 
-    public async Task<List<IMoneyTransfer>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public async Task<List<Outcome>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         var cacheKey = BuildCacheKey("Outcome", financeFilter);
         
         _logger.LogInformation($"Finding cached version of key {cacheKey}");
         
-        if (!_cache.TryGetValue(cacheKey, out List<IMoneyTransfer> items))
+        if (!_cache.TryGetValue(cacheKey, out List<Outcome> items))
         {
             _logger.LogInformation("Cache key is not found");
             
@@ -59,7 +59,7 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategory
             await mylock.WaitAsync(cancellationToken);
             try
             {
-                if (!_cache.TryGetValue(cacheKey, out List<IMoneyTransfer> cachedItems))
+                if (!_cache.TryGetValue(cacheKey, out List<Outcome> cachedItems))
                 {
                     _logger.LogInformation("Loading expenses from the repository");
                     
@@ -87,17 +87,17 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategory
         return items;
     }
 
-    public async Task<List<IMoneyTransfer>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public async Task<List<Income>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         var cacheKey = BuildCacheKey("Income", financeFilter);
         
-        if (!_cache.TryGetValue(cacheKey, out List<IMoneyTransfer> items))
+        if (!_cache.TryGetValue(cacheKey, out List<Income> items))
         {
             SemaphoreSlim mylock = _locks.GetOrAdd(cacheKey, k => new SemaphoreSlim(1, 1));
             await mylock.WaitAsync(cancellationToken);
             try
             {
-                if (!_cache.TryGetValue(cacheKey, out List<IMoneyTransfer> cachedItems))
+                if (!_cache.TryGetValue(cacheKey, out List<Income> cachedItems))
                 {
                     _logger.LogInformation("Loading incomes from the repository");
                     
@@ -183,22 +183,22 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategory
 
 public class FinanceRepository(IGoogleSpreadsheetService spreadsheetService) : IFinanceRepository
 {
-    public async Task<SaveResult> SaveIncome(IMoneyTransfer income, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveIncome(Income income, CancellationToken cancellationToken)
     {
         return await spreadsheetService.SaveIncomeAsync(income, cancellationToken);
     }
 
-    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<IMoneyTransfer> expenses, CancellationToken cancellationToken)
+    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<Outcome> expenses, CancellationToken cancellationToken)
     {
         return await spreadsheetService.SaveAllExpensesAsync(expenses, cancellationToken);
     }
 
-    public async Task<List<IMoneyTransfer>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public async Task<List<Outcome>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         return await spreadsheetService.GetExpensesAsync(financeFilter, cancellationToken);
     }
 
-    public async Task<List<IMoneyTransfer>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public async Task<List<Income>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
     {
         return await spreadsheetService.GetIncomesAsync(financeFilter, cancellationToken);
     }

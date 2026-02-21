@@ -36,6 +36,11 @@ public class TelegramMessageService : IMessageService
             textToSend = $"```{TelegramEscaper.EscapeString(FormatTable(messageToSend.Table))}```";
             useMarkdown = true;
         }
+        else if (messageToSend.UseMarkdown)
+        {
+            textToSend = $"```{TelegramEscaper.EscapeString(messageToSend.Text)}```";
+            useMarkdown = true;
+        }
 
         var message = await _telegramBotClient.SendMessage(
             messageToSend.ChatId, 
@@ -65,6 +70,11 @@ public class TelegramMessageService : IMessageService
         if (messageToSend.Table != null)
         {
             textToSend = $"```{TelegramEscaper.EscapeString(FormatTable(messageToSend.Table))}```";
+            useMarkdown = true;
+        }
+        else if (messageToSend.UseMarkdown)
+        {
+            textToSend = $"```{TelegramEscaper.EscapeString(messageToSend.Text)}```";
             useMarkdown = true;
         }
         

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Domain;
 
 namespace Application;
 
@@ -8,6 +9,13 @@ public interface IDateTimeService
     DateOnly Today();
     DateTime Now();
 
+    bool TryParseMonth(string text, out YearMonth month)
+    {
+        var result = TryParseDate(text, out var date);
+        month = YearMonth.From(date);
+
+        return result;
+    }
     bool TryParseDate(string text, out DateOnly date)
     {
         if (string.Equals(text, "today", StringComparison.InvariantCultureIgnoreCase))

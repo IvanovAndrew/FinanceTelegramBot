@@ -1,5 +1,6 @@
 ﻿using Application.Events;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.AddMoneyTransfer;
 
@@ -8,7 +9,7 @@ public record CreateOutcomeQuestionnaireCommand : IRequest
     public long SessionId { get; init; }
 }
 
-public class CreateOutcomeQuestionnaireCommandHandler(IUserSessionService userSessionService, IMediator mediator) : IRequestHandler<CreateOutcomeQuestionnaireCommand>
+public class CreateOutcomeQuestionnaireCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, IMediator mediator, ILogger<CreateOutcomeQuestionnaireCommand> logger) : IRequestHandler<CreateOutcomeQuestionnaireCommand>
 {
     public async Task Handle(CreateOutcomeQuestionnaireCommand request, CancellationToken cancellationToken)
     {
@@ -16,11 +17,10 @@ public class CreateOutcomeQuestionnaireCommandHandler(IUserSessionService userSe
 
         if (session != null)
         {
-            session.QuestionnaireService = new ManualMoneyTransferQuestionnaireService();
-            session.MoneyTransferBuilder = new MoneyTransferBuilder(false);
+            session.ActiveFlow = new AddMoneyTransferFlow(false, dateTimeService, categoryProvider, logger);
 
             await mediator.Publish(
-                new OutcomeQuestionnaireChosenEvent()
+                new EnterTheDayEvent()
                     { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
         }
     }

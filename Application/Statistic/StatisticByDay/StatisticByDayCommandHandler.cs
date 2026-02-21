@@ -1,19 +1,26 @@
-﻿using Application.Statistic.StatisticByDay;
-using MediatR;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
 
-namespace Application.Commands.StatisticByDay;
+namespace Application.Statistic.StatisticByDay;
 
-public class StatisticByDayCommandHandler(IUserSessionService userSessionService, IMediator mediator) : IRequestHandler<StatisticByDayCommand>
+public class StatisticByDayCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, IMediator mediator) : IRequestHandler<StatisticByDayCommand>
 {
     public async Task Handle(StatisticByDayCommand request, CancellationToken cancellationToken)
     {
         var session = userSessionService.GetUserSession(request.SessionId);
-
-        if (session != null)
+        
+        if (session == null)
         {
-            session.QuestionnaireService = new DayStatisticQuestionnaire();
-            session.StatisticsOptions = new StatisticsOptions();
-            await mediator.Publish(new StatisticByDayCreatedEvent { SessionId = request.SessionId }, cancellationToken);
+            session = new UserSession(){Id = request.SessionId};
+            userSessionService.SaveUserSession(session);
         }
+
+        if (session?.ActiveFlow is not StatisticsFlow flow)
+        {
+            session.ActiveFlow = flow = new StatisticsFlow(dateTimeService, categoryProvider);
+        }
+
+        flow.Draft.Mode = StatisticsQueryMode.DailyExpenses;
+        await mediator.Publish(new DraftUpdatedEvent() { SessionId = request.SessionId }, cancellationToken);
     }
 }

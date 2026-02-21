@@ -7,7 +7,7 @@ public interface ICheckDownloader
 {
     Currency Currency { get; }
     Task<List<Outcome>> DownloadExpenses(CheckRequisite checkRequisite, IExpenseCategorizer expenseCategorizer,
-        Dictionary<string?, ExpenseCategorizerResult> dict, Category defaultCategory);
+        IReadOnlyDictionary<string, ExpenseCategorizerResult> dict, Category defaultCategory);
 }
 
 public class CheckDownloader(IFnsAPIService fnsApiService) : ICheckDownloader
@@ -15,7 +15,7 @@ public class CheckDownloader(IFnsAPIService fnsApiService) : ICheckDownloader
     public Currency Currency => Currency.RUR;
 
     public async Task<List<Outcome>> DownloadExpenses(CheckRequisite checkRequisite,
-        IExpenseCategorizer expenseCategorizer, Dictionary<string?, ExpenseCategorizerResult> availableOptions,
+        IExpenseCategorizer expenseCategorizer, IReadOnlyDictionary<string, ExpenseCategorizerResult> availableOptions,
         Category defaultCategory)
     {
         var rawOutcomeItems = await fnsApiService.GetCheck(checkRequisite);

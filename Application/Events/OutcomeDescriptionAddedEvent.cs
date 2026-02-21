@@ -4,9 +4,9 @@ using MediatR;
 namespace Application.Events;
 
 public class OutcomeDescriptionAddedEventHandler(IMessageService messageService, IUserSessionService userSessionService)
-    : INotificationHandler<OutcomeDescriptionAddedEvent>
+    : INotificationHandler<EnterThePriceEvent>
 {
-    public async Task Handle(OutcomeDescriptionAddedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(EnterThePriceEvent notification, CancellationToken cancellationToken)
     {
         var session = userSessionService.GetUserSession(notification.SessionId);
         if (session != null)

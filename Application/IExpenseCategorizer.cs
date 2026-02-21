@@ -1,9 +1,11 @@
 ﻿using Domain;
 
+namespace Application;
+
 public interface IExpenseCategorizer
 {
     public ExpenseCategorizerResult? GetCategory(string title,
-        Dictionary<string, ExpenseCategorizerResult> availableOptions);
+        IReadOnlyDictionary<string, ExpenseCategorizerResult> availableOptions);
 }
 
 public record ExpenseCategorizerResult

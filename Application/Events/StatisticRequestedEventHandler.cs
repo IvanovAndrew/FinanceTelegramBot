@@ -16,15 +16,14 @@ public class StatisticRequestedEventHandler(IMessageService messageService, IUse
                 ChatId = notification.SessionId,
                 Id = session.LastSentMessageId,
                 Text = "Choose kind of statistic",
-                Options = MessageOptions.FromList(new []
-                {
+                Options = MessageOptions.FromList([
                     new Option ("/balance", "Balance"),
                     new Option ("/statisticByDay", "Day expenses (by categories)"),
                     new Option ("/statisticByMonth", "Month expenses (by categories)"), 
                     new Option ("/statisticByCategory", "Category expenses (by months)"), 
                     new Option ("/statisticBySubcategory", "Subcategory expenses (overall)"), 
-                    new Option ("/statisticBySubcategoryByMonth", "Subcategory expenses (by months)"), 
-                })
+                    new Option ("/statisticBySubcategoryByMonth", "Subcategory expenses (by months)")
+                ])
             }, cancellationToken);
         }
     }

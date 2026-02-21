@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Domain.Check;
 
 namespace Application.Contracts;
 
@@ -6,9 +7,9 @@ public record CheckRequisite
 {
     public DateTime DateTime;
     public decimal TotalPrice;
-    public string FiscalNumber;
-    public string FiscalDocumentNumber;
-    public string FiscalDocumentSign;
+    public FiscalNumber FiscalNumber;
+    public FiscalDocumentNumber FiscalDocumentNumber;
+    public FiscalDocumentSign FiscalDocumentSign;
 
     public const int n = 1;
 
@@ -48,13 +49,13 @@ public record CheckRequisite
                     checkRequisite.TotalPrice = decimal.Parse(value);
                     break;
                 case "fn":
-                    checkRequisite.FiscalNumber = value;
+                    checkRequisite.FiscalNumber = FiscalNumber.Create(value).Value;
                     break;
                 case "i": 
-                    checkRequisite.FiscalDocumentNumber = value;
+                    checkRequisite.FiscalDocumentNumber = FiscalDocumentNumber.Create(value).Value;
                     break;
                 case "fp":
-                    checkRequisite.FiscalDocumentSign = value;
+                    checkRequisite.FiscalDocumentSign = FiscalDocumentSign.Create(value).Value;
                     break;
                 default:
                     break;

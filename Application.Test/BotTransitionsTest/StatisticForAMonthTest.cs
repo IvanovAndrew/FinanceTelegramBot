@@ -2,8 +2,6 @@
 using Application.Test.Stubs;
 using Domain;
 using Microsoft.Extensions.DependencyInjection;
-using UnitTest;
-using UnitTest.Stubs;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
@@ -17,7 +15,7 @@ public class StatisticForAMonthTest
 
     public StatisticForAMonthTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _messageService, out _);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _messageService, out _, out _);
         _dateTimeService.SetToday(new DateOnly(2023, 7, 24));
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
@@ -28,7 +26,7 @@ public class StatisticForAMonthTest
     {
         // Arrange
         await _expenseRepository.SaveAllOutcomes(
-            new List<IMoneyTransfer>()
+            new List<Outcome>()
             {
                 new Outcome()
                 {
@@ -51,6 +49,7 @@ public class StatisticForAMonthTest
                     Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
             }, default);
+        await _expenseRepository.SaveIncome(CreateSalary(new DateOnly(2023, 7, 1)), default);
 
         // Act
         await _botEngine.Proceed("/start");
@@ -71,10 +70,8 @@ public class StatisticForAMonthTest
     [Fact]
     public async Task StatisticForACustomMonth()
     {
-        
-        
         await _expenseRepository.SaveAllOutcomes(
-            new List<IMoneyTransfer>()
+            new List<Outcome>()
             {
                 new Outcome()
                 {
@@ -97,6 +94,7 @@ public class StatisticForAMonthTest
                     Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
             }, default);
+        await _expenseRepository.SaveIncome(CreateSalary(new DateOnly(2023, 7, 1)), default);
 
         // Act
         await _botEngine.Proceed("/start");
@@ -104,10 +102,10 @@ public class StatisticForAMonthTest
         await _botEngine.Proceed("Month expenses (by categories)");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("May 2023");
-        var lastMessage = await _botEngine.Proceed("All");
+        await _botEngine.Proceed("AMD");
 
 
-        var table = lastMessage.Table;
+        var table = _messageService.SentMessages.First().Table;
 
         // Assert
         Assert.NotNull(table);
@@ -116,5 +114,15 @@ public class StatisticForAMonthTest
         Assert.Contains("Category", table.ColumnNames);
         Assert.Contains("Cats", table.Rows.Select(c => c.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(c => c.FirstColumnValue));
+    }
+
+    private Income CreateSalary(DateOnly salaryDay)
+    {
+        return new Income()
+        {
+            Category = new Category() { Name = "Salary", Type = CategoryType.Salary },
+            Amount = new Money() { Amount = 1_000m, Currency = Currency.AMD },
+            Date = salaryDay
+        };
     }
 }

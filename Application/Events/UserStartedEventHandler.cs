@@ -14,7 +14,8 @@ public class UserStartedEventHandler(IMessageService messageService, IUserSessio
             {
                 ChatId = notification.SessionID,
                 Text = "What would you like to do?",
-                Options = MessageOptions.FromList(new[] { new Option("/outcome", "Outcome"), new Option("/income", "Income"), new Option("/statistics", "Statistics") })
+                Options = MessageOptions.FromList([new Option("/outcome", "Outcome"), new Option("/income", "Income"), new Option("/statistics", "Statistics")
+                ])
             }, cancellationToken);
 
             session.LastSentMessageId = sentMessage.Id;

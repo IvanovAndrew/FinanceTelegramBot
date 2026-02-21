@@ -1,8 +1,4 @@
-﻿using Application;
-using Infrastructure;
-using Infrastructure.Telegram;
-
-namespace UnitTest;
+﻿namespace Application.Test.Stubs;
 
 public class MessageStub : IMessage
 {
@@ -13,6 +9,7 @@ public class MessageStub : IMessage
     public bool Edited { get; internal set; }
     public MessageOptions? Options { get; internal set; }
     public Table? Table { get; internal set; }
+    public bool UseMarkdown { get; } = false;
     public IFileInfo? FileInfo { get; set; }
     public byte[]? PictureBytes { get; set; }
 }

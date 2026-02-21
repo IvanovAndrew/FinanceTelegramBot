@@ -16,14 +16,14 @@ namespace TelegramBot.Controllers
     {
         internal const string Route = "api";
         internal const string MessageRoute = "message/update";
+        private readonly BotEngine _botEngine;
         private readonly IMediator _mediator;
-        private readonly IUserSessionService _userSessionService;
         private readonly ILogger _logger;
 
-        public BotController(IMediator mediator, IUserSessionService userSessionService, ILogger<BotController> logger)
+        public BotController(BotEngine botEngine, IMediator mediator, ILogger<BotController> logger)
         {
+            _botEngine = botEngine;
             _mediator = mediator;
-            _userSessionService = userSessionService;
             _logger = logger;
         }
 
@@ -33,11 +33,9 @@ namespace TelegramBot.Controllers
         {
             var message = FromUpdate(update);
         
-            var botEngine = new BotEngine(_mediator, _userSessionService, _logger);
-
             try
             {
-                await botEngine.Proceed(message, cancellationToken);
+                await _botEngine.Proceed(message, cancellationToken);
             }
             catch (BotException e)
             {
@@ -90,7 +88,6 @@ namespace TelegramBot.Controllers
                 {
                     return FromTelegramMessage(update.EditedMessage!, edited:true);
                 }
-        
 
                 throw new ArgumentOutOfRangeException(
                     $"Unexpected type of Update. Expected {UpdateType.Message} or {UpdateType.CallbackQuery} but {update.Type} was received");

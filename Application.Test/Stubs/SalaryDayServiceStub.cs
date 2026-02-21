@@ -4,7 +4,7 @@ namespace Application.Test.Stubs;
 
 public class SalaryDayServiceStub : ISalaryDayService
 {
-    public DateOnly SalaryDay { get; init; }
+    public DateOnly SalaryDay { get; set; }
     
-    public DateOnly GetSalaryDay(DateOnly previousSalaryDay) => SalaryDay;
+    public DateOnly GetSalaryDay(DateOnly previousSalaryDay) => previousSalaryDay.AddMonths(1);
 }

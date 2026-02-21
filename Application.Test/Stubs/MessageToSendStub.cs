@@ -1,6 +1,4 @@
-﻿using Application;
-
-namespace UnitTest.Stubs;
+﻿namespace Application.Test.Stubs;
 
 public class MessageToSendStub : IMessage
 {
@@ -11,6 +9,7 @@ public class MessageToSendStub : IMessage
     public bool Edited { get; }
     public MessageOptions? Options { get; }
     public Table? Table { get; }
+    public bool UseMarkdown { get; } = false;
     public IFileInfo? FileInfo { get; }
     public byte[]? PictureBytes { get; set; }
 }

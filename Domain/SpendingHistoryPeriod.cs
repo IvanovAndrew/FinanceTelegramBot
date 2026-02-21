@@ -13,18 +13,17 @@ public sealed class SpendingHistoryPeriod
 
     public static SpendingHistoryPeriod FromCalculationStart(
         DateOnly today,
-        DateOnly statisticsFrom)
+        YearMonth statisticsFrom)
     {
         var calculationMonth = YearMonth.From(today);
-        var statisticsMonth = YearMonth.From(statisticsFrom);
 
-        if (calculationMonth <= statisticsMonth)
+        if (calculationMonth <= statisticsFrom)
         {
-            var previousMonth = statisticsMonth.Previous();
+            var previousMonth = statisticsFrom.Previous();
 
             return new SpendingHistoryPeriod(previousMonth.ToDateOnly(1), today);
         }
 
-        return new SpendingHistoryPeriod(statisticsMonth.ToDateOnly(1), today);
+        return new SpendingHistoryPeriod(statisticsFrom.ToDateOnly(1), today);
     }
 }

@@ -15,7 +15,7 @@ public class AddExpensesFromJsonTest
 
     public AddExpensesFromJsonTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _messageService, out _);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _messageService, out _, out _);
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
     }

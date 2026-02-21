@@ -1,5 +1,6 @@
 ﻿using Application.Contracts;
 using Application.Events;
+using Application.Services;
 using Domain;
 using MediatR;
 
@@ -11,7 +12,7 @@ public record DownloadExpenseFromFNSServiceCommand : IRequest
     public CheckRequisite CheckRequisite { get; init; }
 }
 
-public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService userSessionService, ICheckDownloader checkDownloader, IExpenseCategorizer expenseCategorizer, ICategoryProvider categoryProvider, IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<DownloadExpenseFromFNSServiceCommand>
+public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService userSessionService, ICheckDownloader checkDownloader, IExpenseCategorizer expenseCategorizer, ICategoryProvider categoryProvider, IExpenseCategoryMappingCache expenseCategoryMappingCache, IMediator mediator) : IRequestHandler<DownloadExpenseFromFNSServiceCommand>
 {
     public async Task Handle(DownloadExpenseFromFNSServiceCommand request, CancellationToken cancellationToken)
     {
@@ -19,21 +20,15 @@ public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService use
 
         if (session != null)
         {
-            await mediator.Publish(new DownloadingExpenseStartedEvent(){SessionId = session.Id}, cancellationToken);
-            
-            var getAllOutcomes = financeRepository.ReadOutcomes(new FinanceFilter() { Currency = checkDownloader.Currency }, cancellationToken);
-            
-            session.QuestionnaireService = null;
-        
-            await mediator.Publish(new DownloadingExpenseFinishedEvent(){SessionId = session.Id}, cancellationToken);
-
+            await mediator.Publish(new PreparingCategoryMappingStartedEvent(){SessionId = session.Id, }, cancellationToken);
+            var mapping = await expenseCategoryMappingCache.Get(Currency.RUR, cancellationToken);
             var defaultCategory = categoryProvider.DefaultOutcomeCategory();
-
-            var knownOutcomes = await getAllOutcomes;
-            var dict = knownOutcomes.Where(t => !string.IsNullOrEmpty(t.Description)).DistinctBy(t => t.Description).ToDictionary(t => t.Description,
-                t => ExpenseCategorizerResult.Create(t.Category, t.SubCategory));
+            await mediator.Publish(new CategoryMappingPreparedEvent(){SessionId = session.Id}, cancellationToken);
         
-            var outcomes = await checkDownloader.DownloadExpenses(request.CheckRequisite, expenseCategorizer, dict, defaultCategory);
+            await mediator.Publish(new DownloadingExpenseStartedEvent(){SessionId = session.Id}, cancellationToken);
+            var outcomes = await checkDownloader.DownloadExpenses(request.CheckRequisite, expenseCategorizer, mapping, defaultCategory);
+            await mediator.Publish(new DownloadingExpenseFinishedEvent(){SessionId = session.Id}, cancellationToken);
+            
             await mediator.Send(new SaveOutcomesBatchCommand() { SessionId = session.Id, MoneyTransfers = outcomes }, cancellationToken);
         }
     }

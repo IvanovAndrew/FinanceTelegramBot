@@ -6,9 +6,9 @@ namespace Infrastructure.Fns;
 
 public class ExpenseJsonParser : IExpenseJsonParser
 {
-    public IReadOnlyList<IMoneyTransfer> Parse(string text, Category category, Currency currency)
+    public IReadOnlyList<Outcome> ParseOutcomes(string text, Category category, Currency currency)
     {
-        var result = new List<IMoneyTransfer>();
+        var result = new List<Outcome>();
         dynamic json = JsonConvert.DeserializeObject(text)!;
 
         var date = DateOnly.FromDateTime(DateTime.Parse(json["dateTime"].ToString()));

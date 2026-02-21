@@ -9,7 +9,7 @@ public readonly struct Balance(Money income, Money outcome)
 {
     public readonly Money Income = income;
     public readonly Money Outcome = outcome;
-    public readonly Money Saldo => Income - Outcome;
+    public Money Saldo => Income - Outcome;
     
     public static Balance operator +(Balance first, Balance second)
     {
@@ -55,6 +55,7 @@ public readonly struct YearMonth : IEquatable<YearMonth>, IComparable<YearMonth>
     }
 
     public DateOnly ToDateOnly(int day = 1) => new DateOnly(Year, Month, 1);
+    public DateOnly ToLastDayOfMonth() => new DateOnly(Year, Month + 1, 1).AddDays(-1);
     public DateTime ToDateTime(int day = 1) => new DateTime(Year, Month, 1);
 
     public bool Equals(YearMonth other)
@@ -110,7 +111,42 @@ public readonly struct YearMonth : IEquatable<YearMonth>, IComparable<YearMonth>
     }
 
     public override string ToString() => $"{Year:D4}-{Month:D2}";
+    
+    public string ToString(string? format, IFormatProvider? formatProvider = null)
+    {
+        if (string.IsNullOrEmpty(format))
+            format = "yyyy-MM";
 
+        var provider = formatProvider ?? System.Globalization.CultureInfo.CurrentCulture;
+        
+        // Apply years
+        var result = format;
+
+        var before = result;
+        result = before.Replace("yyyy", Year.ToString("D4", provider));
+        if (result == before)
+        {
+            result = result.Replace("yy", (Year % 100).ToString("D2", provider));
+        }
+
+        before = result;
+
+        result = result.Replace("MMMM", new System.Globalization.DateTimeFormatInfo().GetMonthName(Month));
+
+        if (before != result)
+            return result;
+
+        result = result.Replace("MMM", new System.Globalization.DateTimeFormatInfo().GetAbbreviatedMonthName(Month));
+        if (before != result)
+            return result;
+
+
+        result = result.Replace("MM", Month.ToString("D2", provider));
+        if (before != result)
+            return result;
+        
+        return result.Replace("M", Month.ToString(provider));
+    }
 }
 
 public class BalancePeriod(
@@ -121,14 +157,12 @@ public class BalancePeriod(
     private readonly IReadOnlyList<IMoneyTransfer> _incomes = incomes.ToList();
     private readonly IReadOnlyList<IMoneyTransfer> _outcomes = outcomes.ToList();
 
-    public IReadOnlyList<MonthlyBalance> ByMonths(
-        YearMonth from,
-        YearMonth to)
+    public IReadOnlyList<MonthlyBalance> ByMonths(MonthRange monthRange)
     {
         var result = new List<MonthlyBalance>();
-        var month = from;
+        var month = monthRange.From;
 
-        while (month <= to)
+        while (month <= monthRange.To)
         {
             result.Add(new MonthlyBalance(
                 month,
@@ -146,16 +180,31 @@ public class BalancePeriod(
 
     private Money Sum(
         IEnumerable<IMoneyTransfer> items,
-        YearMonth month)
-    {
-        var start = new DateOnly(month.Year, month.Month, 1);
-        var end = start.AddMonths(1).AddDays(-1);
+        YearMonth yearMonth) => Sum(items, new MonthRange {From =  yearMonth, To = yearMonth});
 
-        return FinanceCalculator.Sum(items, currency, start, end);
+    private Money Sum(
+        IEnumerable<IMoneyTransfer> items,
+        MonthRange range)
+    {
+        return FinanceCalculator.Sum(items, currency, range);
     }
 
-    public Money TotalIncome => _incomes.Select(_ => _.Amount).Aggregate(Money.Zero(currency), (acc, money) => acc + money);
+    public Money TotalIncome => _incomes.Where(c => c.Amount.Currency == currency).Select(_ => _.Amount).Aggregate(Money.Zero(currency), (acc, money) => acc + money);
 
     public Money TotalOutcome =>
-        _outcomes.Select(_ => _.Amount).Aggregate(Money.Zero(currency), (acc, money) => acc + money);
+        _outcomes.Where(c => c.Amount.Currency == currency).Select(_ => _.Amount).Aggregate(Money.Zero(currency), (acc, money) => acc + money);
+
+    public Money Saldo => TotalIncome - TotalOutcome;
+}
+
+public record MonthRange
+{
+    public YearMonth From { get; init; }
+    public YearMonth To { get; init; } = new YearMonth(2099, 12);
+
+    public bool IsInRange(DateOnly date)
+    {
+        var yearMonth = YearMonth.From(date);
+        return From <= yearMonth && yearMonth <= To;
+    }
 }

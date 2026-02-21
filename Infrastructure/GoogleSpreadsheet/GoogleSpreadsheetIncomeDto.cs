@@ -23,7 +23,7 @@ public class GoogleSpreadsheetIncomeDto
         };
     }
 
-    public static IMoneyTransfer ToIncome(GoogleSpreadsheetIncomeDto dto, ICategoryProvider categoryProvider)
+    public static Income ToIncome(GoogleSpreadsheetIncomeDto dto, ICategoryProvider categoryProvider)
     {
         Domain.Currency currency;
         switch (int.Parse(dto.Currency))

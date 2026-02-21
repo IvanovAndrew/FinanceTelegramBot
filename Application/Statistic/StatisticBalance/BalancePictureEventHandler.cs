@@ -11,12 +11,12 @@ public class BalancePictureEventHandler(IPictureGenerator pictureGenerator, IMes
         if (notification.MonthBalances.Count <= 2)
             return;
         
-        var bytes = pictureGenerator.GeneratePlot(notification.MonthBalances, notification.Currency);
+        var bytes = pictureGenerator.GeneratePlot(notification.MonthBalances, notification.Currency, new PictureOptions("Income / Outcome over time"));
         
         await messageService.SendPictureAsync(new Message()
         {
             ChatId = notification.SessionId,
-            Text = $"Balance for {notification.Currency} since {notification.DateFrom.ToString("MMMM yyyy")}",
+            Text = $"Balance for {notification.Currency} since {notification.MonthRange.From.ToString(DateFormat.FullMonthName)}",
             PictureBytes = bytes
         }, cancellationToken);
     }

@@ -13,7 +13,7 @@ public class AddIncomeManuallyTest
 
     public AddIncomeManuallyTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _, out _);
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
     }

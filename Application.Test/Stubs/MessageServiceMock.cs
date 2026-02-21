@@ -1,7 +1,7 @@
-﻿using Application;
-using Infrastructure.Telegram;
+﻿using Infrastructure.Telegram;
+using UnitTest;
 
-namespace UnitTest;
+namespace Application.Test.Stubs;
 
 public class MessageServiceMock : IMessageService
 {
@@ -44,7 +44,7 @@ public class MessageServiceMock : IMessageService
 
     public Task SendPictureAsync(IMessage messageToSend, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     public Task DeleteMessageAsync(IMessage message, CancellationToken cancellationToken)

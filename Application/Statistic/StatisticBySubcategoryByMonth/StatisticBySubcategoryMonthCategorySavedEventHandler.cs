@@ -2,25 +2,20 @@
 
 namespace Application.Statistic.StatisticBySubcategoryByMonth;
 
-public class StatisticBySubcategoryMonthCategorySavedEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<StatisticBySubcategoryMonthCategorySavedEvent>
+public class StatisticBySubcategoryMonthCategorySavedEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<AskStatisticSubCategoryEvent>
 {
-    public async Task Handle(StatisticBySubcategoryMonthCategorySavedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(AskStatisticSubCategoryEvent notification, CancellationToken cancellationToken)
     {
-        var session = userSessionService.GetUserSession(notification.SessionId);
-
-        if (session != null)
-        {
-            await messageService.EditSentTextMessageAsync(
-                new Message()
-                {
-                    ChatId = session.Id,
-                    Id = session.LastSentMessageId,
-                    Text = "Enter the subcategory",
-                    Options = MessageOptions.FromList(session.StatisticsOptions.Category.Subcategories.Select(sc => sc.Name).ToList()),
-                },
-                cancellationToken
-            );
-        }
+        await messageService.EditSentTextMessageAsync(
+            new Message()
+            {
+                ChatId = notification.SessionId,
+                Id = notification.LastSentMessageId,
+                Text = "Enter the subcategory",
+                Options = MessageOptions.FromList(notification.SubCategories.Select(sc => sc.Name).ToList()),
+            },
+            cancellationToken
+        );
     }
 }
 
@@ -43,8 +38,8 @@ public class StatisticBySubcategoryMonthSubcategorySavedDomainEventHandler(IUser
                     Options = MessageOptions.FromListAndLastSingleLine(
                         new [] 
                         { 
-                            today.ToString("MMMM yyyy"), 
-                            today.AddMonths(-6).ToString("MMMM yyyy")
+                            today.ToString(DateFormat.FullMonthName), 
+                            today.AddMonths(-6).ToString(DateFormat.FullMonthName)
                         }, "Another month")
                 },
                 cancellationToken

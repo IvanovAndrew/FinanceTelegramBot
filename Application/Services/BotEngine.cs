@@ -13,13 +13,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Services
 {
-    public class BotEngine(IMediator mediator, IUserSessionService userSessionService, ILogger logger)
+    public class BotEngine(IMediator mediator, ILogger<BotEngine> logger)
     {
-        private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
         public async Task Proceed(IMessage message, CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"{message.Text} was received");
+            logger.LogInformation($"{message.Text} was received");
 
             IRequest? command = null;
 
@@ -41,28 +39,19 @@ namespace Application.Services
                 command = new DownloadJsonFileCommand() { SessionId = message.ChatId, FileInfo = message.FileInfo };
             }
 
-
             if (command != null)
             {
                 await mediator.Send(command, cancellationToken);
                 return;
             }
+            
+            await mediator.Send(new UserInputReceivedCommand(){SessionId = message.ChatId, LastSentMessageId = message.Id, Text = message.Text}, cancellationToken);
 
-            var session = userSessionService.GetUserSession(message.ChatId);
-
-            if (session == null)
-            {
-                await mediator.Send(new StartSessionCommand() { SessionId = message.ChatId }, cancellationToken);
-                return;
-            }
-
-            if (session.QuestionnaireService != null)
-            {
-                command = session.QuestionnaireService.GetHandler(session.Id, message.Text);
-            }
-
-            _logger.LogInformation($"Command is {command?.ToString()}. Text is {message.Text}");
-            await mediator.Send(command, cancellationToken);
+            // if (session == null)
+            // {
+            //     await mediator.Send(new StartSessionCommand() { SessionId = message.ChatId }, cancellationToken);
+            //     return;
+            // }
         }
 
         private IRequest? MapCommand(string text, long chatId)
@@ -72,7 +61,7 @@ namespace Application.Services
                 "/start" => new StartSessionCommand() { SessionId = chatId },
                 "/cancel" => new CancelSessionCommand() { SessionId = chatId },
                 "/back" => new StepBackCommand() { SessionId = chatId },
-                "/save" => new SaveMoneyTransferCommand() { SessionId = chatId },
+                //"/save" => new SaveMoneyTransferCommand() { SessionId = chatId },
                 "/outcome" => new CreateExpenseCommand() { SessionID = chatId },
                 "/income" => new CreateIncomeCommand() { SessionID = chatId },
                 "/balance" => new StatisticBalanceCommand { SessionId = chatId },
@@ -96,7 +85,7 @@ namespace Application.Services
                 "/requisites" => new RequisitesRequestedEvent() { SessionId = chatId },
                 "/check" => new CheckOutcomeQuestionnaireRequestedEvent() { SessionId = chatId },
                 "/json" => new JsonCheckRequestedEvent() { SessionId = chatId },
-                "/url" => new UrlLinkRequestedEvent() { SessionId = chatId },
+                "/url" => new EnterUrlLinkEvent() { SessionId = chatId },
                 _ => null
             };
         }
