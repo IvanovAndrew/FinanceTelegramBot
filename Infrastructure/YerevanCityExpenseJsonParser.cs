@@ -22,7 +22,9 @@ public class YerevanCityExpenseJsonParser(IExternalCategoryMapper externalCatego
 
     public IReadOnlyList<Outcome> ParseOutcomes(string json, Category defaultCategory)
     {
-        var orderResponse = JsonSerializer.Deserialize<YerevanCityOrderResponse>(json, JsonSerializerOptions);
+        var sanitizedJson = json.TrimStart('\uFEFF');
+        
+        var orderResponse = JsonSerializer.Deserialize<YerevanCityOrderResponse>(sanitizedJson, JsonSerializerOptions);
 
         if (orderResponse?.Data?.OrderItems == null || !orderResponse.Success)
         {
