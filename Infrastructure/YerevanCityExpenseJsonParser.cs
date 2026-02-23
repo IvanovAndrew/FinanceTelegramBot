@@ -8,49 +8,46 @@ namespace Infrastructure;
 
 public class YerevanCityExpenseJsonParser(IExternalCategoryMapper externalCategoryMapper) : IExpenseJsonParser
 {
-    private const string Prefix = "Ереван-сити: ";
-    private JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+    private const string Prefix = "Ереван-сити";
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
     
     public Currency Currency => Currency.AMD;
     public bool CanParse(string json)
     {
-        return json.Contains("Armenia") || json.Contains("Yerevan") || json.Contains("yerevan-city");
+        return json.Contains("yerevan-city", StringComparison.OrdinalIgnoreCase);
     }
 
     public IReadOnlyList<Outcome> ParseOutcomes(string json, Category defaultCategory)
     {
-        var result = new List<Outcome>();
-        
         var orderResponse = JsonSerializer.Deserialize<YerevanCityOrderResponse>(json, JsonSerializerOptions);
 
-        if (orderResponse is not { Success: true })
+        if (orderResponse?.Data?.OrderItems == null || !orderResponse.Success)
+        {
             return [];
+        }
 
         var date = DateOnly.FromDateTime(orderResponse.Data.CreateDate);
 
-        foreach (var orderItem in orderResponse.Data.OrderItems)
+        return orderResponse.Data.OrderItems.Select(orderItem => MapToOutcome(orderItem, date, defaultCategory)).ToList();
+    }
+
+    private Outcome MapToOutcome(OrderItem item, DateOnly date, Category defaultCategory)
+    {
+        var amount = item.Price;
+
+        var (category, subcategory) = externalCategoryMapper.Map(new ExternalCategory()
+            { Source = Shops.YerevanCity, RawName = item.CategoryName }, defaultCategory);
+
+        return new Outcome()
         {
-            var amount = orderItem.Price;
-            var description = orderItem.Name;
-
-            var (category, subcategory) = externalCategoryMapper.Map(new ExternalCategory()
-                { Source = Shops.YerevanCity, RawName = orderItem.CategoryName }, defaultCategory);
-
-            var expense = new Outcome()
-            {
-                Amount = new Money { Amount = amount, Currency = Currency },
-                Description = $"{Prefix}{description}",
-                Date = date,
-                Category = category,
-                SubCategory = subcategory,
-            };
-            
-            result.Add(expense);
-        }
-
-        return result;
+            Amount = new Money { Amount = amount, Currency = Currency },
+            Description = $"{Prefix}: {item.Name}",
+            Date = date,
+            Category = category,
+            SubCategory = subcategory,
+        };
     }
 }
