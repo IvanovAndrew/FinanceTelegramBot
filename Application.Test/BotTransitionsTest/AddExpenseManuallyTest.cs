@@ -47,7 +47,7 @@ public class AddExpenseManuallyTest
         // Assert
         Assert.Equal("Enter the category", lastMessage.Text);
         Assert.NotNull(lastMessage.Options);
-        Assert.Equivalent(new []{"Food", "Cats"}, lastMessage.Options.AllOptions().Select(b => b.Text));
+        Assert.Equivalent(Categories.Outcome.All.Select(c => c.ShortName?? c.Name), lastMessage.Options.AllOptions().Select(b => b.Text));
     }
     
     [Fact]
@@ -58,7 +58,7 @@ public class AddExpenseManuallyTest
         await _botEngine.Proceed("outcome");
         await _botEngine.Proceed("By myself");
         await _botEngine.Proceed("today");
-        var lastMessage = await _botEngine.Proceed("cats");
+        var lastMessage = await _botEngine.Proceed("Онлайн-сервисы");
         
         // Assert
         Assert.Equal("Enter the description", lastMessage.Text);
@@ -72,7 +72,8 @@ public class AddExpenseManuallyTest
         await _botEngine.Proceed("outcome");
         await _botEngine.Proceed("By myself");
         await _botEngine.Proceed("today");
-        await _botEngine.Proceed("cats");
+        await _botEngine.Proceed("Коты");
+        await _botEngine.Proceed("Корм");
         var lastMessage = await _botEngine.Proceed("royal canin");
         
         // Assert
@@ -95,7 +96,8 @@ public class AddExpenseManuallyTest
         await _botEngine.Proceed("outcome");
         await _botEngine.Proceed("By myself");
         await _botEngine.Proceed("today");
-        await _botEngine.Proceed("cats");
+        await _botEngine.Proceed("Коты");
+        await _botEngine.Proceed("Корм");
         await _botEngine.Proceed("royal canin");
         var lastMessage = await _botEngine.Proceed(price);
         
@@ -113,7 +115,8 @@ public class AddExpenseManuallyTest
         await _botEngine.Proceed("outcome");
         await _botEngine.Proceed("By myself");
         await _botEngine.Proceed("today");
-        await _botEngine.Proceed("cats");
+        await _botEngine.Proceed("Коты");
+        await _botEngine.Proceed("Корм");
         await _botEngine.Proceed("royal canin");
         await _botEngine.Proceed("20000 amd");
         var lastMessage = await _botEngine.Proceed("Save");
@@ -123,8 +126,8 @@ public class AddExpenseManuallyTest
         
         // Assert
         Assert.Equal(new DateOnly(2023, 6, 29), savedExpense.Date);
-        Assert.Equal(Category.FromString("Cats"), savedExpense.Category);
-        Assert.Null(savedExpense.SubCategory);
+        Assert.Equal(Categories.Outcome.Pets, savedExpense.Category);
+        Assert.Equal("food", savedExpense.SubCategory.Code);
         Assert.Equal("royal canin", savedExpense.Description);
         Assert.Equal(new Money(){Amount = 20_000, Currency = Currency.AMD}, savedExpense.Amount);
     }
@@ -137,7 +140,8 @@ public class AddExpenseManuallyTest
         await _botEngine.Proceed("outcome");
         await _botEngine.Proceed("By myself");
         await _botEngine.Proceed("today");
-        await _botEngine.Proceed("cats");
+        await _botEngine.Proceed("Коты");
+        await _botEngine.Proceed("Корм");
         await _botEngine.Proceed("royal canin");
         var lastMessage = await _botEngine.Proceed("1999");
 
@@ -153,7 +157,8 @@ public class AddExpenseManuallyTest
         await _botEngine.Proceed("outcome");
         await _botEngine.Proceed("By myself");
         await _botEngine.Proceed("today");
-        await _botEngine.Proceed("cats");
+        await _botEngine.Proceed("Коты");
+        await _botEngine.Proceed("Корм");
         await _botEngine.Proceed("royal canin");
         await _botEngine.Proceed("20000 dam");
         await _botEngine.Proceed("1999");
@@ -165,8 +170,8 @@ public class AddExpenseManuallyTest
         
         // Assert
         Assert.Equal(new DateOnly(2023, 6, 29), savedExpense.Date);
-        Assert.Equal("Cats".AsCategory(), savedExpense.Category);
-        Assert.Null(savedExpense.SubCategory);
+        Assert.Equal(Categories.Outcome.Pets, savedExpense.Category);
+        Assert.Equal("food", savedExpense.SubCategory.Code);
         Assert.Equal("royal canin", savedExpense.Description);
         Assert.Equal(new Money(){Amount = 10_000, Currency = Currency.AMD}, savedExpense.Amount);
     }

@@ -29,7 +29,7 @@ public enum FlowStep
     AskCustomMonth,
     AskOutcomeCategory,
     AskIncomeCategory,
-    AskSubcategory,
+    AskSubCategory,
     AskDescription,
     AskAmount,
     Confirm,

@@ -30,22 +30,22 @@ public class StatisticForAMonthTest
             {
                 new Outcome()
                 {
-                    Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(),
+                    Date = new DateOnly(2023, 5, 22), Category = Categories.Outcome.Pets,
                     Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
-                    Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(),
+                    Date = new DateOnly(2023, 6, 23), Category = Categories.Outcome.Pets,
                     Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
-                    Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(),
+                    Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"),
                     Amount = new Money() { Amount = 1_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
-                    Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(),
+                    Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"),
                     Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
             }, default);
@@ -75,22 +75,22 @@ public class StatisticForAMonthTest
             {
                 new Outcome()
                 {
-                    Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(),
+                    Date = new DateOnly(2023, 5, 22), Category = Categories.Outcome.Pets,
                     Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
-                    Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(),
+                    Date = new DateOnly(2023, 6, 23), Category = Categories.Outcome.Pets,
                     Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
-                    Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(),
+                    Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"),
                     Amount = new Money() { Amount = 1_000m, Currency = Currency.AMD }
                 },
                 new Outcome()
                 {
-                    Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(),
+                    Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"),
                     Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
             }, default);
@@ -112,7 +112,7 @@ public class StatisticForAMonthTest
         Assert.Contains("Statistic", table.Title);
         Assert.Contains("May 2023", table.Subtitle);
         Assert.Contains("Category", table.ColumnNames);
-        Assert.Contains("Cats", table.Rows.Select(c => c.FirstColumnValue));
+        Assert.Contains("Домашние животные", table.Rows.Select(c => c.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(c => c.FirstColumnValue));
     }
 
@@ -120,7 +120,7 @@ public class StatisticForAMonthTest
     {
         return new Income()
         {
-            Category = new Category() { Name = "Salary", Type = CategoryType.Salary },
+            Category = Categories.Income.Salary,
             Amount = new Money() { Amount = 1_000m, Currency = Currency.AMD },
             Date = salaryDay
         };

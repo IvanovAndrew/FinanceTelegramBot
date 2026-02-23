@@ -23,7 +23,7 @@ public class GoogleSpreadsheetIncomeDto
         };
     }
 
-    public static Income ToIncome(GoogleSpreadsheetIncomeDto dto, ICategoryProvider categoryProvider)
+    public static Income ToIncome(GoogleSpreadsheetIncomeDto dto)
     {
         Domain.Currency currency;
         switch (int.Parse(dto.Currency))
@@ -56,7 +56,7 @@ public class GoogleSpreadsheetIncomeDto
         return new Income()
         {
             Date = DateOnly.FromDateTime(dto.Date),
-            Category = categoryProvider.GetCategoryByName(dto.Category?? string.Empty, true)?? Domain.Category.FromString(dto.Category),
+            Category = Categories.Income.GetCategory(dto.Category?? string.Empty)?? Categories.Income.Others,
             Description = dto.Description,
             Amount = new Money()
             {

@@ -9,7 +9,7 @@ public record CreateOutcomeQuestionnaireCommand : IRequest
     public long SessionId { get; init; }
 }
 
-public class CreateOutcomeQuestionnaireCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, IMediator mediator, ILogger<CreateOutcomeQuestionnaireCommand> logger) : IRequestHandler<CreateOutcomeQuestionnaireCommand>
+public class CreateOutcomeQuestionnaireCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, IMediator mediator, ILogger<CreateOutcomeQuestionnaireCommand> logger) : IRequestHandler<CreateOutcomeQuestionnaireCommand>
 {
     public async Task Handle(CreateOutcomeQuestionnaireCommand request, CancellationToken cancellationToken)
     {
@@ -17,7 +17,7 @@ public class CreateOutcomeQuestionnaireCommandHandler(IUserSessionService userSe
 
         if (session != null)
         {
-            session.ActiveFlow = new AddMoneyTransferFlow(false, dateTimeService, categoryProvider, logger);
+            session.ActiveFlow = new AddMoneyTransferFlow(false, dateTimeService, logger);
 
             await mediator.Publish(
                 new EnterTheDayEvent()

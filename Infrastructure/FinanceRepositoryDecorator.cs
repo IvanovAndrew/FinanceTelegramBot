@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure;
 
-public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategoryProvider categoryProvider, ILogger<FinanceRepositoryDecorator> logger)
+public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<FinanceRepositoryDecorator> logger)
     : IFinanceRepository
 {
     private readonly ILogger _logger = logger;
@@ -66,7 +66,7 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategory
                     cachedItems = await repository.ReadOutcomes(financeFilter, cancellationToken);
                     _cache.Set(cacheKey, cachedItems, DefaultCacheOptions);
 
-                    _logger.LogInformation($"{cachedItems.Count} saved to the cache");
+                    _logger.LogInformation($"{cachedItems.Count} expenses saved to the cache");
                 }
                 else
                 {
@@ -105,7 +105,7 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategory
             
                     _cache.Set(cacheKey, cachedItems, DefaultCacheOptions);
                     
-                    _logger.LogInformation($"{cachedItems.Count} saved to the cache");
+                    _logger.LogInformation($"{cachedItems.Count} incomes saved to the cache");
                 }
                 else
                 {
@@ -165,7 +165,7 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ICategory
                     financeFilter.DateTo = DateOnly.Parse(value);
                     break;
                 case "Category":
-                    financeFilter.Category = categoryProvider.GetCategoryByName(value, false);
+                    financeFilter.Category = Categories.Outcome.GetCategory(value);
                     break;
                 case "Subcategory":
                     financeFilter.Subcategory = financeFilter.Category?.GetSubcategoryByName(value);

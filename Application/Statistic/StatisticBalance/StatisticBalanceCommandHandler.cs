@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticBalance;
 
-public class StatisticBalanceCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, IMediator mediator) : IRequestHandler<StatisticBalanceCommand>
+public class StatisticBalanceCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, IMediator mediator) : IRequestHandler<StatisticBalanceCommand>
 {
     public async Task Handle(StatisticBalanceCommand request, CancellationToken cancellationToken)
     {
@@ -17,7 +17,7 @@ public class StatisticBalanceCommandHandler(IUserSessionService userSessionServi
 
         if (session.ActiveFlow is not StatisticsFlow flow)
         {
-            session.ActiveFlow = flow = new StatisticsFlow(dateTimeService, categoryProvider);
+            session.ActiveFlow = flow = new StatisticsFlow(dateTimeService);
         }
 
         flow.Draft.Mode = StatisticsQueryMode.BalanceFromMonth;

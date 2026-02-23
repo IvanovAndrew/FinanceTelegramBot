@@ -7,7 +7,9 @@ public record CheckOutcomeQuestionnaireRequestedEvent : INotification
     public long SessionId { get; init; }
 }
 
-public class CheckOutcomeQuestionnaireRequestedEventHandler(IUserSessionService userSessionService, IMessageService messageService) : INotificationHandler<
+public class CheckOutcomeQuestionnaireRequestedEventHandler(
+    IUserSessionService userSessionService,
+    IMessageService messageService) : INotificationHandler<
     CheckOutcomeQuestionnaireRequestedEvent>
 {
     public async Task Handle(CheckOutcomeQuestionnaireRequestedEvent notification, CancellationToken cancellationToken)
@@ -22,13 +24,12 @@ public class CheckOutcomeQuestionnaireRequestedEventHandler(IUserSessionService 
                     ChatId = session.Id,
                     Id = session.LastSentMessageId,
                     Text = "Enter the check",
-                    Options = MessageOptions.FromList( 
-                        new []
-                        {
-                            new Option("/json", "json"),
+                    Options = MessageOptions.FromList(
+                    [
+                        new Option("/json", "json"),
                             new Option("/url", "Url Link"),
-                            new Option("/requisites", "By Requisites"),
-                        })
+                            new Option("/requisites", "By Requisites")
+                    ])
                 }, cancellationToken);
         }
     }

@@ -5,7 +5,7 @@ namespace Application;
 
 public interface ICheckDownloader
 {
-    Currency Currency { get; }
+    protected Currency Currency { get; }
     Task<List<Outcome>> DownloadExpenses(CheckRequisite checkRequisite, IExpenseCategorizer expenseCategorizer,
         IReadOnlyDictionary<string, ExpenseCategorizerResult> dict, Category defaultCategory);
 }

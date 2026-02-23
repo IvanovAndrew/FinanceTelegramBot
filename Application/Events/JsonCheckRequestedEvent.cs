@@ -5,7 +5,7 @@ namespace Application.Events;
 public class JsonCheckRequestedEvent : INotification
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
+    public int? LastSentMessageId { get; init; }
 }
 
 public class JsonCheckRequestedEventHandler(IMessageService messageService) : INotificationHandler<JsonCheckRequestedEvent>

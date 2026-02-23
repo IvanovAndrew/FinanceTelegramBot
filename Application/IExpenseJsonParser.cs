@@ -4,5 +4,7 @@ namespace Application;
 
 public interface IExpenseJsonParser
 {
-    IReadOnlyList<Outcome> ParseOutcomes(string text, Category category, Currency currency);
+    protected Currency Currency { get; }
+    public bool CanParse(string json);
+    IReadOnlyList<Outcome> ParseOutcomes(string json, Category defaultCategory);
 }

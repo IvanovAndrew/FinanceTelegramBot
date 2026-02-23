@@ -9,8 +9,6 @@ public class Income : IMoneyTransfer
     public string? Description { get; init;}
     public Money Amount { get; init; }
     
-    public bool IsSalary() => Category.Type == CategoryType.Salary;
-        
     public override string ToString()
     {
         return string.Join($"{Environment.NewLine}",

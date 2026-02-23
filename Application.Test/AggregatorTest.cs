@@ -16,28 +16,28 @@ public class AggregatorTest
         {
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 1_000m, Currency = Currency.RUR }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Food".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Food,
                 Amount = new Money() { Amount = 300m, Currency = Currency.RUR }
             },
         };
         var statistics = expenseAggregator.Aggregate(expenses, currencies);
 
-        var catsExpenses = statistics.Rows.First(c => c.Row == "Cats");
+        var catsExpenses = statistics.Rows.First(c => c.Row == "Домашние животные");
         Assert.Equal(new Money(){Amount = 15_000m, Currency = Currency.AMD}, catsExpenses[Currency.AMD]);
         Assert.Equal(new Money(){Amount = 1_000m, Currency = Currency.RUR}, catsExpenses[Currency.RUR]);
         
@@ -55,22 +55,22 @@ public class AggregatorTest
         {
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 1_000m, Currency = Currency.RUR }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 300m, Currency = Currency.RUR }
             },
         };
@@ -90,22 +90,22 @@ public class AggregatorTest
         {
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 1_000m, Currency = Currency.RUR }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Food".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 300m, Currency = Currency.RUR }
             },
         };
@@ -114,7 +114,7 @@ public class AggregatorTest
         var statistics = expenseAggregator.Aggregate(expenses, currencies);
 
         // Assert
-        var catsExpenses = statistics.Rows.First(c => c.Row == "Cats");
+        var catsExpenses = statistics.Rows.First(c => c.Row == "Домашние животные");
         Assert.Equal(new Money(){Amount = 15_000m, Currency = Currency.AMD}, catsExpenses[Currency.AMD]);
     }
     
@@ -128,22 +128,22 @@ public class AggregatorTest
         {
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 1_000m, Currency = Currency.RUR }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Food".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Food,
                 Amount = new Money() { Amount = 300m, Currency = Currency.RUR }
             },
         };
@@ -152,7 +152,7 @@ public class AggregatorTest
         var statistics = expenseAggregator.Aggregate(expenses, currencies);
 
         // Assert
-        var foodExpenses = statistics.Rows.First(c => c.Row == "Food");
+        var foodExpenses = statistics.Rows.First(c => c.Row == "Еда");
         Assert.Equal(new Money(){Amount = 0m, Currency = Currency.AMD}, foodExpenses[Currency.AMD]);
         Assert.Equal(new Money(){Amount = 300m, Currency = Currency.RUR}, foodExpenses[Currency.RUR]);
     }
@@ -168,22 +168,22 @@ public class AggregatorTest
         {
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 10_000m, Currency = Currency.AMD }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-2)), Category = "Cats".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-2)), Category = Categories.Outcome.Pets,
                 Amount = new Money() { Amount = 1_000m, Currency = Currency.RUR }
             },
             new()
             {
-                Date = DateOnly.FromDateTime(DateTime.Today), Category = "Food".AsCategory(),
+                Date = DateOnly.FromDateTime(DateTime.Today), Category = Categories.Outcome.Food,
                 Amount = new Money() { Amount = 300m, Currency = Currency.RUR }
             },
         };

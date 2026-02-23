@@ -32,7 +32,6 @@ namespace TelegramBot
 
             services.AddLogging();
             services.AddSingleton<IDateTimeService, DateTimeService>();
-            services.AddSingleton<IExpenseJsonParser, ExpenseJsonParser>();
             services.AddSingleton<IUserSessionService, UserSessionService>();
             services.AddSingleton<IMessageService, TelegramMessageService>();
 
@@ -53,7 +52,6 @@ namespace TelegramBot
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://proverkacheka.com"));
             services.AddSingleton<IFnsAPIService, FnsApiService>(s =>
                 ActivatorUtilities.CreateInstance<FnsApiService>(s, Environment.GetEnvironmentVariable("FNS_TOKEN")));
-            services.AddSingleton<ICategoryProvider, CategoryProvider>();
             services.AddSingleton<ICurrencyProvider, CurrencyProvider>();
             services.AddSingleton<IRecurringExpensesService, RecurringExpensesService>();
             services.AddTransient<FinanceStatisticsService>();
@@ -65,7 +63,7 @@ namespace TelegramBot
             services.AddSingleton<ISalaryDayService, SalaryDayService>();
             services.AddSingleton<ISalaryScheduleProvider, SalaryScheduleProvider>();
             services.AddSingleton<ISpendingDayPolicy, SpendingDayPolicy>();
-            services.AddSingleton<IBalanceStatisticService, BalanceStatisticService>();
+            services.AddScoped<IBalanceStatisticService, BalanceStatisticService>();
         
             services.AddTransient<RefitMessageHandler>();
             
@@ -90,12 +88,22 @@ namespace TelegramBot
             services.AddScoped<IFinanceRepository>(provider =>
             {
                 var coreService = provider.GetRequiredService<FinanceRepository>();
-                var categoryProvider = provider.GetRequiredService<ICategoryProvider>();
                 var logger = provider.GetRequiredService<ILogger<FinanceRepositoryDecorator>>();
-                return new FinanceRepositoryDecorator(coreService, categoryProvider, logger);
+                return new FinanceRepositoryDecorator(coreService, logger);
             });
 
             services.AddScoped<IExpenseCategorizer, ExpenseHistoryCategorizer>();
+            services.AddSingleton<IExternalCategoryMapper, ExternalCategoryMapper>();
+            
+            services.AddSingleton<YerevanCityExpenseJsonParser>();
+            services.AddSingleton<RussianCheckExpenseJsonParser>();
+
+            services.AddSingleton<IExpenseJsonParser>(sp => new ExpenseJsonParserChain([
+                sp.GetRequiredService<YerevanCityExpenseJsonParser>(),
+                sp.GetRequiredService<RussianCheckExpenseJsonParser>()
+            ]));
+
+            services.AddScoped<BotEngine>();
             
             services.AddSwaggerGen(c =>
                 c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Warrior's finance bot", Version = "v1" }));

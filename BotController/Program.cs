@@ -10,6 +10,11 @@ namespace TelegramBot
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
+                .UseDefaultServiceProvider((context, options) =>
+                {
+                    options.ValidateScopes = true;
+                    options.ValidateOnBuild = true; 
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     var app = webBuilder.UseStartup<Startup>();

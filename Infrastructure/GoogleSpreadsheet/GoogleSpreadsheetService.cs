@@ -4,12 +4,10 @@ using Microsoft.Extensions.Logging;
 namespace Infrastructure.GoogleSpreadsheet;
 
 public class GoogleSpreadsheetService(
-    ICategoryProvider categoryProvider,
     IGoogleSpreadsheetApi googleSpreadsheetApi,
     ILogger<IGoogleSpreadsheetService> logger)
     : IGoogleSpreadsheetService
 {
-    private readonly ICategoryProvider _categoryProvider = categoryProvider ?? throw new ArgumentNullException(nameof(categoryProvider));
     private readonly IGoogleSpreadsheetApi _api = googleSpreadsheetApi ?? throw new ArgumentNullException(nameof(googleSpreadsheetApi));
     private readonly ILogger<IGoogleSpreadsheetService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -40,7 +38,7 @@ public class GoogleSpreadsheetService(
 
             var dtos = await _api.GetIncomesAsync(jsonPayload, cancellationToken);
 
-            return dtos?.Select(dto => GoogleSpreadsheetIncomeDto.ToIncome(dto, _categoryProvider)).ToList() ?? [];
+            return dtos?.Select(GoogleSpreadsheetIncomeDto.ToIncome).ToList() ?? [];
         }
         catch (Exception ex)
         {
@@ -58,7 +56,7 @@ public class GoogleSpreadsheetService(
             _logger.LogInformation("Getting expenses with filter: {Filter}", jsonPayload);
 
             var dtos = await _api.GetExpensesAsync(jsonPayload, cancellationToken);
-            return dtos?.Select(dto => GoogleSpreadsheetExpenseDto.ToExpense(dto, _categoryProvider)).ToList() ??
+            return dtos?.Select(d => GoogleSpreadsheetExpenseDto.ToExpense(d, _logger)).ToList() ??
                    [];
         }
         catch (Exception ex)

@@ -1,4 +1,5 @@
 ﻿using Domain;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.GoogleSpreadsheet;
 
@@ -25,7 +26,7 @@ public class GoogleSpreadsheetExpenseDto
         };
     }
 
-    public static Outcome ToExpense(GoogleSpreadsheetExpenseDto dto, ICategoryProvider categoryProvider)
+    public static Outcome ToExpense(GoogleSpreadsheetExpenseDto dto, ILogger<IGoogleSpreadsheetService> logger)
     {
         Domain.Currency currency = int.Parse(dto.Currency) switch
         {
@@ -39,10 +40,17 @@ public class GoogleSpreadsheetExpenseDto
             _ => throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}")
         };
 
-        var domainCategory = categoryProvider.GetCategoryByName(dto.Category, false);
-        var category = domainCategory ?? Domain.Category.FromString(dto.Category);
+        var category = Categories.Outcome.GetCategory(dto.Category);
+        if (category == null)
+        {
+            logger.LogError($"Category for {dto.Category} not found");
+        }
         
-        var domainSubcategory = category.GetSubcategoryByName(dto.Subcategory);
+        var domainSubcategory = category.Sub(dto.Subcategory);
+        if (category != null && category.Subcategories.Any() && domainSubcategory == null)
+        {
+            logger.LogWarning($"Subcategory for {dto.Category} {dto.Subcategory} not found");
+        }
 
         return new Outcome()
         {

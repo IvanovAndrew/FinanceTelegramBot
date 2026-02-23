@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticBySubcategoryByMonth;
 
-public class StatisticBySubcategoryByMonthCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, IMediator mediator)
+public class StatisticBySubcategoryByMonthCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, IMediator mediator)
     : IRequestHandler<StatisticBySubcategoryByMonthCommand>
 {
     public async Task Handle(StatisticBySubcategoryByMonthCommand request, CancellationToken cancellationToken)
@@ -18,7 +18,7 @@ public class StatisticBySubcategoryByMonthCommandHandler(IUserSessionService use
 
         if (session?.ActiveFlow is not StatisticsFlow flow)
         {
-            session.ActiveFlow = flow = new StatisticsFlow(dateTimeService, categoryProvider);
+            session.ActiveFlow = flow = new StatisticsFlow(dateTimeService);
         }
 
         flow.Draft.Mode = StatisticsQueryMode.SubcategoryByMonth;
