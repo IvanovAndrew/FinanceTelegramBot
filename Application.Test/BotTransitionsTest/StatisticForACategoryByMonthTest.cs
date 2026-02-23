@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using UnitTest;
 using UnitTest.Extensions;
 using Xunit;
+using static Domain.Categories;
+using Outcome = Domain.Outcome;
 
 namespace Application.Test.BotTransitionsTest;
 
@@ -29,17 +31,17 @@ public class StatisticForACategoryByMonthTest
         await _expenseRepository.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
         
         // Act
         await _botEngine.Proceed("/start");
         await _botEngine.Proceed("Statistics");
         await _botEngine.Proceed("Category expenses (by months)");
-        await _botEngine.Proceed("Food");
+        await _botEngine.Proceed("Еда");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2022");
         var lastMessage = await _botEngine.Proceed("AMD");
@@ -49,7 +51,7 @@ public class StatisticForACategoryByMonthTest
         Assert.NotNull(table);
         Assert.Contains("Statistic", table.Title);
         Assert.Contains("Category", table.Subtitle);
-        Assert.Contains("Food", table.Subtitle);
+        Assert.Contains("Еда", table.Subtitle);
         Assert.Contains("July 2023", table.Rows.Select(r => r.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
@@ -61,17 +63,17 @@ public class StatisticForACategoryByMonthTest
         await _expenseRepository.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
         
         // Act
         await _botEngine.Proceed("/start");
         await _botEngine.Proceed("Statistics");
         await _botEngine.Proceed("Category expenses (by months)");
-        await _botEngine.Proceed("Food");
+        await _botEngine.Proceed("Еда");
         await _botEngine.Proceed("June 2023");
         var lastMessage = await _botEngine.Proceed("AMD");
 
@@ -81,7 +83,7 @@ public class StatisticForACategoryByMonthTest
         
         Assert.Equal("Statistic", table.Title);
         Assert.Contains("Category", table.Subtitle);
-        Assert.Contains("Food", table.Subtitle);
+        Assert.Contains("Еда", table.Subtitle);
         Assert.Contains("July 2023", table.Rows.Select(r => r.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
@@ -93,21 +95,21 @@ public class StatisticForACategoryByMonthTest
         await _expenseRepository.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2022, 12, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 7_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 1, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 167_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 2, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 4_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 3, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 14_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 4, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 3_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 15_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2022, 12, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 7_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 1, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 167_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 2, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 4_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 3, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 14_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 4, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 3_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 15_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
             }, default);
         
         // Act
         await _botEngine.Proceed("/start");
         await _botEngine.Proceed("Statistics");
         await _botEngine.Proceed("Category expenses (by months)");
-        await _botEngine.Proceed("Cats");
+        await _botEngine.Proceed("Коты");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2022");
         var lastMessage = await _botEngine.Proceed("AMD");

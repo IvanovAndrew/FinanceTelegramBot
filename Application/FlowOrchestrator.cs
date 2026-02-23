@@ -123,18 +123,18 @@ public class FlowOrchestrator(IUserSessionService sessions, IMediator mediator) 
             
             case FlowStep.AskOutcomeCategory:
                 
-                await mediator.Publish(new EnterCategoryEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value, IsIncome = false},
+                await mediator.Publish(new EnterCategoryEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value, Categories = Categories.Outcome.All},
                     ct);
                 break;
             
             case FlowStep.AskIncomeCategory:
                 
-                await mediator.Publish(new EnterCategoryEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value, IsIncome = true},
+                await mediator.Publish(new EnterCategoryEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value, Categories = Categories.Income.All},
                     ct);
                 break;
             
-            case FlowStep.AskSubcategory:
-                await mediator.Publish(new EnterSubcategoryEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId, Category = extraData.Category},
+            case FlowStep.AskSubCategory:
+                await mediator.Publish(new EnterSubCategoryEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId, Category = extraData.Category},
                     ct);
                 break;
             

@@ -38,13 +38,13 @@ public class AddExpensesFromFNSTest
             {
                 new Outcome()
                 {
-                    Amount = new Money() { Amount = 1, Currency = Currency.RUR }, Category = "Food".AsCategory(),
-                    SubCategory = "Snacks".AsSubcategory(), Description = "Lays"
+                    Amount = new Money() { Amount = 1, Currency = Currency.RUR }, Category = Categories.Outcome.Food,
+                    SubCategory = Categories.Outcome.Food.Sub("Snacks"), Description = "Lays"
                 },
                 new Outcome()
                 {
-                    Amount = new Money() { Amount = 10, Currency = Currency.RUR }, Category = "Food".AsCategory(),
-                    SubCategory = "Products".AsSubcategory(), Description = "Marianna"
+                    Amount = new Money() { Amount = 10, Currency = Currency.RUR }, Category = Categories.Outcome.Food,
+                    SubCategory = Categories.Outcome.Food.Sub("Products"), Description = "Marianna"
                 },
             }, new CancellationToken()
         );
@@ -78,9 +78,9 @@ public class AddExpensesFromFNSTest
         var lastMessage = await _botEngine.Proceed("1234567");
 
         // Assert
-        Assert.Contains("Categories: Food", lastMessage.Text);
+        Assert.Contains("Categories: Еда", lastMessage.Text);
         Assert.Contains("Subcategories", lastMessage.Text);
-        Assert.Contains("Snacks, Products", lastMessage.Text);
+        Assert.Contains("Перекусы, Продукты", lastMessage.Text);
         Assert.Contains("saved with", lastMessage.Text);
     }
 }

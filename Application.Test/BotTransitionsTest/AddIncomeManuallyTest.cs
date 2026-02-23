@@ -26,7 +26,7 @@ public class AddIncomeManuallyTest
         await _botEngine.Proceed("income");
         await _botEngine.Proceed("Another day");
         await _botEngine.Proceed("08.09.2024");
-        await _botEngine.Proceed("Other");
+        await _botEngine.Proceed("Прочее");
         await _botEngine.Proceed("Improvisation class");
         await _botEngine.Proceed("8000 amd");
         var lastMessage = await _botEngine.Proceed("Save");
@@ -37,7 +37,7 @@ public class AddIncomeManuallyTest
         // Assert
         Assert.EndsWith("Saved", lastMessage.Text);
         Assert.Equal(new DateOnly(2024, 9, 8), savedIncome.Date);
-        Assert.Equal(Category.FromString("Other"), savedIncome.Category);
+        Assert.Equal(Categories.Income.Others, savedIncome.Category);
         Assert.Equal("Improvisation class", savedIncome.Description);
         Assert.Equal(new Money(){Amount = 8_000, Currency = Currency.AMD}, savedIncome.Amount);
     }

@@ -14,7 +14,7 @@ public class SalaryScheduleProvider : ISalaryScheduleProvider
 {
     public SalarySchedule GetFrom(IEnumerable<Income> incomes)
     {
-        var salaryIncome = incomes.Where(i => i.IsSalary());
+        var salaryIncome = incomes.Where(i => Categories.Income.Salaries.Contains(i.Category));
 
         if (!salaryIncome.Any())
             return new SalarySchedule(){SalaryDay = new DateOnly(2000, 1, 1)};

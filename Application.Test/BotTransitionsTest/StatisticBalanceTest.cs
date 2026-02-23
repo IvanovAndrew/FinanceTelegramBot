@@ -26,10 +26,10 @@ public class StatisticBalanceTest
         await _expenseRepository.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
         await _expenseRepository.SaveIncome(CreateSalary(), default);
         
@@ -60,10 +60,10 @@ public class StatisticBalanceTest
         await _expenseRepository.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
         await _expenseRepository.SaveIncome(CreateSalary(), default);
         
@@ -81,7 +81,7 @@ public class StatisticBalanceTest
         Assert.NotNull(table);
         Assert.Contains("Balance", table.Title);
         Assert.Contains("January 2023", table.Subtitle);
-        Assert.Equal(new []{"Balance", "AMD"}, table?.ColumnNames);
+        Assert.Equal(["Balance", "AMD"], table?.ColumnNames);
         Assert.Contains("Income", table.Rows.Select(r => r.FirstColumnValue));
         Assert.Contains("Outcome", table.Rows.Select(r => r.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
@@ -93,10 +93,10 @@ public class StatisticBalanceTest
         await _expenseRepository.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
         await _expenseRepository.SaveIncome(CreateSalary(), default);
         
@@ -122,7 +122,7 @@ public class StatisticBalanceTest
         return new Income() { 
             Date = new DateOnly(2023, 7, 1), 
             Amount = new Money(){Amount = 1000, Currency = Currency.AMD}, 
-            Category = new Category(){Name = "Salary", Type = CategoryType.Salary}
+            Category = Categories.Income.Salary
         };
     }
 }

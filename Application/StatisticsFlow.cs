@@ -5,17 +5,15 @@ namespace Application;
 public sealed class StatisticsFlow : UserFlow
 {
     private readonly IDateTimeService _dateTimeService;
-    private readonly ICategoryProvider _categoryProvider;
     private readonly StatisticsFlowResolver _resolver;
     
     public StatisticsQueryDraft Draft { get; } = new();
 
     public StatisticsQuery ToEntity() => Draft.Build();
 
-    public StatisticsFlow(IDateTimeService dateTimeService, ICategoryProvider categoryProvider)
+    public StatisticsFlow(IDateTimeService dateTimeService)
     {
         _dateTimeService = dateTimeService;
-        _categoryProvider = categoryProvider;
 
         _resolver = new StatisticsFlowResolver();
     }
@@ -35,7 +33,7 @@ public sealed class StatisticsFlow : UserFlow
             StatisticFlowStep.AskMonth => FlowStep.AskMonth,
             StatisticFlowStep.AskCustomMonth => FlowStep.AskCustomMonth,
             StatisticFlowStep.AskCategory => FlowStep.AskOutcomeCategory,
-            StatisticFlowStep.AskSubcategory => FlowStep.AskSubcategory,
+            StatisticFlowStep.AskSubcategory => FlowStep.AskSubCategory,
             StatisticFlowStep.AskCurrency => FlowStep.AskCurrency,
             StatisticFlowStep.Done => FlowStep.Completed,
             _ => throw new ArgumentOutOfRangeException(nameof(step))
@@ -78,7 +76,7 @@ public sealed class StatisticsFlow : UserFlow
                 Draft.SetCategory(ResolveCategory(text));
                 break;
 
-            case FlowStep.AskSubcategory:
+            case FlowStep.AskSubCategory:
                 Draft.SetSubCategory(ResolveSubCategory(Draft.Category, text));
                 break;
             
@@ -114,14 +112,14 @@ public sealed class StatisticsFlow : UserFlow
 
     private Category? ResolveCategory(string input)
     {
-        var category = _categoryProvider.GetCategoryByName(input, false);
+        var category = Categories.Outcome.GetCategory(input);
 
         return category;
     }
     
     private SubCategory? ResolveSubCategory(Category category, string input)
     {
-        return category.Subcategories.FirstOrDefault(s => s.Name == input);
+        return category.Sub(input);
     }
 }
 

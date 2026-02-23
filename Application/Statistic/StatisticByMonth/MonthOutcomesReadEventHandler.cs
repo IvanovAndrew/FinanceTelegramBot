@@ -12,7 +12,7 @@ public class MonthOutcomesReadEventHandler(IMessageService messageService, ILogg
         if (!notification.Outcomes.Any())
             return;
         
-        var expenseAggregator = new ExpensesAggregator<string>(e => e.Category.Name, true, sortAsc: false);
+        var expenseAggregator = new ExpensesAggregator<string>(e => e.Category?.Name?? "Unknown", true, sortAsc: false);
 
         var tableOptions = new TableOptions()
         {

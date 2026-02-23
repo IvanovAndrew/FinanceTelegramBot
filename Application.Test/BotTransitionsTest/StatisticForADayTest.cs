@@ -29,10 +29,10 @@ public class StatisticForADayTest
         await _expenseRepository.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
         await _expenseRepository.SaveIncome(new Income() { Date = new DateOnly(2023, 7, 1), Amount = new Money(){Amount = 1000, Currency = Currency.AMD}}, default);
         
@@ -50,8 +50,8 @@ public class StatisticForADayTest
         Assert.Contains("Statistic", table.Title);
         Assert.Contains("23 July 2023", table?.Subtitle ?? string.Empty);
         Assert.Equivalent(new []{"Category", "AMD"}, table?.ColumnNames);
-        Assert.Contains("Cats", table.Rows.Select(r => r.FirstColumnValue));
-        Assert.Contains("Food", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Домашние животные", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Еда", table.Rows.Select(r => r.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
     
@@ -61,10 +61,10 @@ public class StatisticForADayTest
         await _expenseRepository.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
         
         // Act
@@ -87,10 +87,10 @@ public class StatisticForADayTest
         await _expenseRepository.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Cats".AsCategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = "Food".AsCategory(), SubCategory = "Snacks".AsSubcategory(), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = "Food".AsCategory(), SubCategory = "Products".AsSubcategory(), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
         
         // Act
@@ -108,7 +108,7 @@ public class StatisticForADayTest
         Assert.Contains("Statistic", messageToCheck.Table.Title);
         Assert.Contains("22 July 2023", messageToCheck.Table.Subtitle);
         Assert.Contains("Category", messageToCheck.Table.FirstColumnName);
-        Assert.Contains("Cats", messageToCheck.Table.Rows.Select(r => r.FirstColumnValue));
+        Assert.Contains("Домашние животные", messageToCheck.Table.Rows.Select(r => r.FirstColumnValue));
         Assert.Equal(new Money(){Amount = 10_000, Currency = Currency.AMD}, messageToCheck.Table.Rows.Select(r => r.CurrencyValues[Currency.AMD]).First());
         Assert.Contains("Total", messageToCheck.Table.Rows.Select(r => r.FirstColumnValue));
     }

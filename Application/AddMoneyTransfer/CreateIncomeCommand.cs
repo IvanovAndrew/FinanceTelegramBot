@@ -8,7 +8,7 @@ public record CreateIncomeCommand : IRequest
     public long SessionID { get; init; }
 }
 
-public class CreateIncomeCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, IMediator mediator, ILogger<CreateIncomeCommandHandler> logger)
+public class CreateIncomeCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, IMediator mediator, ILogger<CreateIncomeCommandHandler> logger)
     : IRequestHandler<CreateIncomeCommand>
 {
     public async Task Handle(CreateIncomeCommand request, CancellationToken cancellationToken)
@@ -17,7 +17,7 @@ public class CreateIncomeCommandHandler(IUserSessionService userSessionService, 
 
         if (session != null)
         {
-            session.ActiveFlow = new AddMoneyTransferFlow(true, dateTimeService, categoryProvider, logger);
+            session.ActiveFlow = new AddMoneyTransferFlow(true, dateTimeService, logger);
             await mediator.Publish(new IncomeCreatedEvent() { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
         }
     }

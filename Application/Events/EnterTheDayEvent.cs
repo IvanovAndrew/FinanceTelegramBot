@@ -50,7 +50,7 @@ public class EnterTheCustomDayEventHandler(
             {
                 ChatId = notification.SessionId, 
                 Id = notification.LastSentMessageId, 
-                Text = $"Enter the date (for example {dateTimeService.Today().ToString(DateFormat.DayOnlyNumbers)})",
+                Text = $"Enter the date. Example {dateTimeService.Today().ToString(DateFormat.DayOnlyNumbers)})",
             },
             cancellationToken);
     }
@@ -103,7 +103,7 @@ public class EnterTheCustomMonthEventHandler(
             {
                 ChatId = notification.SessionId, 
                 Id = notification.LastSentMessageId, 
-                Text = $"Enter the month. Example: {dateTimeService.Today().ToString(DateFormat.FullMonthName)})",
+                Text = $"Enter the month. Example: {dateTimeService.Today().ToString(DateFormat.FullMonthName)}",
             },
             cancellationToken);
     }

@@ -12,7 +12,7 @@ public record DownloadExpenseFromFNSServiceCommand : IRequest
     public CheckRequisite CheckRequisite { get; init; }
 }
 
-public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService userSessionService, ICheckDownloader checkDownloader, IExpenseCategorizer expenseCategorizer, ICategoryProvider categoryProvider, IExpenseCategoryMappingCache expenseCategoryMappingCache, IMediator mediator) : IRequestHandler<DownloadExpenseFromFNSServiceCommand>
+public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService userSessionService, ICheckDownloader checkDownloader, IExpenseCategorizer expenseCategorizer, IExpenseCategoryMappingCache expenseCategoryMappingCache, IMediator mediator) : IRequestHandler<DownloadExpenseFromFNSServiceCommand>
 {
     public async Task Handle(DownloadExpenseFromFNSServiceCommand request, CancellationToken cancellationToken)
     {
@@ -22,7 +22,8 @@ public class DownloadExpenseFromFNSServiceCommandHandler(IUserSessionService use
         {
             await mediator.Publish(new PreparingCategoryMappingStartedEvent(){SessionId = session.Id, }, cancellationToken);
             var mapping = await expenseCategoryMappingCache.Get(Currency.RUR, cancellationToken);
-            var defaultCategory = categoryProvider.DefaultOutcomeCategory();
+            
+            var defaultCategory = Categories.Outcome.DefaultCategory;
             await mediator.Publish(new CategoryMappingPreparedEvent(){SessionId = session.Id}, cancellationToken);
         
             await mediator.Publish(new DownloadingExpenseStartedEvent(){SessionId = session.Id}, cancellationToken);

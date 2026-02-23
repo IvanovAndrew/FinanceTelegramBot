@@ -43,8 +43,7 @@ public static class TestServiceFactory
         services.AddSingleton<MessageServiceMock>(messageService);
         services.AddSingleton<IMessageService>(messageService);
         services.AddSingleton<IUserSessionService>(userSession);
-        services.AddSingleton<IExpenseJsonParser, ExpenseJsonParser>();
-        services.AddSingleton<ICategoryProvider, CategoryProviderStub>();
+        services.AddSingleton<IExpenseJsonParser, RussianCheckExpenseJsonParser>();
         services.AddSingleton<IRecurringExpensesService, RecurringExpensesService>();
         
         services.AddSingleton<ICurrencyProvider, CurrencyProviderStub>();

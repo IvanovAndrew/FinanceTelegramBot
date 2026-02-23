@@ -2,11 +2,13 @@ namespace Domain
 {
     public class Category : IEquatable<Category>
     {
-        public string Name { get; init; }
-        public string? ShortName { get; init; }
-        public SubCategory[] Subcategories { get; set; } = Array.Empty<SubCategory>();
-        public bool IsDefaultCategory { get; set; } = false;
-        public CategoryType Type { get; init; } = CategoryType.RegularExpense;
+        public string Code { get; internal init; }
+        public string Name { get; internal init; }
+        public string? ShortName { get; internal init; }
+        public SubCategory[] Subcategories { get; internal set; } = Array.Empty<SubCategory>();
+        public bool IsDefaultCategory { get; internal set; } = false;
+        public CategoryType Type { get; internal init; } = CategoryType.RegularExpense;
+        
 
         public Category()
         {
@@ -23,11 +25,6 @@ namespace Domain
                 string.Equals(c.Name, name, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        public static Category FromString(string name)
-        {
-            return new Category() { Name = name };
-        }
-        
         public static bool operator ==(Category one, Category two)
         {
             if (!ReferenceEquals(one, null)) return one.Equals(two);
@@ -45,7 +42,7 @@ namespace Domain
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Name == other.Name;
+            return Code == other.Code;
         }
 
         public override bool Equals(object? obj)
@@ -58,15 +55,17 @@ namespace Domain
 
         public override int GetHashCode()
         {
-            return Name.GetHashCode();
+            return Code.GetHashCode();
         }
     }
 
     public class SubCategory : IEquatable<SubCategory>
     {
-        public string Name { get; init; } = String.Empty;
-        public string? ShortName { get; init; }
-        public bool IsRecurringMonthly { get; init; }
+        public string Code { get; internal init; }
+        public string Name { get; internal init; } = String.Empty;
+        public string? ShortName { get; internal init; }
+        public bool IsRecurringMonthly { get; internal init; }
+        
 
         public static bool operator ==(SubCategory one, SubCategory two)
         {
@@ -85,7 +84,7 @@ namespace Domain
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Name == other.Name;
+            return Code == other.Code;
         }
 
         public override bool Equals(object? obj)

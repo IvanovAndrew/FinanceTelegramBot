@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.AddMoneyTransfer;
 
-public record EnterSubcategoryEvent : INotification
+public record EnterSubCategoryEvent : INotification
 {
     public long SessionId { get; init; }
     public int? LastSentMessageId { get; init; }

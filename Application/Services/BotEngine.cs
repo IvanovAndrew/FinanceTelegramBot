@@ -26,7 +26,7 @@ namespace Application.Services
                 command = MapCommand(message.Text, message.ChatId);
                 if (command == null)
                 {
-                    var appEvent = MapNotification(message.Text, message.ChatId);
+                    var appEvent = MapNotification(message.Text, message.ChatId, message.Id);
                     if (appEvent != null)
                     {
                         await mediator.Publish(appEvent, cancellationToken);
@@ -77,14 +77,14 @@ namespace Application.Services
             return command;
         }
 
-        private INotification? MapNotification(string text, long chatId)
+        private INotification? MapNotification(string text, long chatId, int? messageId)
         {
             return text switch
             {
                 "/statistics" => new StatisticRequestedEvent { SessionId = chatId },
                 "/requisites" => new RequisitesRequestedEvent() { SessionId = chatId },
                 "/check" => new CheckOutcomeQuestionnaireRequestedEvent() { SessionId = chatId },
-                "/json" => new JsonCheckRequestedEvent() { SessionId = chatId },
+                "/json" => new JsonCheckRequestedEvent() { SessionId = chatId, LastSentMessageId = messageId},
                 "/url" => new EnterUrlLinkEvent() { SessionId = chatId },
                 _ => null
             };

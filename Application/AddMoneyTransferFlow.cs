@@ -6,14 +6,12 @@ namespace Application;
 public class AddMoneyTransferFlow : UserFlow
 {
     private readonly IDateTimeService _dateTimeService;
-    private readonly ICategoryProvider _categoryProvider;
     private readonly ILogger _logger;
     private readonly AddMoneyTransferFlowResolver _resolver;
     
-    public AddMoneyTransferFlow(bool isIncome, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, ILogger logger)
+    public AddMoneyTransferFlow(bool isIncome, IDateTimeService dateTimeService, ILogger logger)
     {
         _dateTimeService = dateTimeService;
-        _categoryProvider = categoryProvider;
         
         Draft = new MoneyTransferDraft(isIncome);
         _resolver = new AddMoneyTransferFlowResolver();
@@ -39,7 +37,7 @@ public class AddMoneyTransferFlow : UserFlow
             AddMoneyTransferStep.AskCustomDate => FlowStep.AskCustomDay,
             AddMoneyTransferStep.AskOutcomeCategory => FlowStep.AskOutcomeCategory,
             AddMoneyTransferStep.AskIncomeCategory => FlowStep.AskIncomeCategory,
-            AddMoneyTransferStep.AskSubCategory => FlowStep.AskSubcategory,
+            AddMoneyTransferStep.AskSubCategory => FlowStep.AskSubCategory,
             AddMoneyTransferStep.AskDescription => FlowStep.AskDescription,
             AddMoneyTransferStep.AskAmount => FlowStep.AskAmount,
             AddMoneyTransferStep.Confirm => FlowStep.Confirm,
@@ -71,7 +69,7 @@ public class AddMoneyTransferFlow : UserFlow
                 Draft.SetCategory(ResolveCategory(text));
                 break;
 
-            case FlowStep.AskSubcategory:
+            case FlowStep.AskSubCategory:
                 Draft.SetSubCategory(ResolveSubCategory(Draft.Category, text));
                 break;
             
@@ -112,13 +110,16 @@ public class AddMoneyTransferFlow : UserFlow
 
     private Category? ResolveCategory(string input)
     {
-        var category = _categoryProvider.GetCategoryByName(input, Draft.IsIncome);
-
-        return category;
+        if (Draft.IsIncome)
+        {
+            return Categories.Income.GetCategory(input);
+        }
+        
+        return Categories.Outcome.GetCategory(input);
     }
     
     private SubCategory? ResolveSubCategory(Category category, string input)
     {
-        return category.Subcategories.FirstOrDefault(s => s.Name == input);
+        return category.Sub(input);
     }
 }

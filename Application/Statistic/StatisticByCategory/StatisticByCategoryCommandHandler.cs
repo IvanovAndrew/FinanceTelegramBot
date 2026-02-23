@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticByCategory;
 
-public class StatisticByCategoryCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, IMediator mediator)
+public class StatisticByCategoryCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, IMediator mediator)
     : IRequestHandler<StatisticByCategoryCommand>
 {
     public async Task Handle(StatisticByCategoryCommand request, CancellationToken cancellationToken)
@@ -17,7 +17,7 @@ public class StatisticByCategoryCommandHandler(IUserSessionService userSessionSe
         }
 
         StatisticsFlow flow;
-        session.ActiveFlow = flow = new StatisticsFlow(dateTimeService, categoryProvider);
+        session.ActiveFlow = flow = new StatisticsFlow(dateTimeService);
         flow.Draft.Mode = StatisticsQueryMode.CategoryByMonths;
             
         await mediator.Publish(new DraftUpdatedEvent() { SessionId = request.SessionId }, cancellationToken);

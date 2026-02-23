@@ -8,7 +8,7 @@ public record StatisticByMonthCommand : IRequest
     public long SessionId { get; init; }
 }
 
-public class StatisticByMonthCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, ICategoryProvider categoryProvider, IMediator mediator)
+public class StatisticByMonthCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, IMediator mediator)
     : IRequestHandler<StatisticByMonthCommand>
 {
     public async Task Handle(StatisticByMonthCommand request, CancellationToken cancellationToken)
@@ -22,7 +22,7 @@ public class StatisticByMonthCommandHandler(IUserSessionService userSessionServi
         }
 
         StatisticsFlow flow;
-        session.ActiveFlow = flow = new StatisticsFlow(dateTimeService, categoryProvider);
+        session.ActiveFlow = flow = new StatisticsFlow(dateTimeService);
         flow.Draft.Mode = StatisticsQueryMode.MonthlyExpenses; 
         
         await mediator.Publish(new StatisticByMonthCreatedEvent() { SessionId = session.Id }, cancellationToken);

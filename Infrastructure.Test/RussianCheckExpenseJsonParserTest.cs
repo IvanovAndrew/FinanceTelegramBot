@@ -1,13 +1,11 @@
-﻿using Application.Test.Extensions;
-using Domain;
+﻿using Domain;
 using Infrastructure.Fns;
-using Xunit;
 
-namespace Application.Test;
+namespace Infrastructure.Test;
 
-public class ExpenseJsonParserTest
+public class RussianCheckExpenseJsonParserTest
 {
-    [Fact]
+    [Fact] 
     public void Parse()
     {
         var text = @"
@@ -53,8 +51,7 @@ public class ExpenseJsonParserTest
     ""fiscalDocumentNumber"":20083,
     ""fiscalDocumentFormatVer"":2}
 ";
-        var parser = new ExpenseJsonParser();
-        var expenses = parser.ParseOutcomes(text, "Еда".AsCategory(), Currency.RUR).ToList();
+        var expenses = ParseExpenses(text);
 
         Assert.Equal(4, expenses.Count);
         Assert.Equivalent(
@@ -259,8 +256,7 @@ public class ExpenseJsonParserTest
     }
 }
 ";
-        var parser = new ExpenseJsonParser();
-        var expenses = parser.ParseOutcomes(text, "Еда".AsCategory(), Currency.RUR).ToList();
+        var expenses = ParseExpenses(text);
 
         Assert.Equal(11, expenses.Count);
         Assert.Equivalent(
@@ -278,5 +274,12 @@ public class ExpenseJsonParserTest
                 new Money(){Currency = Currency.RUR, Amount = 49.99m},
                 new Money(){Currency = Currency.RUR, Amount = 29.99m},
             }, expenses.Select(c => c.Amount));
+    }
+
+    private static List<Outcome> ParseExpenses(string text)
+    {
+        var parser = new RussianCheckExpenseJsonParser();
+        var expenses = parser.ParseOutcomes(text, Categories.Outcome.DefaultCategory).ToList();
+        return expenses;
     }
 }
