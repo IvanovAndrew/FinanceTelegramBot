@@ -75,7 +75,7 @@ public class StatisticForADayTest
         // Assert
         Assert.NotNull(response.Options);
         
-        var buttons = response.Options.AllOptions().Select(_ => _.Text);
+        var buttons = response.Options.Select(_ => _.Text);
         Assert.Contains("Today", buttons);
         Assert.Contains("Yesterday", buttons);
         Assert.Contains("Another day", buttons);

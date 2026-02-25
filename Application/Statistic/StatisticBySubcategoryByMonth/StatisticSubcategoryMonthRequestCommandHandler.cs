@@ -25,7 +25,6 @@ public class StatisticSubcategoryMonthRequestCommandHandler(IFinanceRepository f
         await mediator.Publish(new SubcategoryMonthOutcomesReadEvent()
         {
             SessionId = request.SessionId,
-            LastSentMessageId = request.LastSentMessageId,
             
             Category = query.Category,
             Subcategory = query.SubCategory,
@@ -40,7 +39,6 @@ public class StatisticSubcategoryMonthRequestCommandHandler(IFinanceRepository f
 public record SubcategoryMonthOutcomesReadEvent : INotification
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
     
     public Category Category { get; init; }
     public SubCategory Subcategory { get; init; }
@@ -48,7 +46,7 @@ public record SubcategoryMonthOutcomesReadEvent : INotification
     public IReadOnlyList<Outcome> Outcomes { get; init; }
 }
 
-public class SubcategoryMonthOutcomesReadTableEventHandler(IMessageService messageService, ILogger<SubcategoryMonthOutcomesReadTableEventHandler> logger) : INotificationHandler<SubcategoryMonthOutcomesReadEvent>
+public class SubcategoryMonthOutcomesReadTableEventHandler(IConversation conversation, ILogger<SubcategoryMonthOutcomesReadTableEventHandler> logger) : INotificationHandler<SubcategoryMonthOutcomesReadEvent>
 {
     public async Task Handle(SubcategoryMonthOutcomesReadEvent notification, CancellationToken cancellationToken)
     {
@@ -74,18 +72,11 @@ public class SubcategoryMonthOutcomesReadTableEventHandler(IMessageService messa
 
         var table = StatisticTableBuilder.BuildTable(statisticW, tableOptions);
                 
-        await messageService.EditSentTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Id = notification.LastSentMessageId,
-                Table = table
-            }, cancellationToken
-        );
+        await conversation.Update(notification.SessionId, Screens.Notify(table), cancellationToken);
     }
 }
 
-public class SubcategoryMonthOutcomesReadDiagramEventHandler(IPictureGenerator pictureGenerator, IMessageService messageService, ILogger<SubcategoryMonthOutcomesReadTableEventHandler> logger) : INotificationHandler<SubcategoryMonthOutcomesReadEvent>
+public class SubcategoryMonthOutcomesReadDiagramEventHandler(IPictureGenerator pictureGenerator, IConversation conversation, ILogger<SubcategoryMonthOutcomesReadTableEventHandler> logger) : INotificationHandler<SubcategoryMonthOutcomesReadEvent>
 {
     public async Task Handle(SubcategoryMonthOutcomesReadEvent notification, CancellationToken cancellationToken)
     {
@@ -102,16 +93,11 @@ public class SubcategoryMonthOutcomesReadDiagramEventHandler(IPictureGenerator p
         foreach (var currency in currencies)
         {
             var data = statistic.Rows.Select(r => (YearMonth.From(r.Row), r[currency].Amount)).ToList();
+
+            var title = $"{notification.Category.Name} {notification.Subcategory.Name} expenses since {notification.MonthFrom.ToString(DateFormat.FullMonthName)}";
+            var pictureBytes = pictureGenerator.GeneratePlot(data, currency, new PictureOptions(title));
             
-            var pictureBytes = pictureGenerator.GeneratePlot(data, currency, new PictureOptions($"{notification.Category.Name} {notification.Subcategory.Name} expenses since {notification.MonthFrom.ToString(DateFormat.FullMonthName)}"));
-            
-            await messageService.SendPictureAsync(
-                new Message()
-                {
-                    ChatId = notification.SessionId,
-                    PictureBytes = pictureBytes 
-                }, cancellationToken
-            );
+            await conversation.Update(notification.SessionId, Screens.Notify(title, pictureBytes), cancellationToken);
         }
     }
 }

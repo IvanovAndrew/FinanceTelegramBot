@@ -28,7 +28,7 @@ public class StateTest
         
         // Assert
         Assert.NotNull(lastMessage.Options);
-        Assert.Equivalent(new []{"Outcome", "Income", "Statistics"}, lastMessage.Options.AllOptions().Select(c => c.Text));
+        Assert.Equivalent(new []{"Outcome", "Income", "Statistics"}, lastMessage.Options.Select(c => c.Text));
     }
 
     [Theory]
@@ -96,6 +96,6 @@ public class StateTest
 
         // Assert
         Assert.NotNull(lastMessage.Options);
-        Assert.Equivalent(new []{"Balance", "Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, lastMessage.Options.AllOptions().Select(c => c.Text));
+        Assert.Equivalent(new []{"Balance", "Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, lastMessage.Options.Select(c => c.Text));
     }
 }

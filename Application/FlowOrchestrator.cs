@@ -24,29 +24,29 @@ public class FlowOrchestrator(IUserSessionService sessions, IMediator mediator) 
 
         if (step == FlowStep.Completed)
         {
-            await ExecuteFlow(flow, session, ct);
+            await ExecuteFlow(flow, e.SessionId, ct);
             return;
         }
 
         var extraData = flow.GetExtraData();
 
-        await RequestNextInput(step, session, extraData, ct);
+        await RequestNextInput(step, e.SessionId, extraData, ct);
     }
     
     private async Task ExecuteFlow(
         UserFlow flow,
-        UserSession session,
+        long sessionId, 
         CancellationToken ct)
     {
         switch (flow)
         {
             case AddMoneyTransferFlow addMoneyTransferFlow:
                 await mediator.Send(
-                    new SaveMoneyTransferCommand(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId!.Value, MoneyTransfer = addMoneyTransferFlow.ToEntity()}, ct);
+                    new SaveMoneyTransferCommand(){SessionId = sessionId, MoneyTransfer = addMoneyTransferFlow.ToEntity()}, ct);
                 break;
 
             case CheckRequisiteFlow checkRequisiteFlow:
-                await mediator.Send(new DownloadExpenseFromFNSServiceCommand(){SessionId = session.Id, CheckRequisite = checkRequisiteFlow.ToEntity()}, ct);
+                await mediator.Send(new DownloadExpenseFromFNSServiceCommand(){SessionId = sessionId, CheckRequisite = checkRequisiteFlow.ToEntity()}, ct);
                 break;
             
             case StatisticsFlow statisticsFlow:
@@ -56,44 +56,37 @@ public class FlowOrchestrator(IUserSessionService sessions, IMediator mediator) 
                     case StatisticsQueryMode.DailyExpenses:
                         await mediator.Send(new StatisticDayRequestCommand()
                         {
-                            SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value,
-                            Query = statisticsFlow.ToEntity()
+                            SessionId = sessionId, Query = statisticsFlow.ToEntity()
                         }, ct);
-                        break;
                         break;
                     case StatisticsQueryMode.BalanceFromMonth:
                         await mediator.Send(new GetBalanceStatisticCommand()
                         {
-                            SessionId = session.Id, LastSentMessageId = session.LastSentMessageId,
-                            Query = statisticsFlow.ToEntity()
+                            SessionId = sessionId, Query = statisticsFlow.ToEntity()
                         }, ct);
                         break;
                     case StatisticsQueryMode.MonthlyExpenses:
                         await mediator.Send(new GetStatisticMonthRequestCommand()
                         {
-                            SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value,
-                            Query = statisticsFlow.ToEntity()
+                            SessionId = sessionId, Query = statisticsFlow.ToEntity()
                         }, ct);
                         break;
                     case StatisticsQueryMode.CategoryByMonths:
                         await mediator.Send(new GetStatisticCategoryRequestCommand()
                         {
-                            SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value,
-                            Query = statisticsFlow.ToEntity()
+                            SessionId = sessionId, Query = statisticsFlow.ToEntity()
                         }, ct);
                         break;
                     case StatisticsQueryMode.SubcategoryByMonth:
                         await mediator.Send(new StatisticSubcategoryMonthRequestCommand()
                         {
-                            SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value,
-                            Query = statisticsFlow.ToEntity()
+                            SessionId = sessionId, Query = statisticsFlow.ToEntity()
                         }, ct);
                         break;
                     case StatisticsQueryMode.SubcategoryTotal:
                         await mediator.Send(new StatisticSubcategoryRequestCommand()
                         {
-                            SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value,
-                            Query = statisticsFlow.ToEntity()
+                            SessionId = sessionId, Query = statisticsFlow.ToEntity()
                         }, ct);
                         break;
                 }
@@ -103,7 +96,7 @@ public class FlowOrchestrator(IUserSessionService sessions, IMediator mediator) 
     
     private async Task RequestNextInput(
         FlowStep step,
-        UserSession session,
+        long sessionId, 
         ExtraData extraData,
         CancellationToken ct)
     {
@@ -111,79 +104,75 @@ public class FlowOrchestrator(IUserSessionService sessions, IMediator mediator) 
         {
             case FlowStep.AskDay:
                 await mediator.Publish(
-                    new EnterTheDayEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId},
+                    new EnterTheDayEvent(){SessionId = sessionId},
                     ct);
                 break;
             
             case FlowStep.AskCustomDay:
                 await mediator.Publish(
-                    new EnterTheCustomDayEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId},
+                    new EnterTheCustomDayEvent(){SessionId = sessionId},
                     ct);
                 break;
             
             case FlowStep.AskOutcomeCategory:
                 
-                await mediator.Publish(new EnterCategoryEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value, Categories = Categories.Outcome.All},
+                await mediator.Publish(new EnterCategoryEvent(){SessionId = sessionId, Categories = Categories.Outcome.All.OrderBy(c => c.ShortName?? c.Name).ToList()},
                     ct);
                 break;
             
             case FlowStep.AskIncomeCategory:
                 
-                await mediator.Publish(new EnterCategoryEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId.Value, Categories = Categories.Income.All},
+                await mediator.Publish(new EnterCategoryEvent(){SessionId = sessionId, Categories = Categories.Income.All.OrderBy(c => c.ShortName?? c.Name).ToList()},
                     ct);
                 break;
             
             case FlowStep.AskSubCategory:
-                await mediator.Publish(new EnterSubCategoryEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId, Category = extraData.Category},
+                await mediator.Publish(new EnterSubCategoryEvent(){SessionId = sessionId, SubCategories = extraData.Category.Subcategories},
                     ct);
                 break;
             
             case FlowStep.AskDescription:
-                await mediator.Publish(new EnterDescriptionEvent(){SessionId = session.Id, },
+                await mediator.Publish(new EnterDescriptionEvent(){SessionId = sessionId, },
                     ct);
                 break;
             
             case FlowStep.AskAmount:
                 await mediator.Publish(
-                    new EnterThePriceEvent(){SessionId = session.Id},
+                    new EnterThePriceEvent(){SessionId = sessionId},
                     ct);
                 break;
             
             case FlowStep.Confirm:
                 await mediator.Publish(
-                    new ConfirmEvent(){SessionId = session.Id},
+                    new ConfirmEvent(){SessionId = sessionId},
                     ct);
                 break;
             
             case FlowStep.AskFiscalNumber:
-                await mediator.Publish(new AskFiscalNumberEvent() { SessionId = session.Id }, ct);
+                await mediator.Publish(new AskFiscalNumberEvent() { SessionId = sessionId }, ct);
                 break;
             
             case FlowStep.AskFiscalDocumentNumber:
-                await mediator.Publish(new AskFiscalDocumentNumberEvent() { SessionId = session.Id }, ct);
+                await mediator.Publish(new AskFiscalDocumentNumberEvent() { SessionId = sessionId }, ct);
                 break;
             
             case FlowStep.AskFiscalDocumentSign:
-                await mediator.Publish(new AskFiscalDocumentSignEvent() { SessionId = session.Id }, ct);
+                await mediator.Publish(new AskFiscalDocumentSignEvent() { SessionId = sessionId }, ct);
                 break;
-
             
             case FlowStep.AskMonth:
                 await mediator.Publish(
-                    new EnterTheMonthEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId},
-                    ct);
+                    new EnterTheMonthEvent(){SessionId = sessionId}, ct);
                 break;
             
             case FlowStep.AskCustomMonth:
                 await mediator.Publish(
-                    new EnterTheCustomMonthEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId},
-                    ct);
+                    new EnterTheCustomMonthEvent(){SessionId = sessionId }, ct);
                 break;
             
             case FlowStep.AskCurrency:
                 await mediator.Publish(
-                    new EnterTheCurrencyEvent(){SessionId = session.Id, LastSentMessageId = session.LastSentMessageId},
-                    ct);
+                    new EnterTheCurrencyEvent(){SessionId = sessionId }, ct);
                 break;
             
             case FlowStep.AskDateTime:

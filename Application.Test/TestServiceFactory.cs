@@ -57,8 +57,11 @@ public static class TestServiceFactory
         
         services.AddSingleton<IExpenseCategoryMappingCache, ExpenseCategoryMappingCache>();
         services.AddSingleton<IPictureGenerator, PictureGeneratorStub>();
+        services.AddSingleton<IProgressNotifier, TelegramProgressNotifier>();
         
         services.AddSingleton<FlowOrchestrator>();
+        services.AddSingleton<IConversation, TelegramConversation>();
+        services.AddSingleton<IConversationStateStore, ConversationStateStore>();
         
         services.AddSingleton<BotEngine>();
         services.AddSingleton<BotEngineWrapper>();

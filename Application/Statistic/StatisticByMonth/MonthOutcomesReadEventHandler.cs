@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Statistic.StatisticByMonth;
 
-public class MonthOutcomesReadEventHandler(IMessageService messageService, ILogger<MonthOutcomesReadEventHandler> logger) : INotificationHandler<MonthOutcomesReadEvent>
+public class MonthOutcomesReadEventHandler(IConversation messageService, ILogger<MonthOutcomesReadEventHandler> logger) : INotificationHandler<MonthOutcomesReadEvent>
 {
     public async Task Handle(MonthOutcomesReadEvent notification, CancellationToken cancellationToken)
     {
@@ -26,13 +26,6 @@ public class MonthOutcomesReadEventHandler(IMessageService messageService, ILogg
 
         var table = StatisticTableBuilder.BuildTable(wrapper, tableOptions);
         
-        await messageService.EditSentTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Id = notification.LastSentMessageId,
-                Table = table
-            }, cancellationToken
-        );
+        await messageService.Update(notification.SessionId, Screens.Notify(table), cancellationToken);
     }
 }

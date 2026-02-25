@@ -8,14 +8,13 @@ namespace Application.Statistic.StatisticBySubcategory;
 public record StatisticSubcategoryExpensesLoadedEvent : INotification
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
     public IReadOnlyList<Outcome> Outcomes { get; init; }
     public Category Category { get; init; }
     public SubCategory SubCategory { get; init; }
     public YearMonth MonthFrom { get; init; } 
 }
 
-public class StatisticSubcategoryExpensesLoadedEventHandler(IMessageService messageService, ILogger<StatisticSubcategoryExpensesLoadedEventHandler> logger) : INotificationHandler<StatisticSubcategoryExpensesLoadedEvent>
+public class StatisticSubcategoryExpensesLoadedEventHandler(IConversation conversation, ILogger<StatisticSubcategoryExpensesLoadedEventHandler> logger) : INotificationHandler<StatisticSubcategoryExpensesLoadedEvent>
 {
     public async Task Handle(StatisticSubcategoryExpensesLoadedEvent notification, CancellationToken cancellationToken)
     {
@@ -35,14 +34,7 @@ public class StatisticSubcategoryExpensesLoadedEventHandler(IMessageService mess
                 FirstColumnName = "Subcategory",
             });
             
-            await messageService.EditSentTextMessageAsync(
-                new Message()
-                {
-                    ChatId = notification.SessionId,
-                    Id = notification.LastSentMessageId,
-                    Table = table
-                }, cancellationToken
-            );
+            await conversation.Update(notification.SessionId, Screens.Notify(table), cancellationToken);
         }
     }
 }

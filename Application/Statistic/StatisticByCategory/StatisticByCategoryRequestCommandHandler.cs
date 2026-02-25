@@ -8,7 +8,6 @@ namespace Application.Statistic.StatisticByCategory;
 public record GetStatisticCategoryRequestCommand : IRequest
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
     public StatisticsQuery Query { get; init; }
 }
 
@@ -32,7 +31,6 @@ public class GetStatisticCategoryRequestCommandHandler(IFinanceRepository financ
             await mediator.Publish(new CategoryOutcomesReadEvent()
                 { 
                     SessionId = request.SessionId,
-                    LastSentMessageId = request.LastSentMessageId,
                     
                     Category = filter.Category,
                     MonthFrom = query.MonthRange.From,
@@ -46,14 +44,13 @@ public class GetStatisticCategoryRequestCommandHandler(IFinanceRepository financ
 public record CategoryOutcomesReadEvent : INotification
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
     public Category Category { get; init; }
     
     public IReadOnlyList<Outcome> Outcomes { get; init; }
     public YearMonth MonthFrom { get; init; }
 }
 
-public class CategoryOutcomesReadTableEventHandler(IMessageService messageService, ILogger<CategoryOutcomesReadTableEventHandler> logger) : INotificationHandler<CategoryOutcomesReadEvent>
+public class CategoryOutcomesReadTableEventHandler(IConversation conversation, ILogger<CategoryOutcomesReadTableEventHandler> logger) : INotificationHandler<CategoryOutcomesReadEvent>
 {
     public async Task Handle(CategoryOutcomesReadEvent notification, CancellationToken cancellationToken)
     {
@@ -74,18 +71,11 @@ public class CategoryOutcomesReadTableEventHandler(IMessageService messageServic
         
         var table = StatisticTableBuilder.BuildTable(wrapper, tableOptions);
         
-        await messageService.EditSentTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Id = notification.LastSentMessageId,
-                Table = table
-            }, cancellationToken
-        );
+        await conversation.Update(notification.SessionId, Screens.Notify(table), cancellationToken);
     }
 }
 
-public class CategoryOutcomesReadDiagramEventHandler(IPictureGenerator pictureGenerator, IMessageService messageService, ILogger<CategoryOutcomesReadTableEventHandler> logger) : INotificationHandler<CategoryOutcomesReadEvent>
+public class CategoryOutcomesReadDiagramEventHandler(IPictureGenerator pictureGenerator, IConversation conversation, ILogger<CategoryOutcomesReadTableEventHandler> logger) : INotificationHandler<CategoryOutcomesReadEvent>
 {
     public async Task Handle(CategoryOutcomesReadEvent notification, CancellationToken cancellationToken)
     {
@@ -100,15 +90,10 @@ public class CategoryOutcomesReadDiagramEventHandler(IPictureGenerator pictureGe
         {
             var data = statistic.Rows.Select(r => (YearMonth.From(r.Row), r[currency].Amount)).ToList();
 
-            var bytes = pictureGenerator.GeneratePlot(data, currency, new PictureOptions($"{notification.Category.Name} expenses since {notification.Outcomes.Min(c => c.Date).ToString(DateFormat.FullMonthName)}"));
+            var title = $"{notification.Category.Name} expenses since {notification.Outcomes.Min(c => c.Date).ToString(DateFormat.FullMonthName)}";
+            var bytes = pictureGenerator.GeneratePlot(data, currency, new PictureOptions(title));
 
-            await messageService.SendPictureAsync(
-                new Message()
-                {
-                    ChatId = notification.SessionId,
-                    PictureBytes = bytes,
-                }, cancellationToken
-            );
+            await conversation.Update(notification.SessionId, Screens.Notify(title, bytes), cancellationToken);
         }
     }
 }

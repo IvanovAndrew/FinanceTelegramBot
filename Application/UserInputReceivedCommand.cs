@@ -5,14 +5,11 @@ namespace Application;
 public record UserInputReceivedCommand : IRequest
 {
     public long SessionId { get; init; }
-    public int? LastSentMessageId { get; init; }
     public string Text { get; init; }
 }
 
 public class UserInputReceivedCommandHandler(IUserSessionService userSessionService, IMediator mediator) : IRequestHandler<UserInputReceivedCommand>
 {
-    private readonly IMediator _mediator;
-
     public async Task Handle(
         UserInputReceivedCommand cmd,
         CancellationToken ct)
@@ -35,7 +32,7 @@ public class UserInputReceivedCommandHandler(IUserSessionService userSessionServ
                 ct);
 
             await mediator.Publish(
-                new DraftUpdatedEvent { SessionId = session.Id },
+                new DraftUpdatedEvent { SessionId = cmd.SessionId },
                 ct);
         }
         catch (FlowInputValidationException ex)
@@ -43,7 +40,7 @@ public class UserInputReceivedCommandHandler(IUserSessionService userSessionServ
             await mediator.Publish(
                 new InvalidUserInputEvent
                 {
-                    SessionId = session.Id,
+                    SessionId = cmd.SessionId,
                     Step = ex.Step,
                     ErrorMessage = ex.Message
                 },
@@ -62,19 +59,11 @@ public record InvalidUserInputEvent : INotification
 }
 
 public class InvalidUserInputEventHandler(
-    IMessageService messageService)
+    IConversation messageService)
     : INotificationHandler<InvalidUserInputEvent>
 {
-    public async Task Handle(
-        InvalidUserInputEvent e,
-        CancellationToken ct)
+    public async Task Handle(InvalidUserInputEvent e, CancellationToken ct)
     {
-        await messageService.EditSentTextMessageAsync(
-            new Message
-            {
-                ChatId = e.SessionId,
-                Text = $"{e.ErrorMessage}"
-            },
-            ct);
+        await messageService.Update(e.SessionId, Screens.Notify(e.ErrorMessage), ct);
     }
 }

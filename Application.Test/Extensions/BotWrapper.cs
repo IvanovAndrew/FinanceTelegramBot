@@ -21,15 +21,15 @@ internal class BotEngineWrapper
 
         var messageText = text;
 
-        if (!messageText.StartsWith("/") && (lastSendMessage?.Options != null))
+        if (!messageText.StartsWith("/") && (lastSendMessage?.Options?.Any() ?? false))
         {
             messageText = lastSendMessage.Options
-                .AllOptions().FirstOrDefault(b => string.Equals(b.Text, text, StringComparison.InvariantCultureIgnoreCase))?.Code;
+                .FirstOrDefault(b => string.Equals(b.Text, text, StringComparison.InvariantCultureIgnoreCase))?.Code;
 
             if (messageText == null)
             {
                 throw new InvalidOperationException( 
-                    $"Couldn't find {text} option between {(string.Join(", ", lastSendMessage.Options.AllOptions().Select(o => o.Text)))}");
+                    $"Couldn't find {text} option between {(string.Join(", ", lastSendMessage.Options.Select(o => o.Text)))}");
             }
         }
         

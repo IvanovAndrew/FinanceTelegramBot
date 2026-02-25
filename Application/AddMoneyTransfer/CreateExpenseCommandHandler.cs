@@ -11,7 +11,7 @@ public class CreateExpenseCommandHandler(IUserSessionService userSessionService,
 
         if (session != null)
         {
-            await mediator.Publish(new OutcomeCreatedEvent() { SessionID = session.Id }, cancellationToken);
+            await mediator.Publish(new OutcomeCreatedEvent() { SessionId = session.Id }, cancellationToken);
         }
     }
 }

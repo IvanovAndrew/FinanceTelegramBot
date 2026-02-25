@@ -28,9 +28,9 @@ public class AddExpenseManuallyTest
     
         // Assert
         Assert.NotNull(lastMessage.Options);
-        Assert.Contains("Today", lastMessage.Options.AllOptions().Select(b => b.Text).ToList()); 
-        Assert.Contains("Yesterday", lastMessage.Options.AllOptions().Select(b => b.Text)); 
-        Assert.Contains("Another day", lastMessage.Options.AllOptions().Select(b => b.Text)); 
+        Assert.Contains("Today", lastMessage.Options.Select(b => b.Text).ToList()); 
+        Assert.Contains("Yesterday", lastMessage.Options.Select(b => b.Text)); 
+        Assert.Contains("Another day", lastMessage.Options.Select(b => b.Text)); 
     }
     
     [Theory]
@@ -47,7 +47,7 @@ public class AddExpenseManuallyTest
         // Assert
         Assert.Equal("Enter the category", lastMessage.Text);
         Assert.NotNull(lastMessage.Options);
-        Assert.Equivalent(Categories.Outcome.All.Select(c => c.ShortName?? c.Name), lastMessage.Options.AllOptions().Select(b => b.Text));
+        Assert.Equivalent(Categories.Outcome.All.Select(c => c.ShortName?? c.Name), lastMessage.Options.Select(b => b.Text));
     }
     
     [Fact]
@@ -104,7 +104,7 @@ public class AddExpenseManuallyTest
         // Assert
         Assert.EndsWith("save it?", lastMessage.Text);
         Assert.NotNull(lastMessage.Options);
-        Assert.Equivalent(new []{"Save", "Cancel"}, lastMessage.Options.AllOptions().Select(b => b.Text));
+        Assert.Equivalent(new []{"Save", "Cancel"}, lastMessage.Options.Select(b => b.Text));
     }
     
     [Fact]

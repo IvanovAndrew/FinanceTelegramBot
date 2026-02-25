@@ -12,10 +12,11 @@ public class StatisticForASubcategoryByMonthsTest
     private readonly BotEngineWrapper _botEngine;
     private readonly FinanceRepositoryStub _expenseRepository;
     private readonly DateTimeServiceStub _dateTimeService;
+    private readonly MessageServiceMock _messageServiceMock;
 
     public StatisticForASubcategoryByMonthsTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _, out _, out _);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _messageServiceMock, out _, out _);
         _dateTimeService.SetToday(new DateOnly(2023, 7, 24));
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
@@ -57,10 +58,11 @@ public class StatisticForASubcategoryByMonthsTest
         await _botEngine.Proceed("Перекусы");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("July 2023");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await _botEngine.Proceed("AMD");
         
         // Assert
-        var table = lastMessage.Table;
+        Assert.Equal(2, _messageServiceMock.SentMessages.Count);
+        var table = _messageServiceMock.SentMessages.Single(m => m.Table != null).Table;
         
         Assert.NotNull(table);
         Assert.Contains("Statistic", table.Title);
@@ -98,11 +100,12 @@ public class StatisticForASubcategoryByMonthsTest
         await _botEngine.Proceed("Перекусы");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2022");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await _botEngine.Proceed("AMD");
 
-        var table = lastMessage.Table;
-        
         // Assert
+        Assert.Equal(2, _messageServiceMock.SentMessages.Count);
+        
+        var table = _messageServiceMock.SentMessages.Single(c => c.Table != null).Table;
         Assert.NotNull(table);
         CollectionAssertExtension.AssertOrder(table.Rows.Select(row => row.FirstColumnValue).ToList(), 
             "December 2022", "January 2023", "February 2023", "March 2023", "April 2023", "May 2023", "June 2023", "July 2023");
@@ -128,13 +131,15 @@ public class StatisticForASubcategoryByMonthsTest
         await _botEngine.Proceed("Перекусы");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2022");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await _botEngine.Proceed("AMD");
         
 
         // Assert
-        var table = lastMessage.Table;
+        Assert.Equal(2,  _messageServiceMock.SentMessages.Count);
+        Assert.Single(_messageServiceMock.SentMessages, m => m.Table != null);
         
-        Assert.NotNull(table);
+        var table =  _messageServiceMock.SentMessages.Single(c => c.Table != null).Table;
+        
         Assert.Equal("Statistic", table.Title);
         Assert.Contains("January 2022", table.Subtitle);
         Assert.Contains("Category", table.Subtitle);

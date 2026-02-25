@@ -8,6 +8,7 @@ public interface IDateTimeService
     protected CultureInfo CultureInfo { get; }
     DateOnly Today();
     DateTime Now();
+    YearMonth CurrentMonth() => YearMonth.From(Today());
 
     bool TryParseMonth(string text, out YearMonth month)
     {

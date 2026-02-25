@@ -7,15 +7,11 @@ public record CheckFiscalNumberNotSavedEvent : INotification
     public long SessionId { get; init; }
 }
 
-public class CheckFiscalNumberNotSavedEventHandler(IMessageService messageService) : INotificationHandler<CheckFiscalNumberNotSavedEvent>
+public class CheckFiscalNumberNotSavedEventHandler(IConversation conversation) : INotificationHandler<CheckFiscalNumberNotSavedEvent>
 {
     public async Task Handle(CheckFiscalNumberNotSavedEvent notification, CancellationToken cancellationToken)
     {
-        await messageService.SendTextMessageAsync(new Message()
-        {
-            ChatId = notification.SessionId,
-            Text = "Enter the fiscal number. It should contain 16 digits"
-        }, cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.EnterFiscalNumber(), cancellationToken);
     }
 }
 
@@ -24,14 +20,10 @@ public class AskFiscalDocumentNumberEvent : INotification
     public long SessionId { get; init; }
 }
 
-public class CheckFiscalNumberSavedEventHandler(IMessageService messageService) : INotificationHandler<AskFiscalDocumentNumberEvent>
+public class CheckFiscalNumberSavedEventHandler(IConversation conversation) : INotificationHandler<AskFiscalDocumentNumberEvent>
 {
     public async Task Handle(AskFiscalDocumentNumberEvent notification, CancellationToken cancellationToken)
     {
-        await messageService.SendTextMessageAsync(new Message()
-        {
-            ChatId = notification.SessionId,
-            Text = "Enter the document number"
-        }, cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.EnterFiscalDocumentNumber(), cancellationToken);
     }
 }

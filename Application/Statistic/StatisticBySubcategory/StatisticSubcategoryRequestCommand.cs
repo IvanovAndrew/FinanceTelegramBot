@@ -6,7 +6,6 @@ namespace Application.Statistic.StatisticBySubcategory;
 public class StatisticSubcategoryRequestCommand : IRequest
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
     public StatisticsQuery Query { get; init; }
 }
 
@@ -31,7 +30,6 @@ public class StatisticSubcategoryRequestCommandHandler(IFinanceRepository financ
             await mediator.Publish(new StatisticSubcategoryExpensesLoadedEvent()
                 { 
                     SessionId = request.SessionId,
-                    LastSentMessageId = request.LastSentMessageId,
                     
                     Category = filter.Category,
                     SubCategory = filter.Subcategory,

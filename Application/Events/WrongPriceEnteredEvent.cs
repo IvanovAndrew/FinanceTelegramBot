@@ -8,16 +8,11 @@ public record WrongPriceEnteredEvent : INotification
     public string Error { get; init; }
 }
 
-public class WrongPriceEnteredEventHandler(IMessageService messageService)
+public class WrongPriceEnteredEventHandler(IConversation conversation)
     : INotificationHandler<WrongPriceEnteredEvent>
 {
     public async Task Handle(WrongPriceEnteredEvent notification, CancellationToken cancellationToken)
     {
-        await messageService.SendTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Text = $"{notification.Error}. Try again",
-            }, cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.Notify($"{notification.Error}. Try again"), cancellationToken);
     }
 }

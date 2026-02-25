@@ -7,11 +7,10 @@ namespace Application.Statistic.StatisticByMonth;
 public record GetStatisticMonthRequestCommand : IRequest
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
     public StatisticsQuery Query { get; init; }
 }
 
-public class GetStatisticMonthRequestCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IMediator mediator, ILogger<GetStatisticMonthRequestCommandHandler> logger) : IRequestHandler<GetStatisticMonthRequestCommand>
+public class GetStatisticMonthRequestCommandHandler(IFinanceRepository financeRepository, IMediator mediator, ILogger<GetStatisticMonthRequestCommandHandler> logger) : IRequestHandler<GetStatisticMonthRequestCommand>
 {
     public async Task Handle(GetStatisticMonthRequestCommand request, CancellationToken cancellationToken)
     {
@@ -28,7 +27,6 @@ public class GetStatisticMonthRequestCommandHandler(IUserSessionService userSess
         await mediator.Publish(new MonthOutcomesReadEvent()
         {
             SessionId = request.SessionId,
-            LastSentMessageId = request.LastSentMessageId,
             Month = request.Query.MonthRange.From,
             Outcomes = outcomes
         }, cancellationToken);

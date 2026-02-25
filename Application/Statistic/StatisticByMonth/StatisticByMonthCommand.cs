@@ -25,6 +25,6 @@ public class StatisticByMonthCommandHandler(IUserSessionService userSessionServi
         session.ActiveFlow = flow = new StatisticsFlow(dateTimeService);
         flow.Draft.Mode = StatisticsQueryMode.MonthlyExpenses; 
         
-        await mediator.Publish(new StatisticByMonthCreatedEvent() { SessionId = session.Id }, cancellationToken);
+        await mediator.Publish(new DraftUpdatedEvent() { SessionId = session.Id }, cancellationToken);
     }
 }

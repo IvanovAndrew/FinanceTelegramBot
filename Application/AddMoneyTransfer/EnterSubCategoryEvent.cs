@@ -6,6 +6,5 @@ namespace Application.AddMoneyTransfer;
 public record EnterSubCategoryEvent : INotification
 {
     public long SessionId { get; init; }
-    public int? LastSentMessageId { get; init; }
-    public Category Category { get; init; }
+    public IReadOnlyList<SubCategory> SubCategories { get; init; }
 }

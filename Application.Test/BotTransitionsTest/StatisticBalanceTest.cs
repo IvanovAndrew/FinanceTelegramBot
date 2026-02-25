@@ -9,13 +9,15 @@ namespace Application.Test.BotTransitionsTest;
 public class StatisticBalanceTest 
 {
     private readonly BotEngineWrapper _botEngine;
+    private readonly DateTimeServiceStub _dateTimeService;
     private readonly MessageServiceMock _messageService;
     private readonly FinanceRepositoryStub _expenseRepository;
     private readonly SalaryDayServiceStub _salaryDayService;
 
     public StatisticBalanceTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _messageService, out _, out _salaryDayService);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _messageService, out _, out _salaryDayService);
+        _dateTimeService.SetToday(new DateOnly(2023, 7, 24));
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
     }
@@ -106,14 +108,13 @@ public class StatisticBalanceTest
         await _botEngine.Proceed("Balance");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2023");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await _botEngine.Proceed("AMD");
 
         // Assert
-        Assert.Equal(2, _messageService.SentMessages.Count);
+        Assert.Equal(3, _messageService.SentMessages.Count);
 
         var (firstMessage, secondMessage) = (_messageService.SentMessages[0], _messageService.SentMessages[1]);
 
-        Assert.Contains("Enter the month", firstMessage.Text);
         Assert.NotNull(secondMessage.Table);
     }
 

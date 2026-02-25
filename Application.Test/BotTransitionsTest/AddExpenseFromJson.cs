@@ -33,6 +33,6 @@ public class AddExpenseFromJson
         // Assert
         Assert.Contains("Paste", lastMessage.Text);
         Assert.Contains("a json file", lastMessage.Text);
-        Assert.Null(lastMessage.Options);
+        Assert.Empty(lastMessage.Options);
     }
 }

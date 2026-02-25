@@ -7,7 +7,7 @@ public class MessageToSendStub : IMessage
     public DateTime Date { get; }
     public string Text { get; set;} = String.Empty;
     public bool Edited { get; }
-    public MessageOptions? Options { get; }
+    public IReadOnlyCollection<Option>? Options { get; }
     public Table? Table { get; }
     public bool UseMarkdown { get; } = false;
     public IFileInfo? FileInfo { get; }

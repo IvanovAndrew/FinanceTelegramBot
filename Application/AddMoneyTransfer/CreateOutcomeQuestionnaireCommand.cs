@@ -19,9 +19,7 @@ public class CreateOutcomeQuestionnaireCommandHandler(IUserSessionService userSe
         {
             session.ActiveFlow = new AddMoneyTransferFlow(false, dateTimeService, logger);
 
-            await mediator.Publish(
-                new EnterTheDayEvent()
-                    { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
+            await mediator.Publish(new EnterTheDayEvent() { SessionId = request.SessionId}, cancellationToken);
         }
     }
 }

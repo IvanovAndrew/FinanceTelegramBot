@@ -1,5 +1,4 @@
-﻿using Application.Contracts;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.AddMoneyTransferByRequisites;
 
@@ -18,8 +17,7 @@ public class RequisitesRequestedEventHandler(IUserSessionService userSessionServ
         {
             session.ActiveFlow = new CheckRequisiteFlow(dateTimeService);
 
-            await mediator.Publish(new RequisitesCreatedEvent()
-                { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
+            await mediator.Publish(new RequisitesCreatedEvent() { SessionId = notification.SessionId }, cancellationToken);
         }
     }
 }

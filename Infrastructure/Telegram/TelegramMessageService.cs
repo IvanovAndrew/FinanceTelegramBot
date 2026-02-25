@@ -10,93 +10,104 @@ using Message = Application.Message;
 
 namespace Infrastructure.Telegram;
 
-public class TelegramMessageService : IMessageService
+public class TelegramMessageService(ITelegramBotClient telegramBotClient)
+    : IMessageService
 {
-    private readonly ITelegramBotClient _telegramBotClient;
-    private readonly IDateTimeService _dateTimeService;
-
-    public TelegramMessageService(ITelegramBotClient telegramBotClient, IDateTimeService dateTimeService)
-    {
-        _telegramBotClient = telegramBotClient;
-        _dateTimeService = dateTimeService;
-    }
-    
-    public async Task<IMessage> SendTextMessageAsync(IMessage messageToSend, CancellationToken cancellationToken = default)
+    public async Task<int> SendTextMessageAsync(long chatId, string text, IReadOnlyCollection<Option>? options = null,
+        Table? table = null, bool useMarkdown = false, CancellationToken cancellationToken = default)
     {
         InlineKeyboardMarkup? inlineKeyboard = null;
-        if (messageToSend.Options != null)
+        if (options?.Any() == true)
         {
-            inlineKeyboard = MapOptions(messageToSend.Options);
+            inlineKeyboard = MapOptions(options);
         }
 
-        var textToSend = messageToSend.Text;
-        bool useMarkdown = false;
-        if (messageToSend.Table != null)
+        var textToSend = text;
+        if (table != null)
         {
-            textToSend = $"```{TelegramEscaper.EscapeString(FormatTable(messageToSend.Table))}```";
+            textToSend = $"```{TelegramEscaper.EscapeString(FormatTable(table))}```";
             useMarkdown = true;
         }
-        else if (messageToSend.UseMarkdown)
+        else if (useMarkdown)
         {
-            textToSend = $"```{TelegramEscaper.EscapeString(messageToSend.Text)}```";
+            textToSend = $"```{TelegramEscaper.EscapeString(text)}```";
             useMarkdown = true;
         }
 
-        var message = await _telegramBotClient.SendMessage(
-            messageToSend.ChatId, 
+        var message = await telegramBotClient.SendMessage(
+            chatId, 
             textToSend, 
             replyMarkup:inlineKeyboard, 
             parseMode: useMarkdown? ParseMode.MarkdownV2 : ParseMode.None,
             cancellationToken: cancellationToken);
         
-        return new Message(){Id = message.Id, ChatId = message.Chat.Id};
+        return message.Id;
     }
 
-    public async Task<IMessage> EditSentTextMessageAsync(IMessage messageToSend, CancellationToken cancellationToken = default)
+    public async Task<int> EditSentTextMessageAsync(long chatId, int messageId, string text, IReadOnlyCollection<Option>? options = null,
+        Table? table = null, bool useMarkdown = false, CancellationToken cancellationToken = default)
     {
-        if (messageToSend.Id == null)
-        {
-            return await SendTextMessageAsync(messageToSend, cancellationToken);
-        }
-        
         InlineKeyboardMarkup? inlineKeyboard = null;
-        if (messageToSend.Options != null)
+        if (options?.Any() == true)
         {
-            inlineKeyboard = MapOptions(messageToSend.Options);
+            inlineKeyboard = MapOptions(options);
         }
 
-        string textToSend = messageToSend.Text;
-        bool useMarkdown = false;
-        if (messageToSend.Table != null)
+        string textToSend = text;
+        if (table != null)
         {
-            textToSend = $"```{TelegramEscaper.EscapeString(FormatTable(messageToSend.Table))}```";
+            textToSend = $"```{TelegramEscaper.EscapeString(FormatTable(table))}```";
             useMarkdown = true;
         }
-        else if (messageToSend.UseMarkdown)
+        else if (useMarkdown)
         {
-            textToSend = $"```{TelegramEscaper.EscapeString(messageToSend.Text)}```";
+            textToSend = $"```{TelegramEscaper.EscapeString(text)}```";
             useMarkdown = true;
         }
         
-        var message = await _telegramBotClient.EditMessageText(
-            messageToSend.ChatId, 
-            messageToSend.Id?? 0, 
+        var message = await telegramBotClient.EditMessageText(
+            chatId, 
+            messageId, 
             textToSend,
             replyMarkup:inlineKeyboard,
             parseMode:useMarkdown? ParseMode.MarkdownV2: ParseMode.None,
             cancellationToken: cancellationToken);
 
-        return new Message(){Id = message.Id, ChatId = message.Chat.Id};
+        return message.Id;
     }
 
-    public async Task SendPictureAsync(IMessage messageToSend, CancellationToken cancellationToken = default)
+    private InlineKeyboardMarkup MapOptions(IReadOnlyCollection<Option> messageOptions)
     {
-        if (messageToSend.PictureBytes is { } bytes)
+        var keyboardMarkup = new InlineKeyboardMarkup();
+
+        foreach (var chunks in messageOptions.Chunk(3))
+        {
+            keyboardMarkup.AddNewRow(chunks.Select(option => MapButton(option)).ToArray());
+        }
+
+        return keyboardMarkup;
+
+        InlineKeyboardButton MapButton(Option option)
+        {
+            if (!string.IsNullOrEmpty(option.Code))
+                return new InlineKeyboardButton(option.Text, option.Code);
+
+            return new InlineKeyboardButton(option.Text);
+        }
+    }
+
+    public async Task<int> SendPictureAsync(long chatId, byte[] picture, string caption,
+        CancellationToken cancellationToken = default)
+    {
+        if (picture is { } bytes)
         {
             using var stream = new MemoryStream(bytes);
-            await _telegramBotClient.SendPhoto(messageToSend.ChatId, new InputFileStream(stream), caption:messageToSend.Text, cancellationToken: cancellationToken);
+            var message = await telegramBotClient.SendPhoto(chatId, new InputFileStream(stream), caption:caption, cancellationToken: cancellationToken);
+
+            return message.Id;
         }
-        
+
+        throw new InvalidOperationException("No picture bytes found");
     }
 
     private string FormatTable(Table table)
@@ -189,17 +200,17 @@ public class TelegramMessageService : IMessageService
         return stringBuilder.ToString();
     }
 
-    public async Task DeleteMessageAsync(IMessage message, CancellationToken cancellationToken)
+    public async Task DeleteMessageAsync(long chatId, int messageId, CancellationToken cancellationToken)
     {
-        var diff = _dateTimeService.Now().Subtract(message.Date);
-        if (diff.Hours >= 48)
-        {
-            throw new DeleteOutdatedTelegramMessageException();
-        }
+        // var diff = dateTimeService.Now().Subtract(message.Date);
+        // if (diff.Hours >= 48)
+        // {
+        //     throw new DeleteOutdatedTelegramMessageException();
+        // }
 
         try
         {
-            await _telegramBotClient.DeleteMessage(message.ChatId, message.Id?? 0, cancellationToken);
+            await telegramBotClient.DeleteMessage(chatId, messageId, cancellationToken);
         }
         catch (Exception e)
         {
@@ -209,16 +220,16 @@ public class TelegramMessageService : IMessageService
 
     public async Task<IFile?> GetFileAsync(string fileId, CancellationToken cancellationToken)
     {
-        var file = await _telegramBotClient.GetFile(fileId, cancellationToken);
+        var file = await telegramBotClient.GetFile(fileId, cancellationToken);
 
         if (file?.FilePath == null) return null;
         
         string text;
         using (var memoryStream = new MemoryStream())
         {
-            await _telegramBotClient.DownloadFile(file.FilePath, memoryStream, cancellationToken);
+            await telegramBotClient.DownloadFile(file.FilePath, memoryStream, cancellationToken);
             var bytes = memoryStream.ToArray();
-            text = System.Text.Encoding.Default.GetString(bytes);
+            text = Encoding.Default.GetString(bytes);
         }
         
         return new TelegramFile(){Text = text};

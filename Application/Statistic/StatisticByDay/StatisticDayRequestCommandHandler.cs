@@ -52,7 +52,7 @@ public record DayOutcomesReadEvent : INotification
     public DateOnly Day { get; init; }
 }
 
-public class DayOutcomesReadEventHandler(IMessageService messageService, ILogger<DayOutcomesReadEventHandler> logger) : INotificationHandler<DayOutcomesReadEvent>
+public class DayOutcomesReadEventHandler(IConversation conversation, ILogger<DayOutcomesReadEventHandler> logger) : INotificationHandler<DayOutcomesReadEvent>
 {
     public async Task Handle(DayOutcomesReadEvent notification, CancellationToken cancellationToken)
     {
@@ -75,13 +75,6 @@ public class DayOutcomesReadEventHandler(IMessageService messageService, ILogger
         
         var table = StatisticTableBuilder.BuildTable(wrapper, tableOptions);
 
-        await messageService.EditSentTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Id = notification.LastSentMessageId,
-                Table = table
-            }, cancellationToken
-        );
+        await conversation.Update(notification.SessionId, Screens.Notify(table), cancellationToken);
     }
 }

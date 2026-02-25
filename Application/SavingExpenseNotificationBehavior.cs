@@ -3,18 +3,11 @@ using MediatR;
 
 namespace Application;
 
-public class SavingExpenseNotificationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+public class SavingExpenseNotificationBehavior<TRequest, TResponse>(
+    IUserSessionService userSessionService)
+    : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly IMessageService _messageService;
-    private readonly IUserSessionService _userSessionService;
-
-    public SavingExpenseNotificationBehavior(IMessageService messageService, IUserSessionService userSessionService)
-    {
-        _messageService = messageService;
-        _userSessionService = userSessionService;
-    }
-
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
@@ -22,11 +15,11 @@ public class SavingExpenseNotificationBehavior<TRequest, TResponse> : IPipelineB
     {
         if (request is SaveMoneyTransferCommand saveExpenseCommand)
         {
-            var session = _userSessionService.GetUserSession(saveExpenseCommand.SessionId);
-            if (session != null)
-            {
-                await _messageService.EditSentTextMessageAsync(new Message(){ChatId = saveExpenseCommand.SessionId, Id = session.LastSentMessageId, Text = "Saving..."}, cancellationToken: cancellationToken);
-            }
+            var session = userSessionService.GetUserSession(saveExpenseCommand.SessionId);
+            // if (session != null)
+            // {
+            //     await messageService.EditSentTextMessageAsync(new Message(){ChatId = saveExpenseCommand.SessionId, Id = saveExpenseCommand.LastSentMessageId, Text = "Saving..."}, cancellationToken: cancellationToken);
+            // }
         }
 
         return await next();

@@ -4,5 +4,5 @@ namespace Application.AddMoneyTransfer;
 
 public record OutcomeCreatedEvent : INotification
 {
-    public long SessionID { get; init; }
+    public long SessionId { get; init; }
 }

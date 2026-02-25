@@ -1,7 +1,5 @@
-using Application;
 using Application.Services;
 using Infrastructure;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -12,20 +10,11 @@ namespace TelegramBot.Controllers
 {
     [ApiController]
     [Route(Route)]
-    public class BotController : ControllerBase
+    public class BotController(BotEngine botEngine, ILogger<BotController> logger) : ControllerBase
     {
         internal const string Route = "api";
         internal const string MessageRoute = "message/update";
-        private readonly BotEngine _botEngine;
-        private readonly IMediator _mediator;
-        private readonly ILogger _logger;
-
-        public BotController(BotEngine botEngine, IMediator mediator, ILogger<BotController> logger)
-        {
-            _botEngine = botEngine;
-            _mediator = mediator;
-            _logger = logger;
-        }
+        private readonly ILogger _logger = logger;
 
         [HttpPost]
         [Route(MessageRoute)]
@@ -35,7 +24,7 @@ namespace TelegramBot.Controllers
         
             try
             {
-                await _botEngine.Proceed(message, cancellationToken);
+                await botEngine.Proceed(message, cancellationToken);
             }
             catch (BotException e)
             {

@@ -7,7 +7,7 @@ public interface IMessage
     DateTime Date { get; }
     string Text { get; }
     bool Edited { get; }
-    MessageOptions? Options { get; }
+    IReadOnlyCollection<Option>? Options { get; }
     Table? Table { get; }
     bool UseMarkdown { get; }
     IFileInfo? FileInfo { get; }
@@ -21,7 +21,7 @@ public class Message : IMessage
     public DateTime Date { get; init;}
     public string Text { get; init; } = string.Empty;
     public bool Edited { get; init;}
-    public MessageOptions? Options { get; init; }
+    public IReadOnlyCollection<Option>? Options { get; init; }
     public Table? Table { get; init; }
     public bool UseMarkdown { get; init;}
     public IFileInfo? FileInfo { get; init; }
@@ -82,7 +82,7 @@ public class MessageOptions
 
         if (SingleLineOption != null)
         {
-            yield return new []{SingleLineOption};
+            yield return [SingleLineOption];
         }
     }
 

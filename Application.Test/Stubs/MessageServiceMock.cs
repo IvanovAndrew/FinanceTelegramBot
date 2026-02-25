@@ -10,46 +10,58 @@ public class MessageServiceMock : IMessageService
     public IReadOnlyList<MessageStub> SentMessages => _sentMessages.AsReadOnly();
     public Dictionary<string, FileStub> SavedFiles = new();
 
-    public Task<IMessage> SendTextMessageAsync(IMessage messageToSend, CancellationToken cancellationToken = default)
+    public Task<int> SendTextMessageAsync(long chatId, string text, IReadOnlyCollection<Option>? options = null,
+        Table? table = null, bool useMarkdown = false, CancellationToken cancellationToken = default)
     {
         var message = new MessageStub()
         {
             Id = _messageId++,
-            ChatId = messageToSend.ChatId,
-            Options = messageToSend.Options,
-            Table = messageToSend.Table,
-            Text = messageToSend.Text,
+            ChatId = chatId,
+            Options = options,
+            Table = table,
+            Text = text,
             Date = DateTime.Now
         };
         
         _sentMessages.Add(message);
-        return Task.FromResult<IMessage>(message);
+        return Task.FromResult<int>(message.Id.Value);
     }
 
-    public Task<IMessage> EditSentTextMessageAsync(IMessage messageToSend, CancellationToken cancellationToken = default)
+    public Task<int> EditSentTextMessageAsync(long chatId, int messageId, string text, IReadOnlyCollection<Option>? options = null, Table? table = null, bool useMarkdown = false, CancellationToken cancellationToken = default)
     {
-        var sentMessage = SentMessages.FirstOrDefault(m => m.ChatId == messageToSend.ChatId && m.Id == messageToSend.Id);
+        var sentMessage = SentMessages.FirstOrDefault(m => m.ChatId == chatId && m.Id == messageId);
 
         if (sentMessage != null)
         {
-            sentMessage.Text = messageToSend.Text;
-            sentMessage.Options = messageToSend.Options;
-            sentMessage.Table = messageToSend.Table;
+            sentMessage.Text = text;
+            sentMessage.Options = options;
+            sentMessage.Table = table;
         
-            return Task.FromResult<IMessage>(sentMessage);
+            return Task.FromResult<int>(sentMessage.Id.Value);
         }
 
-        return SendTextMessageAsync(messageToSend, cancellationToken);
+        return SendTextMessageAsync(chatId, text, options, table, cancellationToken:cancellationToken);
     }
 
-    public Task SendPictureAsync(IMessage messageToSend, CancellationToken cancellationToken = default)
+    public Task<int> SendPictureAsync(long chatId, byte[] picture, string caption,
+        CancellationToken cancellationToken = default)
     {
-        return Task.CompletedTask;
+        var message = new MessageStub()
+        {
+            Id = _messageId++,
+            ChatId = chatId,
+            Text = caption,
+            Date = DateTime.Now,
+            PictureBytes = picture
+        };
+        
+        _sentMessages.Add(message);
+        return Task.FromResult(message.Id.Value);
     }
 
-    public Task DeleteMessageAsync(IMessage message, CancellationToken cancellationToken)
+    public Task DeleteMessageAsync(long chatId, int messageId, CancellationToken cancellationToken)
     {
-        var messageToDelete = FindSentMessageById(message.ChatId, message.Id?? 0);
+        var messageToDelete = FindSentMessageById(chatId, messageId);
         if (messageToDelete != null)
         {
             _sentMessages.Remove(messageToDelete);

@@ -1,5 +1,4 @@
-﻿using Application.AddMoneyTransfer;
-using Domain;
+﻿using Domain;
 using MediatR;
 
 namespace Application.AddMoneyTransferByRequisites;
@@ -10,7 +9,7 @@ public record SaveOutcomesBatchCommand : IRequest
     public IReadOnlyCollection<Outcome> MoneyTransfers { get; init; }
 }
 
-public class SaveOutcomesBatchCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<SaveOutcomesBatchCommand>
+public class SaveOutcomesBatchCommandHandler(IUserSessionService userSessionService, IFinanceRepository financeRepository, IProgressNotifier progressNotifier) : IRequestHandler<SaveOutcomesBatchCommand>
 {
     public async Task Handle(SaveOutcomesBatchCommand request, CancellationToken cancellationToken)
     {
@@ -20,8 +19,7 @@ public class SaveOutcomesBatchCommandHandler(IUserSessionService userSessionServ
         {
             SaveBatchExpensesResult result;
 
-            await mediator.Publish(new MoneyTransferSavingStartedEvent()
-                { SessionId = session.Id, MessageId = (int)session.LastSentMessageId! }, cancellationToken);
+            await progressNotifier.Start(request.SessionId, "Saving...", cancellationToken);
             
             try
             {
@@ -34,7 +32,7 @@ public class SaveOutcomesBatchCommandHandler(IUserSessionService userSessionServ
                 result = SaveBatchExpensesResult.Canceled(request.MoneyTransfers);
             }
 
-            await mediator.Publish(new ExpensesBatchSavedResultEvent() { SessionId = request.SessionId, Result = result }, cancellationToken);
+            await progressNotifier.Finish(request.SessionId, result.GetMessage(), cancellationToken);
         }
     }
 }

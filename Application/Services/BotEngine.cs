@@ -45,7 +45,7 @@ namespace Application.Services
                 return;
             }
             
-            await mediator.Send(new UserInputReceivedCommand(){SessionId = message.ChatId, LastSentMessageId = message.Id, Text = message.Text}, cancellationToken);
+            await mediator.Send(new UserInputReceivedCommand(){SessionId = message.ChatId, Text = message.Text}, cancellationToken);
 
             // if (session == null)
             // {
@@ -60,10 +60,10 @@ namespace Application.Services
             {
                 "/start" => new StartSessionCommand() { SessionId = chatId },
                 "/cancel" => new CancelSessionCommand() { SessionId = chatId },
-                "/back" => new StepBackCommand() { SessionId = chatId },
+                "/back" => new StepBackCommand() { SessionId = chatId},
                 //"/save" => new SaveMoneyTransferCommand() { SessionId = chatId },
                 "/outcome" => new CreateExpenseCommand() { SessionID = chatId },
-                "/income" => new CreateIncomeCommand() { SessionID = chatId },
+                "/income" => new CreateIncomeCommand() { SessionId = chatId },
                 "/balance" => new StatisticBalanceCommand { SessionId = chatId },
                 "/statisticByDay" => new StatisticByDayCommand { SessionId = chatId },
                 "/statisticByMonth" => new StatisticByMonthCommand { SessionId = chatId },
@@ -84,7 +84,7 @@ namespace Application.Services
                 "/statistics" => new StatisticRequestedEvent { SessionId = chatId },
                 "/requisites" => new RequisitesRequestedEvent() { SessionId = chatId },
                 "/check" => new CheckOutcomeQuestionnaireRequestedEvent() { SessionId = chatId },
-                "/json" => new JsonCheckRequestedEvent() { SessionId = chatId, LastSentMessageId = messageId},
+                "/json" => new JsonCheckRequestedEvent() { SessionId = chatId },
                 "/url" => new EnterUrlLinkEvent() { SessionId = chatId },
                 _ => null
             };

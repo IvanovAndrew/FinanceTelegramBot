@@ -5,7 +5,7 @@ namespace Application.AddMoneyTransfer;
 
 public record CreateIncomeCommand : IRequest
 {
-    public long SessionID { get; init; }
+    public long SessionId { get; init; }
 }
 
 public class CreateIncomeCommandHandler(IUserSessionService userSessionService, IDateTimeService dateTimeService, IMediator mediator, ILogger<CreateIncomeCommandHandler> logger)
@@ -13,12 +13,12 @@ public class CreateIncomeCommandHandler(IUserSessionService userSessionService, 
 {
     public async Task Handle(CreateIncomeCommand request, CancellationToken cancellationToken)
     {
-        var session = userSessionService.GetUserSession(request.SessionID);
+        var session = userSessionService.GetUserSession(request.SessionId);
 
         if (session != null)
         {
             session.ActiveFlow = new AddMoneyTransferFlow(true, dateTimeService, logger);
-            await mediator.Publish(new IncomeCreatedEvent() { SessionId = session.Id, LastSentMessageId = session.LastSentMessageId }, cancellationToken);
+            await mediator.Publish(new IncomeCreatedEvent() { SessionId = request.SessionId }, cancellationToken);
         }
     }
 }

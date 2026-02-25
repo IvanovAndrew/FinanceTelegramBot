@@ -14,11 +14,7 @@ public class JsonFileDownloadedEventHandler(IExpenseJsonParser parser, IMediator
 {
     public async Task Handle(JsonFileDownloadedEvent notification, CancellationToken cancellationToken)
     {
-        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(notification.Json));
-        using var reader = new StreamReader(stream, detectEncodingFromByteOrderMarks: true);
-        var cleanJson = await reader.ReadToEndAsync(cancellationToken);
-        
-        var expenses = parser.ParseOutcomes(cleanJson, Categories.Outcome.DefaultCategory);
+        var expenses = parser.ParseOutcomes(notification.Json, Categories.Outcome.DefaultCategory);
 
         if (!expenses.Any())
         {
@@ -26,7 +22,6 @@ public class JsonFileDownloadedEventHandler(IExpenseJsonParser parser, IMediator
                 { SessionId = notification.SessionId }, cancellationToken);
             return;
         }
-            
         
         await mediator.Send(new SaveOutcomesBatchCommand()
             { SessionId = notification.SessionId, MoneyTransfers = expenses }, cancellationToken);
@@ -38,10 +33,10 @@ public record NoExpensesInJsonEvent : INotification
     public long SessionId { get; init; }
 }
 
-public class NoExpensesInJsonEventHandler(IMessageService messageService) : INotificationHandler<NoExpensesInJsonEvent>
+public class NoExpensesInJsonEventHandler(IConversation conversation) : INotificationHandler<NoExpensesInJsonEvent>
 {
     public async Task Handle(NoExpensesInJsonEvent notification, CancellationToken cancellationToken)
     {
-        await messageService.SendTextMessageAsync(new Message(){ ChatId = notification.SessionId, Text = "There are no expenses in json file" }, cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.Notify("There are no expenses in json file"), cancellationToken);
     }
 }

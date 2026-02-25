@@ -4,5 +4,5 @@ namespace Application.Statistic.StatisticByDay;
 
 public record StatisticByDayCreatedEvent : INotification
 {
-    public long SessionId { get; set; }
+    public long SessionId { get; init; }
 }

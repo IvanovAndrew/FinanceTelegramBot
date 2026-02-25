@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Application.Statistic.StatisticBalance;
 
-public class BalanceStatisticTableCalculatedEventHandler(IMessageService messageService) : INotificationHandler<BalanceStatisticCalculatedEvent>
+public class BalanceStatisticTableCalculatedEventHandler(IConversation conversation) : INotificationHandler<BalanceStatisticCalculatedEvent>
 {
     public async Task Handle(BalanceStatisticCalculatedEvent notification, CancellationToken cancellationToken)
     {
@@ -13,13 +13,7 @@ public class BalanceStatisticTableCalculatedEventHandler(IMessageService message
         
         var table = BuildTable(totalBalance, notification.MonthRange.From, notification.Currency);
         
-        await messageService.EditSentTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Id = notification.LastSentMessageId,
-                Table = table
-            }, cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.Notify(table), cancellationToken);
     }
     
     private static Table BuildTable(Balance balance, YearMonth monthFrom, Currency currency)
@@ -53,19 +47,13 @@ public class BalanceStatisticTableCalculatedEventHandler(IMessageService message
     }
 }
 
-public class BalanceStatisticPaydayCalculatedEventHandler(IMessageService messageService) : INotificationHandler<BalanceStatisticCalculatedEvent>
+public class BalanceStatisticPaydayCalculatedEventHandler(IConversation conversation) : INotificationHandler<BalanceStatisticCalculatedEvent>
 {
     public async Task Handle(BalanceStatisticCalculatedEvent notification, CancellationToken cancellationToken)
     {
         var text = Text(notification.Currency, notification.MonthBalances, notification.MandatoryExpenses, notification.PeriodLeft, notification.DailyBudget);
 
-        await messageService.SendTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Text = text,
-                UseMarkdown = true,
-            }, cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.Notify(text), cancellationToken);
     }
 
     private string Text(Currency currency, IReadOnlyList<MonthlyBalance> monthBalances, Money mandatoryExpenses, FinancialPeriod period, Money dailyBudget)
@@ -73,15 +61,14 @@ public class BalanceStatisticPaydayCalculatedEventHandler(IMessageService messag
         var zero = Money.Zero(currency);
         var totalBalance = monthBalances.Aggregate(new Balance(zero, zero), (acc, monthBalance) => acc + monthBalance.Balance);
 
-        var dayFormat = "d MMMM yyyy";
         var text = new StringBuilder()
             .AppendLine("Information")
             .AppendLine($"Total balance: {totalBalance.Saldo}")
             .AppendLine($"Future expenses: {mandatoryExpenses}")
             .AppendLine($"Real free money: {totalBalance.Saldo - mandatoryExpenses}")
             .AppendLine("")
-            .AppendLine($"Today is {period.Start.ToString(dayFormat)}")
-            .AppendLine($"The payday is {period.End.ToString(dayFormat)}")
+            .AppendLine($"Today is {period.Start.ToString(DateFormat.Day)}")
+            .AppendLine($"The payday is {period.End.ToString(DateFormat.Day)}")
             .AppendLine($"Days till the payday (today {(period.IncludeStart ? "is" : "isn't")} included): {period.DaysRemaining}")
             .AppendLine()
             .AppendLine($"{dailyBudget} can be spent daily till the payday")

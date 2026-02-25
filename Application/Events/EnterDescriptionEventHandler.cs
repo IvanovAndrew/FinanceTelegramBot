@@ -7,14 +7,10 @@ public record EnterDescriptionEvent : INotification
     public long SessionId { get; init; }
 }
 
-public class EnterDescriptionEventHandler(IMessageService messageService) : INotificationHandler<EnterDescriptionEvent>
+public class EnterDescriptionEventHandler(IConversation conversation) : INotificationHandler<EnterDescriptionEvent>
 {
     public async Task Handle(EnterDescriptionEvent notification, CancellationToken cancellationToken)
     {
-        await messageService.EditSentTextMessageAsync(new Message()
-        {
-            ChatId = notification.SessionId,
-            Text = "Enter the description",
-        }, cancellationToken: cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.EnterDescription(), cancellationToken);
     }
 }

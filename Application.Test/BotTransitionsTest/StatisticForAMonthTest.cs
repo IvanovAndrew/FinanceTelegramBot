@@ -59,11 +59,10 @@ public class StatisticForAMonthTest
         // Assert
         Assert.NotNull(response.Options);
         
-        var buttons = response.Options.AllOptions().Select(_ => _.Text);
+        var buttons = response.Options.Select(_ => _.Text);
         
         Assert.Contains("July 2023", buttons);
         Assert.Contains("June 2023", buttons);
-        Assert.Contains("January 2023", buttons);
         Assert.Contains("Another month", buttons);
     }
 
@@ -105,7 +104,7 @@ public class StatisticForAMonthTest
         await _botEngine.Proceed("AMD");
 
 
-        var table = _messageService.SentMessages.First().Table;
+        var table = _messageService.SentMessages.Single().Table;
 
         // Assert
         Assert.NotNull(table);

@@ -16,7 +16,6 @@ public class GetBalanceStatisticCommandHandler(
         await mediator.Publish(new BalanceStatisticCollectingStarted
         {
             SessionId = request.SessionId,
-            LastSentMessageId = request.LastSentMessageId
         }, cancellationToken);
 
         try
@@ -26,7 +25,6 @@ public class GetBalanceStatisticCommandHandler(
             await mediator.Publish(new BalanceStatisticCalculatedEvent
             {
                 SessionId = request.SessionId,
-                LastSentMessageId = request.LastSentMessageId,
                 Currency = result.Currency,
                 MonthBalances = result.MonthBalances,
                 MandatoryExpenses = result.UnpaidRecurring,
@@ -41,7 +39,6 @@ public class GetBalanceStatisticCommandHandler(
             await mediator.Publish(new NeitherIncomesNotOutcomesFoundEvent
             {
                 SessionId = request.SessionId,
-                LastSentMessageId = request.LastSentMessageId
             }, cancellationToken);
         }
         catch (OperationCanceledException)

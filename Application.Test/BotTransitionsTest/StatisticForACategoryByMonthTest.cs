@@ -2,10 +2,8 @@ using Application.Test.Extensions;
 using Application.Test.Stubs;
 using Domain;
 using Microsoft.Extensions.DependencyInjection;
-using UnitTest;
 using UnitTest.Extensions;
 using Xunit;
-using static Domain.Categories;
 using Outcome = Domain.Outcome;
 
 namespace Application.Test.BotTransitionsTest;
@@ -15,11 +13,12 @@ public class StatisticForACategoryByMonthTest
     private readonly BotEngineWrapper _botEngine;
     private readonly FinanceRepositoryStub _expenseRepository;
     private readonly DateTimeServiceStub _datetimeService;
+    private readonly MessageServiceMock _messageServiceMock;
     
 
     public StatisticForACategoryByMonthTest()
     {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _datetimeService, out _, out _, out _);
+        var provider = TestServiceFactory.Create(out _expenseRepository, out _datetimeService, out _messageServiceMock, out _, out _);
         _datetimeService.SetToday(new DateOnly(2023, 7, 24));
 
         _botEngine = provider.GetRequiredService<BotEngineWrapper>();
@@ -44,10 +43,12 @@ public class StatisticForACategoryByMonthTest
         await _botEngine.Proceed("Еда");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2022");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await _botEngine.Proceed("AMD");
         
         // Assert
-        var table = lastMessage.Table;
+        Assert.Equal(2, _messageServiceMock.SentMessages.Count);
+        var table = _messageServiceMock.SentMessages.Single(c => c.Table != null).Table;
+        
         Assert.NotNull(table);
         Assert.Contains("Statistic", table.Title);
         Assert.Contains("Category", table.Subtitle);
@@ -75,10 +76,12 @@ public class StatisticForACategoryByMonthTest
         await _botEngine.Proceed("Category expenses (by months)");
         await _botEngine.Proceed("Еда");
         await _botEngine.Proceed("June 2023");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await _botEngine.Proceed("AMD");
 
         // Assert
-        var table = lastMessage.Table;
+        Assert.Equal(2, _messageServiceMock.SentMessages.Count);
+        var table = _messageServiceMock.SentMessages.Single(c => c.Table != null).Table;
+        
         Assert.NotNull(table);
         
         Assert.Equal("Statistic", table.Title);
@@ -112,10 +115,12 @@ public class StatisticForACategoryByMonthTest
         await _botEngine.Proceed("Коты");
         await _botEngine.Proceed("Another month");
         await _botEngine.Proceed("January 2022");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await _botEngine.Proceed("AMD");
 
         // Assert
-        var table = lastMessage.Table;
+        Assert.Equal(2, _messageServiceMock.SentMessages.Count);
+        
+        var table = _messageServiceMock.SentMessages.Single(c => c.Table != null).Table;
         Assert.NotNull(table);
         CollectionAssertExtension.AssertOrder(table.Rows.Select(row => row.FirstColumnValue).ToList(), "December 2022", "January 2023", "February 2023", "March 2023", "April 2023", "May 2023", "June 2023", "July 2023");
     }

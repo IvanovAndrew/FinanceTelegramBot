@@ -5,42 +5,29 @@ namespace Application.Statistic.StatisticBalance;
 public record GetBalanceStatisticCommand : IRequest
 {
     public long SessionId { get; init; }
-    public int? LastSentMessageId { get; init; }
     public StatisticsQuery Query { get; init; }
 }
 
-public class BalanceStatisticCollectingStartedHandler(IMessageService messageService) : INotificationHandler<BalanceStatisticCollectingStarted>
+public class BalanceStatisticCollectingStartedHandler(IConversation conversation) : INotificationHandler<BalanceStatisticCollectingStarted>
 {
     public async Task Handle(BalanceStatisticCollectingStarted notification, CancellationToken cancellationToken)
     {
-        await messageService.EditSentTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Id = notification.LastSentMessageId,
-                Text = $"Loading the incomes and the outcomes...{Environment.NewLine}" +
-                       "It can take some time"
-            }, cancellationToken);
+        await conversation.Update(
+            notification.SessionId, 
+            Screens.NotifyLoading($"Loading the incomes and the outcomes...{Environment.NewLine}It can take some time"), cancellationToken);
     }
 }
 
 public class NeitherIncomesNotOutcomesFoundEvent : INotification
 {
     public long SessionId { get; init; }
-    public int? LastSentMessageId { get; init; }
 }
 
-public class NeitherIncomesNotOutcomesFoundEventHandler(IMessageService messageService) : INotificationHandler<NeitherIncomesNotOutcomesFoundEvent>
+public class NeitherIncomesNotOutcomesFoundEventHandler(IConversation conversation) : INotificationHandler<NeitherIncomesNotOutcomesFoundEvent>
 {
     public async Task Handle(NeitherIncomesNotOutcomesFoundEvent notification, CancellationToken cancellationToken)
     {
-        await messageService.EditSentTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Id = notification.LastSentMessageId,
-                Text = "There is no any expenses for this period"
-            }, cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.Notify("There is no any expenses for this period"), cancellationToken);
     }
 }
 
@@ -49,16 +36,11 @@ public class LongOperationCanceledEvent : INotification
     public long SessionId { get; init; }
 }
 
-public class LongOperationCanceledEventHandler(IMessageService messageService) : INotificationHandler<LongOperationCanceledEvent>
+public class LongOperationCanceledEventHandler(IConversation conversation) : INotificationHandler<LongOperationCanceledEvent>
 {
     public async Task Handle(LongOperationCanceledEvent notification, CancellationToken cancellationToken)
     {
-        await messageService.SendTextMessageAsync(
-            new Message()
-            {
-                ChatId = notification.SessionId,
-                Text = "Operation has been canceled"
-            }, cancellationToken
-        );
+        await conversation.Update(notification.SessionId, Screens.Notify("Operation has been canceled"),
+            cancellationToken);
     }
 }

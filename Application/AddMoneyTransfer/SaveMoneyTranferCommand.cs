@@ -6,21 +6,17 @@ namespace Application.AddMoneyTransfer;
 public record SaveMoneyTransferCommand : IRequest
 {
     public long SessionId { get; init; }
-    public int LastSentMessageId { get; init; }
     public IMoneyTransfer MoneyTransfer { get; init; }
-    
 }
 
-public class SaveMoneyTransferCommandHandler(IFinanceRepository financeRepository, IMediator mediator)
+public class SaveMoneyTransferCommandHandler(IFinanceRepository financeRepository, IProgressNotifier progressNotifier)
     : IRequestHandler<SaveMoneyTransferCommand>
 {
     public async Task Handle(SaveMoneyTransferCommand request, CancellationToken cancellationToken)
     {
-        await mediator.Publish(
-            new MoneyTransferSavingStartedEvent()
-                { SessionId = request.SessionId, MessageId = request.LastSentMessageId }, cancellationToken);
+        await progressNotifier.Start(request.SessionId, "Saving...", cancellationToken);
                 
-        SaveResult success = SaveResult.Fail("Unknown money transfer type");
+        SaveResult success;
         
         try
         {
@@ -28,18 +24,19 @@ public class SaveMoneyTransferCommandHandler(IFinanceRepository financeRepositor
         }
         catch (TaskCanceledException e)
         {
-            // TODO send an event 'task canceled'
+            await progressNotifier.Finish(request.SessionId, "Saving cancelled", cancellationToken);
             return;
         }
         
-        if (success.Success)
+        if (!success.Success)
         {
-            await mediator.Publish(new MoneyTransferSavedEvent { SessionId = request.SessionId, MoneyTransfer = request.MoneyTransfer }, cancellationToken);
+            await progressNotifier.Finish(request.SessionId, $"Couldn't save expense. {success.ErrorMessage}", cancellationToken);
+            return;
         }
-        else
-        {
-            await mediator.Publish(new MoneyTransferIsNotSavedEvent { SessionId = request.SessionId, Reason = success.ErrorMessage!},
-                cancellationToken);
-        }
+            
+        await progressNotifier.Finish(
+            request.SessionId, 
+            string.Join($"{Environment.NewLine}", request.MoneyTransfer.ToString(), string.Empty, "Saved"), 
+            cancellationToken);
     }
 }

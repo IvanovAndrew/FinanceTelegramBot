@@ -4,22 +4,12 @@ using Microsoft.Extensions.Logging;
 namespace Application.AddMoneyTransfer;
 
 public class AskCategoryEventHandler(
-    IMessageService messageService,
+    IConversation conversation,
     ILogger<AskCategoryEventHandler> logger)
     : INotificationHandler<EnterCategoryEvent>
 {
     public async Task Handle(EnterCategoryEvent notification, CancellationToken cancellationToken)
     {
-        var options = notification.Categories.Select(c => new Option(c.Code, c.ShortName ?? c.Name)).ToList();
-        
-        var newMessageToSend = new Message()
-        {
-            ChatId = notification.SessionId,
-            Id = notification.LastSentMessageId,
-            Text = "Enter the category",
-            Options = MessageOptions.FromList(options)
-        };
-
-        await messageService.EditSentTextMessageAsync(newMessageToSend, cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.SelectCategory(notification.Categories), cancellationToken);
     }
 }

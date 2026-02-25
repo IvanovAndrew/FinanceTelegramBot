@@ -6,7 +6,6 @@ namespace Application.Statistic.StatisticBalance;
 public class BalanceStatisticCalculatedEvent : INotification
 {
     public long SessionId { get; init; }
-    public int? LastSentMessageId { get; init; }
     public Money Saldo { get; init; }
     public Money DailyBudget { get; init; }
     public Money MandatoryExpenses { get; init; }

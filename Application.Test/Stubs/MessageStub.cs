@@ -7,7 +7,7 @@ public class MessageStub : IMessage
     public DateTime Date { get; set; }
     public string Text { get; set; } = "";
     public bool Edited { get; internal set; }
-    public MessageOptions? Options { get; internal set; }
+    public IReadOnlyCollection<Option>? Options { get; internal set; }
     public Table? Table { get; internal set; }
     public bool UseMarkdown { get; } = false;
     public IFileInfo? FileInfo { get; set; }

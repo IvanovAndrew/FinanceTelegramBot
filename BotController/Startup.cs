@@ -34,6 +34,8 @@ namespace TelegramBot
             services.AddSingleton<IDateTimeService, DateTimeService>();
             services.AddSingleton<IUserSessionService, UserSessionService>();
             services.AddSingleton<IMessageService, TelegramMessageService>();
+            services.AddSingleton<IConversation, TelegramConversation>();
+            services.AddSingleton<IConversationStateStore, ConversationStateStore>();
 
             var telegramToken = Environment.GetEnvironmentVariable("TELEGRAM_TOKEN");
 
@@ -78,6 +80,7 @@ namespace TelegramBot
                 .AddHttpMessageHandler<RefitMessageHandler>();
 
             services.AddScoped<IGoogleSpreadsheetService, GoogleSpreadsheetService>();
+            services.AddScoped<IProgressNotifier, TelegramProgressNotifier>();
 
             services.AddSingleton<IPictureGenerator, ScottPlotPictureGenerator>();
             
