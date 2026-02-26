@@ -1,34 +1,19 @@
-using Application.Test.Extensions;
-using Application.Test.Stubs;
 using Domain;
-using Microsoft.Extensions.DependencyInjection;
-using UnitTest;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
 
 public class StateTest
 {
-    private readonly BotEngineWrapper _botEngine;
-    private readonly MessageServiceMock _messageService;
-    private readonly FinanceRepositoryStub _expenseRepository;
-
-    public StateTest()
-    {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _messageService, out _, out _);
-
-        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
-    }
-    
     [Fact]
     public async Task ThereAreTwoOptionsInGreetingState()
     {
         // Act
-        var lastMessage = await _botEngine.Proceed("/start");
+        var scenario = await BotScenario.Start();
         
         // Assert
-        Assert.NotNull(lastMessage.Options);
-        Assert.Equivalent(new []{"Outcome", "Income", "Statistics"}, lastMessage.Options.Select(c => c.Text));
+        Assert.NotEmpty(scenario.LastMessage.Options);
+        Assert.Equivalent(new []{"Outcome", "Income", "Statistics"}, scenario.LastMessage.Options.Select(c => c.Text));
     }
 
     [Theory]
@@ -38,50 +23,48 @@ public class StateTest
     public async Task AfterPressingOnAnyButtonInGreetingState_TheGreetingMessageIsDisappeared(string pressedButton)
     {
         // Act
-        var greetingMessage = await _botEngine.Proceed("/start");
-        var greetingMessageText = greetingMessage.Text;
-        await _botEngine.Proceed(pressedButton);
+        var scenario = await BotScenario.Start();
+        var greetingMessageText = scenario.LastMessage.Text;
+
+        await scenario.ChooseOutcome();
 
         // Assert
-        Assert.DoesNotContain(greetingMessageText, _messageService.SentMessages.Select(c => c.Text));
+        Assert.DoesNotContain(greetingMessageText, scenario.MessageService.SentMessages.Select(c => c.Text));
     }
     
     [Fact(Skip = "Temporarily ignored")]
     public async Task WhenBackCommandIsExecutedThenLastBotMessageWillBeRemoved()
     {
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("By myself");
-        await _botEngine.Proceed("today");
-        var lastMessage = await _botEngine.Proceed("/back");
+        var scenario = await BotScenario.Start();
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+        await scenario.WithDateToday();
+        await scenario.Back();
 
         // Assert
-        Assert.DoesNotContain("Enter the category", _messageService.SentMessages.Select(c => c.Text));
+        Assert.DoesNotContain("Enter the category", scenario.MessageService.SentMessages.Select(c => c.Text));
     }
     
     [Fact(Skip = "Temporarily ignored")]
     public async Task ClickOnCancelButtonCancelsLongTermOperation()
     {
-        _expenseRepository.DelayTime = TimeSpan.FromSeconds(10);
+        // Act
+        var scenario = await BotScenario.Start();
+        scenario.Repo.DelayTime = TimeSpan.FromSeconds(10);
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+        await scenario.GoToPriceInput("today", "Коты", "Корм", "royal canin");
+        await scenario.WithPrice("20000 amd");
         
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("By myself");
-        await _botEngine.Proceed("today");
-        await _botEngine.Proceed("cats");
-        await _botEngine.Proceed("royal canin");
-        await _botEngine.Proceed("20000 amd");
-        
-        // Act
-        var savingTask = _botEngine.Proceed("Save");
+        var savingTask = scenario.ConfirmSaving();
         Thread.Sleep(TimeSpan.FromSeconds(1));
-        var cancellingTask = _botEngine.Proceed("/cancel");
+        var cancellingTask = scenario.Cancel();
 
         await Task.WhenAll(savingTask, cancellingTask);
 
-        var savedExpenses = await _expenseRepository.ReadOutcomes(new FinanceFilter(), default);
+        var savedExpenses = await scenario.Repo.ReadOutcomes(new FinanceFilter(), default);
         
         // Assert
         Assert.Empty(savedExpenses);
@@ -91,11 +74,11 @@ public class StateTest
     public async Task ThereAreFiveOptionsInStatisticsState()
     {
         // Act
-        await _botEngine.Proceed("/start");
-        var lastMessage = await _botEngine.Proceed("statistics");
+        var scenario = await BotScenario.Start();
+        await scenario.SelectStatistics();
 
         // Assert
-        Assert.NotNull(lastMessage.Options);
-        Assert.Equivalent(new []{"Balance", "Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, lastMessage.Options.Select(c => c.Text));
+        Assert.NotEmpty(scenario.LastMessage.Options);
+        Assert.Equivalent(new []{"Balance", "Day expenses (by categories)", "Month expenses (by categories)", "Category expenses (by months)", "Subcategory expenses (overall)", "Subcategory expenses (by months)"}, scenario.LastMessage.Options.Select(c => c.Text));
     }
 }

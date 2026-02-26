@@ -1,7 +1,5 @@
-﻿using Domain;
-using Domain.Services;
+﻿using Domain.Services;
 using Infrastructure;
-using Microsoft.Extensions.Logging;
 using UnitTest;
 using Xunit;
 

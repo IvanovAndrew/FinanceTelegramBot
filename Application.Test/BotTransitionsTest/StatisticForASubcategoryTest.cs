@@ -1,7 +1,4 @@
-﻿using Application.Test.Extensions;
-using Application.Test.Stubs;
-using Domain;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Domain;
 using Xunit;
 using Outcome = Domain.Outcome;
 
@@ -9,23 +6,13 @@ namespace Application.Test.BotTransitionsTest;
 
 public class StatisticForASubcategoryTest
 { 
-    private readonly BotEngineWrapper _botEngine;
-    private readonly FinanceRepositoryStub _expenseRepository;
-    private readonly DateTimeServiceStub _dateTimeService;
-
-    public StatisticForASubcategoryTest()
-    {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _, out _, out _);
-        _dateTimeService.SetToday(new DateOnly(2023, 7, 24));
-
-        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
-    }
-    
     [Fact]
     public async Task StatisticForASubcategory()
     {
+        var scenario = await BotScenario.Start();
+        
         // Arrange
-        await _expenseRepository.SaveAllOutcomes(
+        await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2023, 6, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
@@ -35,14 +22,13 @@ public class StatisticForASubcategoryTest
             }, default);
         
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        await _botEngine.Proceed("Subcategory expenses (overall)");
-        await _botEngine.Proceed("Еда");
-        await _botEngine.Proceed("June 2023");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await scenario.SelectStatistics();
+        await scenario.SelectSubcategoryOverall();
+        await scenario.WithCategory("Еда");
+        await scenario.WithMonth("June 2023");
+        await scenario.WithAmdCurrency();
 
-        var table = lastMessage.Table;
+        var table = scenario.LastMessage.Table;
 
         // Assert
         Assert.NotNull(table);
@@ -58,8 +44,10 @@ public class StatisticForASubcategoryTest
     [Fact]
     public async Task StatisticByASubcategoryWithCustomDateRange()
     {
+        var scenario = await BotScenario.Start();
+        
         // Arrange
-        await _expenseRepository.SaveAllOutcomes(
+        await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2023, 5, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
@@ -69,15 +57,13 @@ public class StatisticForASubcategoryTest
             }, default);
         
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        await _botEngine.Proceed("Subcategory expenses (overall)");
-        await _botEngine.Proceed("Еда");
-        await _botEngine.Proceed("Another month");
-        await _botEngine.Proceed("March 2022");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await scenario.SelectStatistics();
+        await scenario.SelectSubcategoryOverall();
+        await scenario.WithCategory("Еда");
+        await scenario.WithCustomMonth("March 2022");
+        await scenario.WithAmdCurrency();
 
-        var table = lastMessage.Table;
+        var table = scenario.LastMessage.Table;
         
         // Assert
         Assert.NotNull(table);

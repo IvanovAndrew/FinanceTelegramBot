@@ -1,30 +1,20 @@
-﻿using Application.Test.Extensions;
-using Application.Test.Stubs;
-using Domain;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Domain;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
 
 public class AddExpenseManuallyTest
 {
-    private readonly BotEngineWrapper _botEngine;
-    private readonly FinanceRepositoryStub _expenseRepository;
-
-    public AddExpenseManuallyTest()
-    {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _, out _);
-
-        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
-    }
-    
     [Fact]
     public async Task ThereAreThreeDaysForOutcome()
     {
+        var scenario = await BotScenario.Start();
+        
         // Act
-        var lastMessage = await _botEngine.Proceed("/start");
-        lastMessage = await _botEngine.Proceed("outcome");
-        lastMessage = await _botEngine.Proceed("By myself");
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+
+        var lastMessage = scenario.LastMessage;
     
         // Assert
         Assert.NotNull(lastMessage.Options);
@@ -38,13 +28,15 @@ public class AddExpenseManuallyTest
     [InlineData("yesterday")]
     public async Task AfterEnteringDateWeChooseACategory(string date)
     {
+        var scenario = await BotScenario.Start();
+        
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("By myself");
-        var lastMessage = await _botEngine.Proceed(date);
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+        await scenario.WithDate(date);
         
         // Assert
+        var lastMessage = scenario.LastMessage;
         Assert.Equal("Enter the category", lastMessage.Text);
         Assert.NotNull(lastMessage.Options);
         Assert.Equivalent(Categories.Outcome.All.Select(c => c.ShortName?? c.Name), lastMessage.Options.Select(b => b.Text));
@@ -53,31 +45,30 @@ public class AddExpenseManuallyTest
     [Fact]
     public async Task WhenACategoryWithoutSubcategoryIsChosenTheDescriptionWillBeAsked()
     {
+        var scenario = await BotScenario.Start();
+        
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("By myself");
-        await _botEngine.Proceed("today");
-        var lastMessage = await _botEngine.Proceed("Онлайн-сервисы");
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+        await scenario.WithDateToday();
+        await scenario.WithCategory("Онлайн-сервисы");
         
         // Assert
-        Assert.Equal("Enter the description", lastMessage.Text);
+        Assert.Equal("Enter the description", scenario.LastMessage.Text);
     }
     
     [Fact]
     public async Task WhenDescriptionIsAddedThePriceWillBeAsked()
     {
+        var scenario = await BotScenario.Start();
+        
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("By myself");
-        await _botEngine.Proceed("today");
-        await _botEngine.Proceed("Коты");
-        await _botEngine.Proceed("Корм");
-        var lastMessage = await _botEngine.Proceed("royal canin");
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+        await scenario.GoToPriceInput("today", "Коты", "Корм", "royal canin");
         
         // Assert
-        Assert.Equal("Enter the price", lastMessage.Text);
+        Assert.Equal("Enter the price", scenario.LastMessage.Text);
     }
 
     [Theory]
@@ -91,37 +82,33 @@ public class AddExpenseManuallyTest
     [InlineData("50 драмов")]
     public async Task WhenThePriceIsAddedThenSaveWillBeAsked(string price)
     {
+        var scenario = await BotScenario.Start();
+        
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("By myself");
-        await _botEngine.Proceed("today");
-        await _botEngine.Proceed("Коты");
-        await _botEngine.Proceed("Корм");
-        await _botEngine.Proceed("royal canin");
-        var lastMessage = await _botEngine.Proceed(price);
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+        await scenario.GoToPriceInput("today", "Коты", "Корм", "royal canin");
+        await scenario.WithPrice(price);
         
         // Assert
+        var lastMessage = scenario.LastMessage;
         Assert.EndsWith("save it?", lastMessage.Text);
-        Assert.NotNull(lastMessage.Options);
         Assert.Equivalent(new []{"Save", "Cancel"}, lastMessage.Options.Select(b => b.Text));
     }
     
     [Fact]
     public async Task ClickOnSaveButtonSavesTheExpense()
     {
+        var scenario = await BotScenario.Start();
+        
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("By myself");
-        await _botEngine.Proceed("today");
-        await _botEngine.Proceed("Коты");
-        await _botEngine.Proceed("Корм");
-        await _botEngine.Proceed("royal canin");
-        await _botEngine.Proceed("20000 amd");
-        var lastMessage = await _botEngine.Proceed("Save");
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+        await scenario.GoToPriceInput("today", "Коты", "Корм", "royal canin");
+        await scenario.WithPrice("20000 amd");
+        await scenario.ConfirmSaving();
 
-        var savedExpenses = await _expenseRepository.ReadOutcomes(new FinanceFilter(), default);
+        var savedExpenses = await scenario.Repo.ReadOutcomes(new FinanceFilter(), default);
         var savedExpense = savedExpenses.First();
         
         // Assert
@@ -135,37 +122,33 @@ public class AddExpenseManuallyTest
     [Fact]
     public async Task IfWrongPriceIsEnteredThereWillBeANotification()
     {
+        var scenario = await BotScenario.Start();
+        
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("By myself");
-        await _botEngine.Proceed("today");
-        await _botEngine.Proceed("Коты");
-        await _botEngine.Proceed("Корм");
-        await _botEngine.Proceed("royal canin");
-        var lastMessage = await _botEngine.Proceed("1999");
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+        await scenario.GoToPriceInput("today", "Коты", "Корм", "royal canin");
+        await scenario.WithPrice("1999");
 
         // Assert
-        Assert.Contains(lastMessage.Text, "Missing currency");
+        Assert.Contains(scenario.LastMessage.Text, "Missing currency");
     }
     
     [Fact]
     public async Task IfWrongPriceIsEnteredItWillBePossibleToReenterIt()
     {
+        var scenario = await BotScenario.Start();
+        
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("By myself");
-        await _botEngine.Proceed("today");
-        await _botEngine.Proceed("Коты");
-        await _botEngine.Proceed("Корм");
-        await _botEngine.Proceed("royal canin");
-        await _botEngine.Proceed("20000 dam");
-        await _botEngine.Proceed("1999");
-        await _botEngine.Proceed("10000 amd");
-        var lastMessage = await _botEngine.Proceed("Save");
+        await scenario.ChooseOutcome();
+        await scenario.EnterManually();
+        await scenario.GoToPriceInput("today", "Коты", "Корм", "royal canin");
+        await scenario.WithPrice("20000 dam");
+        await scenario.WithPrice("1999");
+        await scenario.WithPrice("10000 amd");
+        await scenario.ConfirmSaving();
 
-        var savedExpenses = await _expenseRepository.ReadOutcomes(new FinanceFilter(), default);
+        var savedExpenses = await scenario.Repo.ReadOutcomes(new FinanceFilter(), default);
         var savedExpense = savedExpenses.First();
         
         // Assert

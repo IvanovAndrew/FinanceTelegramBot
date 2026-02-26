@@ -1,29 +1,17 @@
 ﻿using Application.Contracts;
-using Application.Test.Extensions;
-using Application.Test.Stubs;
 using Domain;
 using Domain.Check;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
 
 public class AddExpensesFromFNSTest
 {
-    private readonly BotEngineWrapper _botEngine;
-    private readonly FinanceRepositoryStub _expenseRepository;
-    private readonly FnsApiServiceStub _fnsApiService;
-
-    public AddExpensesFromFNSTest()
-    {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _fnsApiService, out _);
-
-        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
-    }
-    
     [Fact]
     public async Task AddOutcomeByManualRequisites()
     {
+        var scenario = await BotScenario.Start();
+        
         var checkRequisite = new CheckRequisite()
         {
             DateTime = new DateTime(2023, 6, 20),
@@ -33,9 +21,8 @@ public class AddExpensesFromFNSTest
             FiscalDocumentSign = FiscalDocumentSign.Create("1234567").Value,
         };
 
-        await _expenseRepository.SaveAllOutcomes(
-            new[]
-            {
+        await scenario.Repo.SaveAllOutcomes(
+            [
                 new Outcome()
                 {
                     Amount = new Money() { Amount = 1, Currency = Currency.RUR }, Category = Categories.Outcome.Food,
@@ -45,12 +32,12 @@ public class AddExpensesFromFNSTest
                 {
                     Amount = new Money() { Amount = 10, Currency = Currency.RUR }, Category = Categories.Outcome.Food,
                     SubCategory = Categories.Outcome.Food.Sub("Products"), Description = "Marianna"
-                },
-            }, new CancellationToken()
+                }
+            ], default
         );
         
         // Arrange
-        _fnsApiService.Responses[checkRequisite] = new List<RawOutcomeItem>()
+        scenario.FnsService.Responses[checkRequisite] = new List<RawOutcomeItem>()
         {
             new ()
             {
@@ -67,20 +54,18 @@ public class AddExpensesFromFNSTest
         };
         
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("outcome");
-        await _botEngine.Proceed("From Check");
-        await _botEngine.Proceed("By Requisites");
-        await _botEngine.Proceed("20.06.2023");
-        await _botEngine.Proceed("1000.64");
-        await _botEngine.Proceed("1234567890123456");
-        await _botEngine.Proceed("1234");
-        var lastMessage = await _botEngine.Proceed("1234567");
+        await scenario.ChooseOutcome();
+        await scenario.ChooseCheckByRequisites();
+        await scenario.WithDate("20.06.2023");
+        await scenario.WithPrice("1000.64");
+        await scenario.WithFiscalNumber("1234567890123456");
+        await scenario.WithFiscalDocument("1234");
+        await scenario.WithFiscalDocumentSign("1234567");
 
         // Assert
-        Assert.Contains("Categories: Еда", lastMessage.Text);
-        Assert.Contains("Subcategories", lastMessage.Text);
-        Assert.Contains("Перекусы, Продукты", lastMessage.Text);
-        Assert.Contains("saved with", lastMessage.Text);
+        Assert.Contains("Categories: Еда", scenario.LastMessage.Text);
+        Assert.Contains("Subcategories", scenario.LastMessage.Text);
+        Assert.Contains("Перекусы, Продукты", scenario.LastMessage.Text);
+        Assert.Contains("saved with", scenario.LastMessage.Text);
     }
 }

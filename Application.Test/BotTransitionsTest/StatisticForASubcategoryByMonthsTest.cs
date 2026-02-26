@@ -1,31 +1,17 @@
 using Application.Test.Extensions;
-using Application.Test.Stubs;
 using Domain;
-using Microsoft.Extensions.DependencyInjection;
-using UnitTest.Extensions;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
 
 public class StatisticForASubcategoryByMonthsTest
 {
-    private readonly BotEngineWrapper _botEngine;
-    private readonly FinanceRepositoryStub _expenseRepository;
-    private readonly DateTimeServiceStub _dateTimeService;
-    private readonly MessageServiceMock _messageServiceMock;
-
-    public StatisticForASubcategoryByMonthsTest()
-    {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _messageServiceMock, out _, out _);
-        _dateTimeService.SetToday(new DateOnly(2023, 7, 24));
-
-        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
-    }
-    
     [Fact]
     public async Task Subcategory_By_Month_With_Custom_Month()
     {
-        await _expenseRepository.SaveAllOutcomes(
+        var scenario = await BotScenario.Start();
+        
+        await scenario.Repo.SaveAllOutcomes(
         [
             new Outcome()
             {
@@ -51,18 +37,16 @@ public class StatisticForASubcategoryByMonthsTest
         
         
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        await _botEngine.Proceed("Subcategory expenses (by months)");
-        await _botEngine.Proceed("Еда");
-        await _botEngine.Proceed("Перекусы");
-        await _botEngine.Proceed("Another month");
-        await _botEngine.Proceed("July 2023");
-        await _botEngine.Proceed("AMD");
+        await scenario.SelectStatistics();
+        await scenario.SelectSubcategoryByMonths();
+        await scenario.WithCategory("Еда");
+        await scenario.WithSubCategory("Перекусы");
+        await scenario.WithCustomMonth("July 2023");
+        await scenario.WithAmdCurrency();
         
         // Assert
-        Assert.Equal(2, _messageServiceMock.SentMessages.Count);
-        var table = _messageServiceMock.SentMessages.Single(m => m.Table != null).Table;
+        Assert.Equal(2, scenario.MessageService.SentMessages.Count);
+        var table = scenario.MessageService.SentMessages.Single(m => m.Table != null).Table;
         
         Assert.NotNull(table);
         Assert.Contains("Statistic", table.Title);
@@ -77,8 +61,10 @@ public class StatisticForASubcategoryByMonthsTest
     [Fact]
     public async Task StatisticForASubCategoryByMonthsIsSortedChronologically()
     {
+        var scenario = await BotScenario.Start();
+        
         // Arrange
-        await _expenseRepository.SaveAllOutcomes(
+        await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2022, 12, 22), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 16_000m, Currency = Currency.AMD}},
@@ -93,19 +79,17 @@ public class StatisticForASubcategoryByMonthsTest
             }, default);
 
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        await _botEngine.Proceed("Subcategory expenses (by months)");
-        await _botEngine.Proceed("Еда");
-        await _botEngine.Proceed("Перекусы");
-        await _botEngine.Proceed("Another month");
-        await _botEngine.Proceed("January 2022");
-        await _botEngine.Proceed("AMD");
+        await scenario.SelectStatistics();
+        await scenario.SelectSubcategoryByMonths();
+        await scenario.WithCategory("Еда");
+        await scenario.WithSubCategory("Перекусы");
+        await scenario.WithCustomMonth("January 2022");
+        await scenario.WithAmdCurrency();
 
         // Assert
-        Assert.Equal(2, _messageServiceMock.SentMessages.Count);
+        Assert.Equal(2, scenario.MessageService.SentMessages.Count);
         
-        var table = _messageServiceMock.SentMessages.Single(c => c.Table != null).Table;
+        var table = scenario.MessageService.SentMessages.Single(c => c.Table != null).Table;
         Assert.NotNull(table);
         CollectionAssertExtension.AssertOrder(table.Rows.Select(row => row.FirstColumnValue).ToList(), 
             "December 2022", "January 2023", "February 2023", "March 2023", "April 2023", "May 2023", "June 2023", "July 2023");
@@ -114,7 +98,9 @@ public class StatisticForASubcategoryByMonthsTest
     [Fact]
     public async Task StatisticForASubCategoryWithCustomDateRange()
     {
-        await _expenseRepository.SaveAllOutcomes(
+        var scenario = await BotScenario.Start();
+        
+        await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2023, 5, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
@@ -124,21 +110,19 @@ public class StatisticForASubcategoryByMonthsTest
             }, default);
         
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        await _botEngine.Proceed("Subcategory expenses (by months)");
-        await _botEngine.Proceed("Еда");
-        await _botEngine.Proceed("Перекусы");
-        await _botEngine.Proceed("Another month");
-        await _botEngine.Proceed("January 2022");
-        await _botEngine.Proceed("AMD");
+        await scenario.SelectStatistics();
+        await scenario.SelectSubcategoryByMonths();
+        await scenario.WithCategory("Еда");
+        await scenario.WithSubCategory("Перекусы");
+        await scenario.WithCustomMonth("January 2022");
+        await scenario.WithAmdCurrency();
         
 
         // Assert
-        Assert.Equal(2,  _messageServiceMock.SentMessages.Count);
-        Assert.Single(_messageServiceMock.SentMessages, m => m.Table != null);
+        Assert.Equal(2, scenario.MessageService.SentMessages.Count);
+        Assert.Single(scenario.MessageService.SentMessages, m => m.Table != null);
         
-        var table =  _messageServiceMock.SentMessages.Single(c => c.Table != null).Table;
+        var table = scenario.MessageService.SentMessages.Single(c => c.Table != null).Table;
         
         Assert.Equal("Statistic", table.Title);
         Assert.Contains("January 2022", table.Subtitle);

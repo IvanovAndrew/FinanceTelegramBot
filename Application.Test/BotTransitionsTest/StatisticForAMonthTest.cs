@@ -1,31 +1,18 @@
-﻿using Application.Test.Extensions;
-using Application.Test.Stubs;
-using Domain;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Domain;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
 
 public class StatisticForAMonthTest
 {
-    private readonly BotEngineWrapper _botEngine;
-    private readonly MessageServiceMock _messageService;
-    private readonly DateTimeServiceStub _dateTimeService;
-    private readonly FinanceRepositoryStub _expenseRepository;
-
-    public StatisticForAMonthTest()
-    {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _messageService, out _, out _);
-        _dateTimeService.SetToday(new DateOnly(2023, 7, 24));
-
-        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
-    }
-    
     [Fact]
     public async Task StatisticForAMonthAllowsToChooseBetweenCurrentPreviousAndEnterCustomMonth()
     {
+        var scenario = await BotScenario.Start();
+        scenario.Time.SetToday(new DateOnly(2023, 7, 24));
+        
         // Arrange
-        await _expenseRepository.SaveAllOutcomes(
+        await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
                 new Outcome()
@@ -49,17 +36,15 @@ public class StatisticForAMonthTest
                     Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
             }, default);
-        await _expenseRepository.SaveIncome(CreateSalary(new DateOnly(2023, 7, 1)), default);
 
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        var response = await _botEngine.Proceed("Month expenses (by categories)");
+        await scenario.SelectStatistics();
+        await scenario.SelectMonthStatistics();
 
         // Assert
-        Assert.NotNull(response.Options);
+        Assert.NotNull(scenario.LastMessage.Options);
         
-        var buttons = response.Options.Select(_ => _.Text);
+        var buttons = scenario.LastMessage.Options.Select(_ => _.Text);
         
         Assert.Contains("July 2023", buttons);
         Assert.Contains("June 2023", buttons);
@@ -69,7 +54,9 @@ public class StatisticForAMonthTest
     [Fact]
     public async Task StatisticForACustomMonth()
     {
-        await _expenseRepository.SaveAllOutcomes(
+        var scenario = await BotScenario.Start();
+        
+        await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
                 new Outcome()
@@ -93,18 +80,14 @@ public class StatisticForAMonthTest
                     Amount = new Money() { Amount = 5_000m, Currency = Currency.AMD }
                 },
             }, default);
-        await _expenseRepository.SaveIncome(CreateSalary(new DateOnly(2023, 7, 1)), default);
 
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        await _botEngine.Proceed("Month expenses (by categories)");
-        await _botEngine.Proceed("Another month");
-        await _botEngine.Proceed("May 2023");
-        await _botEngine.Proceed("AMD");
+        await scenario.SelectStatistics();
+        await scenario.SelectMonthStatistics();
+        await scenario.WithCustomMonth("May 2023");
+        await scenario.WithAmdCurrency();
 
-
-        var table = _messageService.SentMessages.Single().Table;
+        var table = scenario.MessageService.SentMessages.Single().Table;
 
         // Assert
         Assert.NotNull(table);
@@ -113,15 +96,5 @@ public class StatisticForAMonthTest
         Assert.Contains("Category", table.ColumnNames);
         Assert.Contains("Домашние животные", table.Rows.Select(c => c.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(c => c.FirstColumnValue));
-    }
-
-    private Income CreateSalary(DateOnly salaryDay)
-    {
-        return new Income()
-        {
-            Category = Categories.Income.Salary,
-            Amount = new Money() { Amount = 1_000m, Currency = Currency.AMD },
-            Date = salaryDay
-        };
     }
 }

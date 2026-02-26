@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace UnitTest.Extensions;
+namespace Application.Test.Extensions;
 
 public static class StringAssertExtension
 {

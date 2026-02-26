@@ -17,7 +17,7 @@ public class RequisitesRequestedEventHandler(IUserSessionService userSessionServ
         {
             session.ActiveFlow = new CheckRequisiteFlow(dateTimeService);
 
-            await mediator.Publish(new RequisitesCreatedEvent() { SessionId = notification.SessionId }, cancellationToken);
+            await mediator.Publish(new EnterDateTimeEvent() { SessionId = notification.SessionId }, cancellationToken);
         }
     }
 }

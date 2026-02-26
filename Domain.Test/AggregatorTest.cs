@@ -1,8 +1,4 @@
-﻿using Application.Test.Extensions;
-using Domain;
-using Xunit;
-
-namespace Application.Test;
+﻿namespace Domain.Test;
 
 public class AggregatorTest
 {

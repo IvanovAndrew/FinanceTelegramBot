@@ -1,7 +1,4 @@
 ﻿using System.Net.Mime;
-using Application.Test.Extensions;
-using Application.Test.Stubs;
-using Microsoft.Extensions.DependencyInjection;
 using UnitTest;
 using Xunit;
 
@@ -9,28 +6,17 @@ namespace Application.Test.BotTransitionsTest;
 
 public class AddExpensesFromJsonTest
 {
-    private readonly BotEngineWrapper _botEngine;
-    private readonly MessageServiceMock _messageService;
-    private readonly FinanceRepositoryStub _expenseRepository;
-
-    public AddExpensesFromJsonTest()
-    {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _messageService, out _, out _);
-
-        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
-    }
-    
     [Fact]
     public async Task AfterClickingOnOutcomesFromJsonTheFileIsRequired()
     {
+        var scenario = await BotScenario.Start();
+        
         // Act
-        var lastMessage = await _botEngine.Proceed("/start");
-        lastMessage = await _botEngine.Proceed("outcome");
-        lastMessage = await _botEngine.Proceed("From check");
-        lastMessage = await _botEngine.Proceed("json");
+        await scenario.ChooseOutcome();
+        await scenario.ChooseJsonCheck();
         
         // Assert
-        Assert.Equivalent("Paste a json file", lastMessage.Text);
+        Assert.Equivalent("Paste a json file", scenario.LastMessage.Text);
     }
     
     [Theory]
@@ -40,34 +26,33 @@ public class AddExpensesFromJsonTest
     public async Task PastedFileShouldHaveJsonFormat(string mimeType)
     {
         var telegramFile = new FileInfoStub() { FileId = "1", FileName = "test.json", MimeType = mimeType };
-        _messageService.SavedFiles["1"] = new FileStub(){Text = "{\"dateTime\": \"2023-06-29T20:00:00\", \"items\":[{\"sum\": 100000,\"name\":\"Молоко\"}, {\"sum\": 78000, \"name\":\"Макароны\"}]}"};
+        
+        var scenario = await BotScenario.Start();
+        scenario.MessageService.SavedFiles["1"] = new FileStub(){Text = "{\"dateTime\": \"2023-06-29T20:00:00\", \"items\":[{\"sum\": 100000,\"name\":\"Молоко\"}, {\"sum\": 78000, \"name\":\"Макароны\"}]}"};
         
         // Act
-        var lastMessage = await _botEngine.Proceed("/start");
-        lastMessage = await _botEngine.Proceed("outcome");
-        lastMessage = await _botEngine.Proceed("From check");
-        lastMessage = await _botEngine.Proceed("json");
-        lastMessage = await _botEngine.ProceedFile(telegramFile);
+        await scenario.ChooseOutcome();
+        await scenario.ChooseJsonCheck();
+        await scenario.LoadFile(telegramFile);
         
         // Assert
-        Assert.Equivalent("Paste a json file", lastMessage.Text);
+        Assert.Equivalent("Paste a json file", scenario.LastMessage.Text);
     }
     
     [Fact]
     public async Task AllOutcomesFromJsonFileAreSaved()
     {
-        // Arrange
         var telegramFile = new FileInfoStub() { FileId = "1", FileName = "test.json", MimeType = MediaTypeNames.Application.Json };
-        _messageService.SavedFiles["1"] = new FileStub(){Text = "{\"dateTime\": \"2023-06-29T20:00:00\", \"items\":[{\"sum\": 100000,\"name\":\"Молоко\"}, {\"sum\": 78000, \"name\":\"Макароны\"}]}"};
+        
+        var scenario = await BotScenario.Start();
+        scenario.MessageService.SavedFiles["1"] = new FileStub(){Text = "{\"dateTime\": \"2023-06-29T20:00:00\", \"items\":[{\"sum\": 100000,\"name\":\"Молоко\"}, {\"sum\": 78000, \"name\":\"Макароны\"}]}"};
         
         // Act
-        var lastMessage = await _botEngine.Proceed("/start");
-        lastMessage = await _botEngine.Proceed("outcome");
-        lastMessage = await _botEngine.Proceed("From check");
-        lastMessage = await _botEngine.Proceed("json");
-        lastMessage = await _botEngine.ProceedFile(telegramFile);
+        await scenario.ChooseOutcome();
+        await scenario.ChooseJsonCheck();
+        await scenario.LoadFile(telegramFile);
         
         // Assert
-        Assert.Contains(_messageService.SentMessages, c => c.Text.Contains("All expenses are saved", StringComparison.InvariantCultureIgnoreCase));
+        Assert.Contains(scenario.MessageService.SentMessages, c => c.Text.Contains("All expenses are saved", StringComparison.InvariantCultureIgnoreCase));
     }
 }

@@ -1,41 +1,27 @@
-﻿using Application.Test.Extensions;
-using Application.Test.Stubs;
-using Domain;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Domain;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
 
 public class AddIncomeManuallyTest
 {
-    private readonly BotEngineWrapper _botEngine;
-    private readonly FinanceRepositoryStub _expenseRepository;
-
-    public AddIncomeManuallyTest()
-    {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _, out _, out _, out _);
-
-        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
-    }
-    
     [Fact]
     public async Task ClickOnSaveButtonSavesTheIncome()
     {
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("income");
-        await _botEngine.Proceed("Another day");
-        await _botEngine.Proceed("08.09.2024");
-        await _botEngine.Proceed("Прочее");
-        await _botEngine.Proceed("Improvisation class");
-        await _botEngine.Proceed("8000 amd");
-        var lastMessage = await _botEngine.Proceed("Save");
+        var scenario = await BotScenario.Start();
+        await scenario.ChooseIncome();
+        await scenario.WithCustomDate("08.09.2024");
+        await scenario.WithCategory("Прочее");
+        await scenario.WithDescription("Improvisation class");
+        await scenario.WithPrice("8000 amd");
+        await scenario.ConfirmSaving();
 
-        var savedIncomes = await _expenseRepository.ReadIncomes(new FinanceFilter(), default);
+        var savedIncomes = await scenario.Repo.ReadIncomes(new FinanceFilter(), default);
         var savedIncome = savedIncomes.First();
         
         // Assert
-        Assert.EndsWith("Saved", lastMessage.Text);
+        Assert.EndsWith("Saved", scenario.LastMessage.Text);
         Assert.Equal(new DateOnly(2024, 9, 8), savedIncome.Date);
         Assert.Equal(Categories.Income.Others, savedIncome.Category);
         Assert.Equal("Improvisation class", savedIncome.Description);

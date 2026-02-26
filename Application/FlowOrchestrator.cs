@@ -108,10 +108,15 @@ public class FlowOrchestrator(IUserSessionService sessions, IMediator mediator) 
                     ct);
                 break;
             
+            
             case FlowStep.AskCustomDay:
                 await mediator.Publish(
                     new EnterTheCustomDayEvent(){SessionId = sessionId},
                     ct);
+                break;
+            
+            case FlowStep.AskDateTime:
+                await mediator.Publish(new EnterDateTimeEvent() { SessionId = sessionId }, ct);
                 break;
             
             case FlowStep.AskOutcomeCategory:
@@ -175,7 +180,6 @@ public class FlowOrchestrator(IUserSessionService sessions, IMediator mediator) 
                     new EnterTheCurrencyEvent(){SessionId = sessionId }, ct);
                 break;
             
-            case FlowStep.AskDateTime:
             case FlowStep.Completed:
             default:
                 throw new InvalidOperationException(

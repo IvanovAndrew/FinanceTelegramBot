@@ -1,31 +1,16 @@
-﻿using Application.Test.Extensions;
-using Application.Test.Stubs;
-using Domain;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Domain;
 using Xunit;
 
 namespace Application.Test.BotTransitionsTest;
 
 public class StatisticBalanceTest 
 {
-    private readonly BotEngineWrapper _botEngine;
-    private readonly DateTimeServiceStub _dateTimeService;
-    private readonly MessageServiceMock _messageService;
-    private readonly FinanceRepositoryStub _expenseRepository;
-    private readonly SalaryDayServiceStub _salaryDayService;
-
-    public StatisticBalanceTest()
-    {
-        var provider = TestServiceFactory.Create(out _expenseRepository, out _dateTimeService, out _messageService, out _, out _salaryDayService);
-        _dateTimeService.SetToday(new DateOnly(2023, 7, 24));
-
-        _botEngine = provider.GetRequiredService<BotEngineWrapper>();
-    }
-    
     [Fact]
     public async Task Balance_Since_Previous_Month()
     {
-        await _expenseRepository.SaveAllOutcomes(
+        var scenario = await BotScenario.Start();
+        
+        await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2023, 7, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
@@ -33,17 +18,16 @@ public class StatisticBalanceTest
                 new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
-        await _expenseRepository.SaveIncome(CreateSalary(), default);
+        await scenario.Repo.SaveIncome(CreateSalary(), default);
         
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        await _botEngine.Proceed("Balance");
-        await _botEngine.Proceed("June 2023");
-        var lastMessage = await _botEngine.Proceed("AMD");
+        await scenario.SelectStatistics();
+        await scenario.SelectBalance();
+        await scenario.WithMonth("June 2023");
+        await scenario.WithAmdCurrency();
 
         // Assert
-        var table = _messageService.SentMessages.First(t => t.Table != null)?.Table;
+        var table = scenario.MessageService.SentMessages.First(t => t.Table != null)?.Table;
         
         Assert.NotNull(table);
         Assert.Contains("Balance", table.Title);
@@ -58,8 +42,9 @@ public class StatisticBalanceTest
     [Fact]
     public async Task Balance_From_Custom_Month()
     {
-        _salaryDayService.SalaryDay = new DateOnly(2023, 8, 1);
-        await _expenseRepository.SaveAllOutcomes(
+        var scenario = await BotScenario.Start();
+        scenario.SalaryDayService.SalaryDay = new DateOnly(2023, 8, 1);
+        await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2023, 7, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
@@ -67,18 +52,16 @@ public class StatisticBalanceTest
                 new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
-        await _expenseRepository.SaveIncome(CreateSalary(), default);
+        await scenario.Repo.SaveIncome(CreateSalary(), default);
         
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        await _botEngine.Proceed("Balance");
-        await _botEngine.Proceed("Another month");
-        await _botEngine.Proceed("January 2023");
-        await _botEngine.Proceed("AMD");
+        await scenario.SelectStatistics();
+        await scenario.SelectBalance();
+        await scenario.WithCustomMonth("January 2023");
+        await scenario.WithAmdCurrency();
 
         // Assert
-        var table = _messageService.SentMessages.First(t => t.Table != null)?.Table;
+        var table = scenario.MessageService.SentMessages.First(t => t.Table != null)?.Table;
         
         Assert.NotNull(table);
         Assert.Contains("Balance", table.Title);
@@ -92,7 +75,9 @@ public class StatisticBalanceTest
     [Fact]
     public async Task StatisticFromJanuary_Messages()
     {
-        await _expenseRepository.SaveAllOutcomes(
+        var scenario = await BotScenario.Start();
+        
+        await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
                 new Outcome(){Date = new DateOnly(2023, 7, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
@@ -100,20 +85,18 @@ public class StatisticBalanceTest
                 new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
-        await _expenseRepository.SaveIncome(CreateSalary(), default);
+        await scenario.Repo.SaveIncome(CreateSalary(), default);
         
         // Act
-        await _botEngine.Proceed("/start");
-        await _botEngine.Proceed("Statistics");
-        await _botEngine.Proceed("Balance");
-        await _botEngine.Proceed("Another month");
-        await _botEngine.Proceed("January 2023");
-        await _botEngine.Proceed("AMD");
+        await scenario.SelectStatistics();
+        await scenario.SelectBalance();
+        await scenario.WithCustomMonth("January 2023");
+        await scenario.WithAmdCurrency();
 
         // Assert
-        Assert.Equal(3, _messageService.SentMessages.Count);
+        Assert.Equal(3, scenario.MessageService.SentMessages.Count);
 
-        var (firstMessage, secondMessage) = (_messageService.SentMessages[0], _messageService.SentMessages[1]);
+        var (firstMessage, secondMessage) = (scenario.MessageService.SentMessages[0], scenario.MessageService.SentMessages[1]);
 
         Assert.NotNull(secondMessage.Table);
     }
