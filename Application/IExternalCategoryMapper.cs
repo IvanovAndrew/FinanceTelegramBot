@@ -29,6 +29,7 @@ public class ExternalCategoryMapper() : IExternalCategoryMapper
             { (Shops.YerevanCity, "Baklava, dry cake and muffine"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Bath towel"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для туалета")) },
             { (Shops.YerevanCity, "Batteries"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для техники")) },
+            { (Shops.YerevanCity, "Beans"), (Categories.Outcome.Food, Categories.Outcome.ForHouse.Sub("Продукты")) },
             { (Shops.YerevanCity, "Buckwheat"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             
             { (Shops.YerevanCity, "Cakes"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
@@ -36,8 +37,10 @@ public class ExternalCategoryMapper() : IExternalCategoryMapper
             { (Shops.YerevanCity, "Caramel"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Carbonated drinks"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Casseroles"), (Categories.Outcome.ForHouse, Categories.Outcome.Food.Sub("Для кухни")) },
+            { (Shops.YerevanCity, "Cheese product"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Chocolate bars"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Chocolate candies"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
+            { (Shops.YerevanCity, "Cookies"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Cocoa powder"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Condensed milk"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Corn chips"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
@@ -45,18 +48,23 @@ public class ExternalCategoryMapper() : IExternalCategoryMapper
             { (Shops.YerevanCity, "Crab meat and sticks"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Cracker"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Croissants and buns"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
+            { (Shops.YerevanCity, "Cucumbers"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Фрукты/овощи")) },
             { (Shops.YerevanCity, "Cupcake, croissants, donuts"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Cutting boards"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни")) },
             
             { (Shops.YerevanCity, "Daily pads"), (Categories.Outcome.Health, Categories.Outcome.Health.Sub("Гигиена")) },
+            { (Shops.YerevanCity, "Diabetic crispbreads"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Diet bread"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Dried fruits"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
+            { (Shops.YerevanCity, "Drinks"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
+            { (Shops.YerevanCity, "Drinking water"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Dry cat food"), (Categories.Outcome.Pets, Categories.Outcome.Pets.Sub("Уличные")) },
             { (Shops.YerevanCity, "Dry cookies"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Dry dog food"), (Categories.Outcome.Pets, Categories.Outcome.Pets.Sub("Уличные")) },
             { (Shops.YerevanCity, "Dumplings, khinkali"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             
             { (Shops.YerevanCity, "Eggs 10pcs"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
+            { (Shops.YerevanCity, "Eggs 15pcs"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Eggs 20pcs"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Eggs 30pcs"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Exotic fruits"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Фрукты/овощи")) },
@@ -66,6 +74,7 @@ public class ExternalCategoryMapper() : IExternalCategoryMapper
             { (Shops.YerevanCity, "Forks"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни"))},
             { (Shops.YerevanCity, "French bread"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Fresh chicken"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
+            { (Shops.YerevanCity, "Fresh fish"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Frying pans"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни")) },
                 
             { (Shops.YerevanCity, "Gingerbread, cookies"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
@@ -76,8 +85,10 @@ public class ExternalCategoryMapper() : IExternalCategoryMapper
             { (Shops.YerevanCity, "Grilled, mix vegetable"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Gums"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
 
+            { (Shops.YerevanCity, "Ham"), (Categories.Outcome.Food, Categories.Outcome.ForHouse.Sub("Продукты")) },
             { (Shops.YerevanCity, "Hand towel"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни")) },
             { (Shops.YerevanCity, "Hangers"), (Categories.Outcome.ClothesAndShoes, Categories.Outcome.ClothesAndShoes.Sub("clothes")) },
+            { (Shops.YerevanCity, "Hard and semihard cheeses"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Hot sauces"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             
             { (Shops.YerevanCity, "Ice cream Cup"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
@@ -85,17 +96,21 @@ public class ExternalCategoryMapper() : IExternalCategoryMapper
             { (Shops.YerevanCity, "Imported beer"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Алкоголь")) },
             { (Shops.YerevanCity, "Industrial bread"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             
+            { (Shops.YerevanCity, "Jelly"), (Categories.Outcome.Food, Categories.Outcome.ForHouse.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Jelly cake"), (Categories.Outcome.Food, Categories.Outcome.ForHouse.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Jugs"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни")) },
+            { (Shops.YerevanCity, "Juices"), (Categories.Outcome.Food, Categories.Outcome.ForHouse.Sub("Продукты")) },
             
             { (Shops.YerevanCity, "Kefir"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни")) },
             { (Shops.YerevanCity, "Kitchenwares"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни")) },
+            { (Shops.YerevanCity, "Kitchen towel"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни")) },
             { (Shops.YerevanCity, "Kvass"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
-            
             
             { (Shops.YerevanCity, "Linens"), (Categories.Outcome.ClothesAndShoes, Categories.Outcome.ClothesAndShoes.Sub("clothes")) },
             { (Shops.YerevanCity, "Local bread"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Local crackers"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
+            { (Shops.YerevanCity, "Local tomato paste"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
+            { (Shops.YerevanCity, "Low alcohol cocktails and cider"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Алкоголь")) },
             
             { (Shops.YerevanCity, "Marmalade"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Mascarpone, ricotta, burrata cheeses"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
@@ -107,6 +122,8 @@ public class ExternalCategoryMapper() : IExternalCategoryMapper
             { (Shops.YerevanCity, "Mouthwash"), (Categories.Outcome.Health, Categories.Outcome.Health.Sub("Гигиена")) },
 
             { (Shops.YerevanCity, "Nail Care"), (Categories.Outcome.Beauty, Categories.Outcome.Beauty.Sub("Косметика")) },
+            { (Shops.YerevanCity, "Natural coffee"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
+            { (Shops.YerevanCity, "Nougat"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Nuggets, snack"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Nuts"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Фрукты/овощи")) },
             
@@ -121,6 +138,8 @@ public class ExternalCategoryMapper() : IExternalCategoryMapper
             { (Shops.YerevanCity, "Plastic packets"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Мешки и пакеты")) },
             { (Shops.YerevanCity, "Plates"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни")) },
             { (Shops.YerevanCity, "Pocket napkins"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для уборки")) },
+            { (Shops.YerevanCity, "Popcorn"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
+            { (Shops.YerevanCity, "Pork fillet"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Porridge"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Potato chips"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
              
@@ -131,12 +150,14 @@ public class ExternalCategoryMapper() : IExternalCategoryMapper
             { (Shops.YerevanCity, "Sandviches"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Sauces for salads"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Sauces for sushi and Asian cuisine"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
+            { (Shops.YerevanCity, "Sesame oil"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Simple napkins"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для уборки")) },
             { (Shops.YerevanCity, "Snacks"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Soups"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Sour cream"), (Categories.Outcome.Food, Categories.Outcome.Food.Sub("Продукты")) },
             { (Shops.YerevanCity, "Spoons"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для кухни")) },
             
+            { (Shops.YerevanCity, "Tea similar drinks"), (Categories.Outcome.Food, Categories.Outcome.ForHouse.Sub("Перекусы")) },
             { (Shops.YerevanCity, "Toilet paper"), (Categories.Outcome.ForHouse, Categories.Outcome.ForHouse.Sub("Для туалета")) },
             { (Shops.YerevanCity, "Toothpaste"), (Categories.Outcome.Health, Categories.Outcome.Health.Sub("Гигиена")) },
             
