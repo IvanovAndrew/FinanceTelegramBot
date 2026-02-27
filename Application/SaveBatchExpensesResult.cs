@@ -15,8 +15,8 @@ public class SaveBatchExpensesResult
         _message = message;
     }
 
-    public static SaveBatchExpensesResult Saved(IReadOnlyCollection<IMoneyTransfer> expenses) => new(eSaveExpense.Saved, expenses, 
-        $"All expenses are saved with the following options: {Environment.NewLine}" +
+    public static SaveBatchExpensesResult Saved(IReadOnlyCollection<IMoneyTransfer> expenses, string fileName) => new(eSaveExpense.Saved, expenses, 
+        $"All expenses from file {fileName} are saved with the following options: {Environment.NewLine}" +
         string.Join($"{Environment.NewLine}",
             $"Date: {expenses.First().Date:dd.MM.yyyy}",
             $"Categories: {string.Join(", ", expenses.Select(c => c.Category.Name).Distinct())}",

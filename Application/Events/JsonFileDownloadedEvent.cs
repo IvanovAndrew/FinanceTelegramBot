@@ -8,6 +8,7 @@ public class JsonFileDownloadedEvent : INotification
 {
     public long SessionId { get; init; }
     public string Json { get; init; }
+    public string FileName { get; init; }
 }
 
 public class JsonFileDownloadedEventHandler(IExpenseJsonParser parser, IMediator mediator) : INotificationHandler<JsonFileDownloadedEvent>
@@ -19,24 +20,25 @@ public class JsonFileDownloadedEventHandler(IExpenseJsonParser parser, IMediator
         if (!expenses.Any())
         {
             await mediator.Publish(new NoExpensesInJsonEvent()
-                { SessionId = notification.SessionId }, cancellationToken);
+                { SessionId = notification.SessionId, FileName = notification.FileName }, cancellationToken);
             return;
         }
         
         await mediator.Send(new SaveOutcomesBatchCommand()
-            { SessionId = notification.SessionId, MoneyTransfers = expenses }, cancellationToken);
+            { SessionId = notification.SessionId, MoneyTransfers = expenses, FileName = notification.FileName }, cancellationToken);
     }
 }
 
 public record NoExpensesInJsonEvent : INotification
 {
     public long SessionId { get; init; }
+    public string FileName { get; init; }
 }
 
 public class NoExpensesInJsonEventHandler(IConversation conversation) : INotificationHandler<NoExpensesInJsonEvent>
 {
     public async Task Handle(NoExpensesInJsonEvent notification, CancellationToken cancellationToken)
     {
-        await conversation.Update(notification.SessionId, Screens.Notify("There are no expenses in json file"), cancellationToken);
+        await conversation.Update(notification.SessionId, Screens.Notify($"There are no expenses in file {notification.FileName}"), cancellationToken);
     }
 }
