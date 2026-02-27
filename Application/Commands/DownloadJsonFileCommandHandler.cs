@@ -4,32 +4,27 @@ using MediatR;
 
 namespace Application.Commands;
 
-public class DownloadJsonFileCommandHandler(IUserSessionService userSessionService, IMessageService messageService, IMediator mediator) : IRequestHandler<DownloadJsonFileCommand>
+public class DownloadJsonFileCommandHandler(IMessageService messageService, IMediator mediator) : IRequestHandler<DownloadJsonFileCommand>
 {
     public async Task Handle(DownloadJsonFileCommand notification, CancellationToken cancellationToken)
     {
-        var session = userSessionService.GetUserSession(notification.SessionId);
-
         var fileInfo = notification.FileInfo;
 
-        if (session != null)
+        INotification domainEvent = null;
+        if (fileInfo.MimeType == MediaTypeNames.Application.Json)
         {
-            INotification domainEvent = null;
-            if (fileInfo.MimeType == MediaTypeNames.Application.Json)
-            {
-                var file = await messageService.GetFileAsync(fileInfo.FileId, cancellationToken);
+            var file = await messageService.GetFileAsync(fileInfo.FileId, cancellationToken);
 
-                if (file != null)
-                {
-                    domainEvent = new JsonFileDownloadedEvent() { SessionId = session.Id, Json = file.Text };
-                }
-            }
-            else
+            if (file != null)
             {
-                domainEvent = new WrongFileExtensionReceivedEvent() { SessionId = session.Id };
+                domainEvent = new JsonFileDownloadedEvent() { SessionId = notification.SessionId, Json = file.Text, FileName = fileInfo.FileName };
             }
-
-            await mediator.Publish(domainEvent, cancellationToken);
         }
+        else
+        {
+            domainEvent = new WrongFileExtensionReceivedEvent() { SessionId = notification.SessionId };
+        }
+
+        await mediator.Publish(domainEvent, cancellationToken);
     }
 }

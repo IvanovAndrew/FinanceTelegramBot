@@ -24,7 +24,14 @@ public class BotScenario
         MessageService = messageService;
         SalaryDayService = salaryDayService;
         FnsService = fnsApiServiceStub;
-        LastMessage = message;
+    }
+
+    public static BotScenario Preset()
+    {
+        var provider = TestServiceFactory.Create(out var financeRepository, out var dateTimeServiceStub, out var messageService, out var fnsApiService, out var salaryDayService);
+        var bot = provider.GetRequiredService<BotEngineWrapper>();
+        
+        return new BotScenario(bot, financeRepository, dateTimeServiceStub, messageService, salaryDayService, fnsApiService, default);
     }
 
     public static async Task<BotScenario> Start()
