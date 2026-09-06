@@ -1,4 +1,6 @@
 using GoogleSheetWriter;
+using GoogleSheetWriter.Abstractions;
+using GoogleSheetWriter.Infrastructure;
 using GoogleSpreadsheet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,22 +29,29 @@ var host = new HostBuilder()
                 DateRowResolver = new DateRowResolver(new Dictionary<DateOnly, int>()
                 {
                     [new DateOnly(2022, 1, 1)] = 1,
-                    [new DateOnly(2023, 1, 1)] = 1700, 
-                    [new DateOnly(2024, 1, 1)] = 5555,
-                    [new DateOnly(2025, 1, 1)] = 11150,
-                    [new DateOnly(2025, 2, 1)] = 11500,
-                    [new DateOnly(2025, 3, 1)] = 12000,
-                    [new DateOnly(2025, 4, 1)] = 12750,
-                    [new DateOnly(2025, 5, 1)] = 13425,
-                    [new DateOnly(2025, 6, 1)] = 13825,
-                    [new DateOnly(2025, 7, 1)] = 14500,
-                    [new DateOnly(2025, 8, 1)] = 14875,
-                    [new DateOnly(2025, 9, 1)] = 15175,
-                    [new DateOnly(2025, 10, 1)] = 15825,
-                    [new DateOnly(2025, 11, 1)] = 16200,
-                    [new DateOnly(2025, 12, 1)] = 16475,
-                    [new DateOnly(2026, 1, 1)] = 16800,
-                    [new DateOnly(2026, 2, 1)] = 17375,
+                    [new DateOnly(2023, 1, 1)] = 1925, 
+                    [new DateOnly(2024, 1, 1)] = 5800,
+                    [new DateOnly(2025, 1, 1)] = 11400,
+                    [new DateOnly(2025, 2, 1)] = 11750,
+                    [new DateOnly(2025, 3, 1)] = 12300,
+                    [new DateOnly(2025, 4, 1)] = 13050,
+                    [new DateOnly(2025, 5, 1)] = 13675,
+                    [new DateOnly(2025, 6, 1)] = 14075,
+                    [new DateOnly(2025, 7, 1)] = 14750,
+                    [new DateOnly(2025, 8, 1)] = 15100,
+                    [new DateOnly(2025, 9, 1)] = 15450,
+                    [new DateOnly(2025, 10, 1)] = 16100,
+                    [new DateOnly(2025, 11, 1)] = 16450,
+                    [new DateOnly(2025, 12, 1)] = 16750,
+                    [new DateOnly(2026, 1, 1)] = 17500,
+                    [new DateOnly(2026, 2, 1)] = 18200,
+                    [new DateOnly(2026, 3, 1)] = 18750,
+                    [new DateOnly(2026, 4, 1)] = 19100,
+                    [new DateOnly(2026, 5, 1)] = 19700,
+                    [new DateOnly(2026, 6, 1)] = 20150,
+                    [new DateOnly(2026, 7, 1)] = 20550,
+                    [new DateOnly(2026, 8, 1)] = 21100,
+                    [new DateOnly(2026, 9, 1)] = 21650,
                 }),
                 
                 YearColumn = ExcelColumn.FromString("A"),
@@ -50,14 +59,12 @@ var host = new HostBuilder()
                 DateColumn = ExcelColumn.FromString("C"),
                 CategoryColumn = ExcelColumn.FromString("D"),
                 SubCategoryColumn = ExcelColumn.FromString("E"),
-                DescriptionColumn = ExcelColumn.FromString("F"),
-                AmountRurColumn = ExcelColumn.FromString("G"),
-                AmountAmdColumn = ExcelColumn.FromString("H"),
-                AmountGelColumn = ExcelColumn.FromString("I"),
-                AmountUsdColumn = ExcelColumn.FromString("J"),
-                AmountEurColumn = ExcelColumn.FromString("K"),
-                AmountTryColumn = ExcelColumn.FromString("L"),
-                AmountRsdColumn = ExcelColumn.FromString("M"),
+                ShopColumn = ExcelColumn.FromString("F"),
+                DescriptionColumn = ExcelColumn.FromString("G"),
+                AmountRurColumn = ExcelColumn.FromString("H"),
+                AmountAmdColumn = ExcelColumn.FromString("I"),
+                OtherAmountColumn = ExcelColumn.FromString("J"),
+                OtherCurrencyColumn = ExcelColumn.FromString("K"),
             };
             instance.FlatInfo = new ListInfo()
             {
@@ -67,49 +74,34 @@ var host = new HostBuilder()
                 MonthColumn = ExcelColumn.FromString("B"),
                 DateColumn = ExcelColumn.FromString("C"),
                 SubCategoryColumn = ExcelColumn.FromString("D"),
-                DescriptionColumn = ExcelColumn.FromString("E"),
-                AmountRurColumn = ExcelColumn.FromString("F"),
-                AmountAmdColumn = ExcelColumn.FromString("G"),
-                AmountGelColumn = ExcelColumn.FromString("H"),
-                AmountUsdColumn = ExcelColumn.FromString("I"),
-                AmountEurColumn = ExcelColumn.FromString("K"),
+                ShopColumn = ExcelColumn.FromString("E"),
+                DescriptionColumn = ExcelColumn.FromString("F"),
+                AmountRurColumn = ExcelColumn.FromString("G"),
+                AmountAmdColumn = ExcelColumn.FromString("H"),
             };
             instance.BigDealInfo = new ListInfo()
             {
                 ListName = "Крупные",
+                Category = "Крупные",
                 DateColumn = ExcelColumn.FromString("C"),
                 CategoryColumn = ExcelColumn.FromString("D"),
                 DescriptionColumn = ExcelColumn.FromString("E"),
                 AmountRurColumn = ExcelColumn.FromString("F"),
                 AmountAmdColumn = ExcelColumn.FromString("G"),
-                AmountGelColumn = ExcelColumn.FromString("H"),
-                AmountUsdColumn = ExcelColumn.FromString("I"),
-                AmountEurColumn = ExcelColumn.FromString("J"),
+                OtherAmountColumn = ExcelColumn.FromString("H"),
+                OtherCurrencyColumn = ExcelColumn.FromString("I"),
             };
-            instance.CurrencyConversion = new ListInfo()
+            instance.CurrencyConversion = new CurrencyExchangeListInfo()
             {
                 ListName = "Обмен валюты",
                 Category = "Обмен валюты",
                 DateColumn = ExcelColumn.FromString("C"),
-                AmountRurColumn = ExcelColumn.FromString("H"),
-                AmountAmdColumn = ExcelColumn.FromString("I"),
-                AmountGelColumn = ExcelColumn.FromString("J"),
-                AmountTryColumn = ExcelColumn.FromString("K"),
-                AmountRsdColumn = ExcelColumn.FromString("L"),
-            };
-            instance.CurrencyConversionIncome = new ListInfo()
-            {
-                IsIncome = true,
-                ListName = "Обмен валюты",
-                Category = "Обмен валюты",
-                DateColumn = ExcelColumn.FromString("C"),
-                AmountRurColumn = ExcelColumn.FromString("N"),
-                AmountAmdColumn = ExcelColumn.FromString("O"),
-                AmountEurColumn = ExcelColumn.FromString("P"),
-                AmountUsdColumn = ExcelColumn.FromString("Q"),
-                AmountGelColumn = ExcelColumn.FromString("R"),
-                AmountTryColumn = ExcelColumn.FromString("S"),
-                AmountRsdColumn = ExcelColumn.FromString("T"),
+                ShopColumn = ExcelColumn.FromString("D"),
+                DescriptionColumn = ExcelColumn.FromString("E"),
+                SourceAmountColumn = ExcelColumn.FromString("F"),
+                SourceCurrencyColumn = ExcelColumn.FromString("G"),
+                TargetAmountColumn = ExcelColumn.FromString("I"),
+                TargetCurrencyColumn = ExcelColumn.FromString("J"),
             };
             instance.Incomes = new ListInfo()
             {
@@ -122,9 +114,19 @@ var host = new HostBuilder()
                 DescriptionColumn = ExcelColumn.FromString("E"),
                 AmountRurColumn = ExcelColumn.FromString("F"),
                 AmountAmdColumn = ExcelColumn.FromString("G"),
-                AmountGelColumn = ExcelColumn.FromString("H"),
-                AmountUsdColumn = ExcelColumn.FromString("I"),
-                AmountEurColumn = ExcelColumn.FromString("J"),
+            };
+            instance.FutureExpenses = new FutureExpenseListInfo()
+            {
+                ListName = "Обязательные траты",
+                
+                NameColumn = ExcelColumn.FromString("A"),
+                CategoryColumn = ExcelColumn.FromString("B"),
+                SubCategoryColumn = ExcelColumn.FromString("C"),
+                ShopColumn = ExcelColumn.FromString("D"),
+                FrequencyColumn = ExcelColumn.FromString("E"),
+                WayColumn = ExcelColumn.FromString("F"),
+                SumColumn = ExcelColumn.FromString("G"),
+                CurrencyColumn = ExcelColumn.FromString("H"),
             };
             return instance;
         });
@@ -138,19 +140,17 @@ var host = new HostBuilder()
                 {
                     ["Квартира"] = "Квартира",
                     ["Обмен валюты"] = "Обмен валюты",
-                    ["Перелёты"] = "Крупные",
                     ["Операция"] = "Крупные",
-                    ["Документы"] = "Крупные",
-                    ["Отель"] = "Крупные",
-                    ["Техника"] = "Крупные",
                 };
 
                 return instance;
             }
         );
 
-        services.AddSingleton<GoogleSheetWrapper>(s =>
-            ActivatorUtilities.CreateInstance<GoogleSheetWrapper>(s, s.GetRequiredService<IGoogleService>(), s.GetRequiredService<SheetOptions>(), s.GetRequiredService<CategoryToListMappingOptions>(), s.GetRequiredService<ILogger<GoogleSheetWrapper>>()));
+        services.AddSingleton<IExpenseRepository, ExpenseSheetRepository>();
+        services.AddSingleton<IIncomeRepository, IncomeSheetRepository>();
+        services.AddSingleton<ISheetRepository<CurrencyExchange>, CurrencyExchangeFromSheetRepository>();
+        services.AddSingleton<IFutureExpenseRepository, FutureExpenseRepository>();
         services.AddScoped<GoogleSheetAzureFunction>();
     })
     .Build();

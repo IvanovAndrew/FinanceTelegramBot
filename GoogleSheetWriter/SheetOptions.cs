@@ -5,8 +5,10 @@
         public ListInfo EveryDayExpenses;
         public ListInfo FlatInfo;
         public ListInfo BigDealInfo;
-        public ListInfo CurrencyConversion;
+        
+        public CurrencyExchangeListInfo CurrencyConversion;
+        public FutureExpenseListInfo FutureExpenses;
+        
         public ListInfo Incomes;
-        public ListInfo CurrencyConversionIncome;
     }
 }

@@ -1,5 +1,8 @@
 ﻿using System.Net;
 using GoogleSheetWriter;
+using GoogleSheetWriter.Abstractions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -7,55 +10,47 @@ using Newtonsoft.Json;
 
 namespace GoogleSpreadsheet;
 
-public class GoogleSheetAzureFunction(GoogleSheetWrapper googleSheetWrapper, ILogger<GoogleSheetAzureFunction> logger)
+public class GoogleSheetAzureFunction(IExpenseRepository expenseRepository,
+    IIncomeRepository incomeRepository,
+    ISheetRepository<CurrencyExchange> currencyExchangeRepository, 
+    IFutureExpenseRepository futureExpenseRepository,
+    ILogger<GoogleSheetAzureFunction> logger)
 {
     [Function("GetAllExpenses")]
-    public async Task<HttpResponseData> GetAllExpenses(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")]
-        HttpRequestData req,
+    public async Task<IActionResult> GetAllExpenses(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get")]
+        HttpRequest req,
         FunctionContext executionContext, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Received a request body: {req.Body}");
-        
-        var request = await req.ReadAsStringAsync();
-        logger.LogInformation($"Received a string: {request}");
+        var options = new MoneyTransferSearchOption
+        {
+            DateFrom = DateOnly.TryParse(req.Query["dateFrom"], out var dateFrom) ? dateFrom : null,
+            DateTo = DateOnly.TryParse(req.Query["dateTo"], out var dateTo) ? dateTo : null,
+            Category = req.Query["category"].ToString(),
+            SubCategory = req.Query["subCategory"].ToString(),
+            Currency = string.IsNullOrEmpty(req.Query["currency"]) ? null : req.Query["currency"].ToString()
+        };
 
-        var response = HttpResponseData.CreateResponse(req);
-        
+        logger.LogInformation($"Options are: " +
+                              $"{(options.DateFrom != null? "DateFrom = " + options.DateFrom.Value : "")} " +
+                              $"{(options.DateTo != null? "Date To = " + options.DateTo.Value : "")} " +
+                              $"{(!string.IsNullOrEmpty(options.Category)? "Category is " + options.Category : "")} " +
+                              $"{(!string.IsNullOrEmpty(options.SubCategory)? "Subcategory is " + options.SubCategory : "")} " +
+                              $"{(options.Currency != null? "Currency is " + options.Currency : "")}");
+
         try
         {
-            MoneyTransferSearchOption options;
-
-            if (!string.IsNullOrEmpty(request))
-            {
-                options = JsonConvert.DeserializeObject<MoneyTransferSearchOption>(request) ?? new MoneyTransferSearchOption();
-            }
-            else
-            {
-                options = new MoneyTransferSearchOption();
-            }
-            
-            logger.LogInformation($"Options are: " +
-                                   $"{(options.DateFrom != null? "DateFrom = " + options.DateFrom.Value : "")} " +
-                                   $"{(options.DateTo != null? "Date To = " + options.DateTo.Value : "")} " + 
-                                   $"{(!string.IsNullOrEmpty(options.Category)? "Category is " + options.Category : "")} " + 
-                                   $"{(!string.IsNullOrEmpty(options.SubCategory)? "Subcategory is " + options.SubCategory : "")} " +
-                                   $"{(options.Currency != null? "Currency is " + options.Currency : "")}");
-            
             logger.LogInformation("Collecting expenses");
-            var expenses = await googleSheetWrapper.ReadExpenses(options, cancellationToken);
+            var expenses = await expenseRepository.Read(options, cancellationToken);
             logger.LogInformation($"All {expenses.Count} expenses are successfully read");
-            
-            await response.WriteAsJsonAsync(expenses, cancellationToken: cancellationToken);
+
+            return new OkObjectResult(expenses.Select(Mapper.ToDto));
         }
         catch (Exception e)
         {
             logger.LogError("Couldn't read an expense: {e}", e);
-            response.StatusCode = HttpStatusCode.InternalServerError;
-            await response.WriteStringAsync(e.ToString(), cancellationToken);
+            return new ObjectResult(e.ToString()) { StatusCode = 500 };
         }
-
-        return response;
     }
     
     [Function("SaveExpense")]
@@ -73,7 +68,7 @@ public class GoogleSheetAzureFunction(GoogleSheetWrapper googleSheetWrapper, ILo
         try
         {
             MoneyTransfer expense = JsonConvert.DeserializeObject<MoneyTransfer>(request);
-            await googleSheetWrapper.SaveAll(new List<MoneyTransfer>() { expense }, cancellationToken);
+            await expenseRepository.Write(new List<MoneyTransfer>() { expense }, cancellationToken);
             response.StatusCode = HttpStatusCode.OK;
             logger.LogInformation("All expenses are successfully saved");
         }
@@ -104,7 +99,7 @@ public class GoogleSheetAzureFunction(GoogleSheetWrapper googleSheetWrapper, ILo
             List<MoneyTransfer> expenses = JsonConvert.DeserializeObject<List<MoneyTransfer>>(request);
             logger.LogInformation($"Deserialized as {expenses} Count: {expenses?.Count}");
             
-            await googleSheetWrapper.SaveAll(expenses?.ToList()?? [], cancellationToken);
+            await expenseRepository.Write(expenses?.ToList()?? [], cancellationToken);
             response.StatusCode = HttpStatusCode.OK;
             logger.LogInformation("All expenses are successfully saved");
         }
@@ -139,7 +134,7 @@ public class GoogleSheetAzureFunction(GoogleSheetWrapper googleSheetWrapper, ILo
         var response = HttpResponseData.CreateResponse(req);
         try
         {
-            await googleSheetWrapper.SaveIncome(income, cancellationToken);
+            await incomeRepository.Write(income, cancellationToken);
             response.StatusCode = HttpStatusCode.OK;
             logger.LogInformation("The income are successfully saved");
         }
@@ -154,53 +149,104 @@ public class GoogleSheetAzureFunction(GoogleSheetWrapper googleSheetWrapper, ILo
     }
     
     [Function("GetAllIncomes")]
-    public async Task<HttpResponseData> GetAllIncomes(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")]
-        HttpRequestData req,
+    public async Task<IActionResult> GetAllIncomes(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get")]
+        HttpRequest req,
         FunctionContext executionContext, CancellationToken cancellationToken)
     {
         logger.LogInformation($"Received a request body: {req.Body}");
         
-        var request = await req.ReadAsStringAsync();
-        logger.LogInformation($"Received a string: {request}");
-
-        var response = HttpResponseData.CreateResponse(req);
+        var options = new MoneyTransferSearchOption
+        {
+            DateFrom = DateOnly.TryParse(req.Query["dateFrom"], out var dateFrom) ? dateFrom : null,
+            DateTo = DateOnly.TryParse(req.Query["dateTo"], out var dateTo) ? dateTo : null,
+            Category = req.Query["category"].ToString(),
+            SubCategory = req.Query["subCategory"].ToString(),
+            Currency = string.IsNullOrEmpty(req.Query["currency"]) ? null : req.Query["currency"].ToString()
+        };
+        
+        logger.LogInformation($"Options are: " +
+                              $"{(options.DateFrom != null? "DateFrom = " + options.DateFrom.Value : "")} " +
+                              $"{(options.DateTo != null? "Date To = " + options.DateTo.Value : "")} " + 
+                              $"{(!string.IsNullOrEmpty(options.Category)? "Category is " + options.Category : "")} " + 
+                              $"{(!string.IsNullOrEmpty(options.SubCategory)? "Subcategory is " + options.SubCategory : "")} " +
+                              $"{(options.Currency != null? "Currency is " + options.Currency : "")}");
         
         try
         {
-            MoneyTransferSearchOption options;
-
-            if (!string.IsNullOrEmpty(request))
-            {
-                options = JsonConvert.DeserializeObject<MoneyTransferSearchOption>(request) ?? new MoneyTransferSearchOption();
-            }
-            else
-            {
-                options = new MoneyTransferSearchOption();
-            }
-            
-            logger.LogInformation($"Options are: " +
-                                   $"{(options.DateFrom != null? "DateFrom = " + options.DateFrom.Value : "")} " +
-                                   $"{(options.DateTo != null? "Date To = " + options.DateTo.Value : "")} " + 
-                                   $"{(!string.IsNullOrEmpty(options.Category)? "Category is " + options.Category : "")} " + 
-                                   $"{(!string.IsNullOrEmpty(options.SubCategory)? "Subcategory is " + options.SubCategory : "")} " +
-                                   $"{(options.Currency != null? "Currency is " + options.Currency : "")}");
-            
             logger.LogInformation("Collecting incomes");
-            var expenses = await googleSheetWrapper.ReadIncomes(options, cancellationToken);
-            logger.LogInformation($"All {expenses.Count} incomes are successfully read");
+            var incomes = await incomeRepository.Read(options, cancellationToken);
+            logger.LogInformation($"All {incomes.Count} incomes are successfully read");
             
-            await response.WriteAsJsonAsync(expenses, cancellationToken: cancellationToken);
+            return new OkObjectResult(incomes.Select(Mapper.ToDto));
         }
         catch (Exception e)
         {
-            logger.LogError("Couldn't get an income: {e}", e);
-            response.StatusCode = HttpStatusCode.InternalServerError;
-            await response.WriteStringAsync(e.ToString(), cancellationToken);
+            logger.LogError("Couldn't read an income: {e}", e);
+            return new ObjectResult(e.ToString()) { StatusCode = 500 };
         }
-
-        return response;
     }
+    
+    [Function("GetCurrencyExchanges")]
+    public async Task<IActionResult> GetCurrencyExchanges(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get")]
+        HttpRequest req,
+        FunctionContext executionContext, CancellationToken cancellationToken)
+    {
+        logger.LogInformation($"Received a request body: {req.Body}");
+        
+        var options = new MoneyTransferSearchOption
+        {
+            DateFrom = DateOnly.TryParse(req.Query["dateFrom"], out var dateFrom) ? dateFrom : null,
+            DateTo = DateOnly.TryParse(req.Query["dateTo"], out var dateTo) ? dateTo : null,
+            Currency = string.IsNullOrEmpty(req.Query["currency"]) ? null : req.Query["currency"].ToString()
+        };
+        
+        logger.LogInformation($"Options are: " +
+                              $"{(options.DateFrom != null? "DateFrom = " + options.DateFrom.Value : "")} " +
+                              $"{(options.DateTo != null? "Date To = " + options.DateTo.Value : "")} " + 
+                              $"{(options.Currency != null? "Currency is " + options.Currency : "")}");
+
+        try
+        {
+            logger.LogInformation("Collecting currency exchanges");
+            var exchanges = await currencyExchangeRepository.Read(options, cancellationToken);
+            logger.LogInformation($"All {exchanges.Count} currency exchanges are successfully read");
+            
+            return new OkObjectResult(exchanges.Select(Mapper.ToCurrencyExchangeDto));
+        }
+        catch (Exception e)
+        {
+            logger.LogError("Couldn't read a currency exchange: {e}", e);
+            return new ObjectResult(e.ToString()) { StatusCode = 500 };
+        }
+    }
+    
+    [Function("GetFutureExpenses")]
+    public async Task<IActionResult> GetFutureExpenses(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get")]
+        HttpRequest req,
+        FunctionContext executionContext, CancellationToken cancellationToken)
+    {
+        logger.LogInformation($"Received a request body: {req.Body}");
+        
+        try
+        {
+            var currency = string.IsNullOrEmpty(req.Query["currency"]) ? string.Empty : req.Query["currency"].ToString();
+            logger.LogInformation("Collecting future expenses for currency: {currency}", currency);
+            
+            var futureExpenses = await futureExpenseRepository.Read(currency, cancellationToken);
+            logger.LogInformation($"All {futureExpenses.Count} future expenses are successfully read");
+
+            return new OkObjectResult(futureExpenses.Select(Mapper.ToFutureExpenseDto));
+        }
+        catch (Exception e)
+        {
+            logger.LogError("Couldn't read future expenses}: {e}", e);
+            return new ObjectResult(e.ToString()) { StatusCode = 500 };
+        }
+    }
+    
 
     private async Task<HttpResponseData> BadRequestResponse(HttpRequestData req, string text)
     {
@@ -214,5 +260,4 @@ public class GoogleSheetAzureFunction(GoogleSheetWrapper googleSheetWrapper, ILo
         await response.WriteStringAsync(text);
         return response;
     }
-    
 }

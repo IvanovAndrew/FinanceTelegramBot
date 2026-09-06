@@ -23,9 +23,8 @@ public class GoogleDataWrapperTests
         DescriptionColumn = ExcelColumn.FromString("F"),
         AmountRurColumn = ExcelColumn.FromString("G"),
         AmountAmdColumn = ExcelColumn.FromString("H"),
-        AmountGelColumn = ExcelColumn.FromString("I"),
-        AmountUsdColumn = ExcelColumn.FromString("J"),
-        AmountEurColumn = ExcelColumn.FromString("K"),
+        OtherAmountColumn = ExcelColumn.FromString("I"),
+        OtherCurrencyColumn = ExcelColumn.FromString("J"),
     };
 
     [Fact]
@@ -59,12 +58,13 @@ public class GoogleDataWrapperTests
         {
             ["G"] = "",
             ["H"] = "",
-            ["I"] = "500"
+            ["I"] = "500",
+            ["J"] = "GEL"
         });
 
         var wrapper = new GoogleDataWrapper(cellData, CreateListInfo(), _culture);
         Assert.Equal(500m, wrapper.Amount);
-        Assert.Equal(Currency.GEL, wrapper.Currency);
+        Assert.Equal(Constants.Currency.GEL, wrapper.Currency);
     }
 
     [Fact]
@@ -72,11 +72,12 @@ public class GoogleDataWrapperTests
     {
         var cellData = CreateCellData(new()
         {
-            ["I"] = "250,50"
+            ["I"] = "250,50",
+            ["J"] = "GEL"
         });
 
         var wrapper = new GoogleDataWrapper(cellData, CreateListInfo(), _culture);
-        Assert.Equal(Currency.GEL, wrapper.Currency);
+        Assert.Equal(Constants.Currency.GEL, wrapper.Currency);
     }
 
     [Fact]
@@ -92,7 +93,7 @@ public class GoogleDataWrapperTests
         });
 
         var wrapper = new GoogleDataWrapper(cellData, CreateListInfo(), _culture);
-        Assert.Equal(Currency.RUR, wrapper.Currency);
+        Assert.Equal(Constants.Currency.RUR, wrapper.Currency);
     }
 
     [Fact]
@@ -104,7 +105,7 @@ public class GoogleDataWrapperTests
         });
 
         var wrapper = new GoogleDataWrapper(cellData, CreateListInfo(), _culture);
-        Assert.Equal(Currency.RUR, wrapper.Currency);
+        Assert.Equal(Constants.Currency.RUR, wrapper.Currency);
     }
 
     [Fact]

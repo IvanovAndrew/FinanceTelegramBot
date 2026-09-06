@@ -13,7 +13,7 @@ public class ExcelColumn : IEquatable<ExcelColumn>, IComparable<ExcelColumn>
     private readonly string _name;
     public string Name => _name;
 
-    private ExcelColumn(string name)
+    public ExcelColumn(string name)
     {
         _name = name;
     }

@@ -3,11 +3,11 @@ namespace GoogleSheetWriter;
 [Serializable]
 public class MoneyTransferSearchOption
 {
-    public DateTime? DateFrom { get; set; } = null;
-    public DateTime? DateTo { get; set; } = null;
+    public DateOnly? DateFrom { get; set; } = null;
+    public DateOnly? DateTo { get; set; } = null;
     public string Category { get; set; } = string.Empty;
     public string SubCategory { get; set; } = string.Empty;
-    public Currency? Currency { get; set; } = null;
+    public string? Currency { get; set; } = null;
 
     internal bool IsSatisfied(MoneyTransfer expense)
     {
