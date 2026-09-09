@@ -2,6 +2,15 @@
 
 namespace GoogleSheetWriter.Infrastructure;
 
+internal record SheetReadRequest<T>(
+    string ListName,
+    ExcelColumn FirstColumn,
+    ExcelColumn LastColumn,
+    DateRowResolver? DateRowResolver,
+    DateOnly? DateFrom,
+    Func<IReadOnlyDictionary<ExcelColumn, CellData>, T> RowFactory,
+    Func<T, bool> IsSatisfied);
+
 internal class SheetRowReader
 {
     private const int BatchSize = 500;
@@ -24,52 +33,104 @@ internal class SheetRowReader
         Func<T, bool> isSatisfied,
         CancellationToken cancellationToken)
     {
-        List<T> rows = new();
+        var results = await ReadRowsBatch(
+            new[] { new SheetReadRequest<T>(listName, firstColumn, lastColumn, dateRowResolver, dateFrom, rowFactory, isSatisfied) },
+            cancellationToken);
 
-        int fromRangeRow = 1;
-        if (dateFrom != null && dateRowResolver != null)
+        return results[listName];
+    }
+
+    internal async Task<IReadOnlyDictionary<string, List<T>>> ReadRowsBatch<T>(
+        IReadOnlyList<SheetReadRequest<T>> requests,
+        CancellationToken cancellationToken)
+    {
+        var results = requests.ToDictionary(r => r.ListName, _ => new List<T>());
+        var byName = requests.ToDictionary(r => r.ListName);
+
+        var cursors = requests.ToDictionary(r => r.ListName, r =>
         {
-            fromRangeRow = dateRowResolver.GetBestFirstRow(dateFrom.Value, 1);
+            int fromRow = 1;
+            if (r.DateFrom != null && r.DateRowResolver != null)
+            {
+                fromRow = r.DateRowResolver.GetBestFirstRow(r.DateFrom.Value, 1);
+            }
+            return fromRow;
+        });
+
+        var active = new HashSet<string>(requests.Select(r => r.ListName));
+
+        foreach (var listName in active)
+        {
+            _logger.LogInformation($"List: {listName} FromRange {cursors[listName]}.");
         }
 
-        int lastFilledRow = await GetNumberFilledRows(listName, cancellationToken);
-
-        ExcelColumn[] requestedColumns = ExcelColumn.ColumnsBetween(firstColumn, lastColumn);
-        _logger.LogInformation($"List: {listName} FromRange {fromRangeRow} Last Filled Row = {lastFilledRow}.");
-
-        while (fromRangeRow < lastFilledRow)
+        while (active.Count > 0)
         {
-            var sheet = await _googleService.GetSheetAsync(listName,
-                new GoogleRequestOptions()
+            var pageRequests = active.ToDictionary(
+                listName => listName,
+                listName =>
                 {
-                    Range = BuildRange(listName, firstColumn, lastColumn, fromRangeRow, BatchSize),
-                    RequestedColumns = requestedColumns,
-                }, cancellationToken);
-
-            foreach (var data in sheet.Data)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                foreach (var rowData in data.RowData)
-                {
-                    if (!rowData.Cells.Any()) continue;
-                    if (rowData.ContainsValue("Дата", "Год", "Категория")) continue;
-
-                    var cells = rowData.Cells.ToDictionary(k => ExcelColumn.FromString(k.Key), kvp => kvp.Value);
-
-                    var row = rowFactory(cells);
-
-                    if (isSatisfied(row))
+                    var r = byName[listName];
+                    var columns = ExcelColumn.ColumnsBetween(r.FirstColumn, r.LastColumn);
+                    return new GoogleRequestOptions
                     {
-                        rows.Add(row);
+                        Range = BuildRange(listName, r.FirstColumn, r.LastColumn, cursors[listName], BatchSize),
+                        RequestedColumns = columns,
+                    };
+                });
+
+            var response = await _googleService.GetSheetsBatchAsync(pageRequests, cancellationToken);
+
+            foreach (var listName in active.ToList()) // копия — active меняется внутри цикла
+            {
+                var r = byName[listName];
+                var sheet = response[listName];
+                int rowsReturned = 0;
+                bool listReachedEnd = false;
+
+                foreach (var data in sheet.Data)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    foreach (var rowData in data.RowData)
+                    {
+                        rowsReturned++;
+
+                        if (!IsRowFilled(rowData))
+                        {
+                            listReachedEnd = true;
+                            break;
+                        }
+
+                        if (!rowData.Cells.Any()) continue;
+                        if (rowData.ContainsValue("Дата", "Год", "Категория")) continue;
+
+                        var cells = rowData.Cells.ToDictionary(k => ExcelColumn.FromString(k.Key), kvp => kvp.Value);
+                        var row = r.RowFactory(cells);
+
+                        if (r.IsSatisfied(row))
+                        {
+                            results[listName].Add(row);
+                        }
                     }
+
+                    if (listReachedEnd) break;
+                }
+
+                if (rowsReturned < BatchSize) listReachedEnd = true;
+
+                if (listReachedEnd)
+                {
+                    active.Remove(listName);
+                }
+                else
+                {
+                    cursors[listName] += BatchSize;
                 }
             }
-
-            fromRangeRow += BatchSize;
         }
-
-        return rows;
+        
+        return results;
     }
 
     internal async Task<int> GetNumberFilledRows(string listName, CancellationToken cancellationToken)
@@ -87,24 +148,18 @@ internal class SheetRowReader
             cancellationToken.ThrowIfCancellationRequested();
             foreach (var rowData in data.RowData)
             {
-                bool filled = false;
-                if (rowData.Cells == null) break;
-
-                foreach (var cellValue in rowData.Cells.Values)
-                {
-                    if (cellValue.Filled)
-                    {
-                        filled = true;
-                        break;
-                    }
-                }
-
-                if (!filled) break;
+                if (!IsRowFilled(rowData)) break;
                 i++;
             }
         }
 
         return i;
+    }
+
+    private static bool IsRowFilled(IRowData rowData)
+    {
+        if (rowData.Cells == null) return false;
+        return rowData.Cells.Values.Any(cellValue => cellValue.Filled);
     }
 
     internal string BuildRange(string listName, ExcelColumn firstColumn, ExcelColumn lastColumn, int startRow, int rowCount)

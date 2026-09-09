@@ -25,23 +25,27 @@ public class ExpenseSheetRepository : IExpenseRepository
         _categoryMapping = categoryMapping;
     }
 
+    // ExpenseSheetRepository.cs — Read() переписан под батч
     public async Task<IReadOnlyList<MoneyTransfer>> Read(MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
     {
-        var lists = new[] { _options.EveryDayExpenses, _options.FlatInfo, _options.BigDealInfo };
         var factory = new SheetRowFactory(_culture);
 
-        var results = await Task.WhenAll(lists.Select(info =>
-            _reader.ReadRows(
+        var lists = new[] { _options.EveryDayExpenses, _options.FlatInfo, _options.BigDealInfo };
+
+        var requests = lists
+            .Select(info => new SheetReadRequest<MoneyTransfer>(
                 info.ListName,
                 info.DateColumn,
                 info.GetLastExcelColumn(),
                 info.DateRowResolver,
                 searchOptions.DateFrom,
                 cells => factory.CreateMoneyTransfer(info, cells, isIncome: false),
-                searchOptions.IsSatisfied,
-                cancellationToken)));
+                searchOptions.IsSatisfied))
+            .ToList();
 
-        return results.SelectMany(r => r).ToList();
+        var resultsByList = await _reader.ReadRowsBatch(requests, cancellationToken);
+        
+        return resultsByList.Values.SelectMany(r => r).ToList();
     }
 
     public async Task Write(IReadOnlyList<MoneyTransfer> expenses, CancellationToken cancellationToken)

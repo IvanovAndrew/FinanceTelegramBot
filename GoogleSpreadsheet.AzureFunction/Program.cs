@@ -15,7 +15,7 @@ var host = new HostBuilder()
         string spreadsheetId = Environment.GetEnvironmentVariable("SpreadsheetID")?? string.Empty;
         string applicationName = Environment.GetEnvironmentVariable("ApplicationName")?? string.Empty;
 
-        services.AddSingleton<IGoogleService, GoogleService>(s =>
+        services.AddScoped<IGoogleService, GoogleService>(s =>
             ActivatorUtilities.CreateInstance<GoogleService>(s, applicationName, spreadsheetId,
                 s.GetRequiredService<ILogger<GoogleService>>()));
 
@@ -78,6 +78,15 @@ var host = new HostBuilder()
                 DescriptionColumn = ExcelColumn.FromString("F"),
                 AmountRurColumn = ExcelColumn.FromString("G"),
                 AmountAmdColumn = ExcelColumn.FromString("H"),
+                
+                DateRowResolver = new DateRowResolver(new Dictionary<DateOnly, int>()
+                {
+                    [new DateOnly(2022, 1, 1)] = 2,
+                    [new DateOnly(2023, 1, 1)] = 100,
+                    [new DateOnly(2024, 1, 1)] = 230,
+                    [new DateOnly(2025, 1, 1)] = 390,
+                    [new DateOnly(2026, 1, 1)] = 480,
+                })
             };
             instance.BigDealInfo = new ListInfo()
             {
@@ -102,6 +111,15 @@ var host = new HostBuilder()
                 SourceCurrencyColumn = ExcelColumn.FromString("G"),
                 TargetAmountColumn = ExcelColumn.FromString("I"),
                 TargetCurrencyColumn = ExcelColumn.FromString("J"),
+                
+                DateRowResolver = new DateRowResolver(new Dictionary<DateOnly, int>()
+                {
+                    [new DateOnly(2022, 1, 1)] = 2,
+                    [new DateOnly(2023, 1, 1)] = 115,
+                    [new DateOnly(2024, 1, 1)] = 220,
+                    [new DateOnly(2025, 1, 1)] = 300,
+                    [new DateOnly(2026, 1, 1)] = 410,
+                }),
             };
             instance.Incomes = new ListInfo()
             {

@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Google;
 using GoogleSheetWriter;
 using GoogleSheetWriter.Abstractions;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +17,17 @@ public class GoogleSheetAzureFunction(IExpenseRepository expenseRepository,
     IFutureExpenseRepository futureExpenseRepository,
     ILogger<GoogleSheetAzureFunction> logger)
 {
+    [Function(nameof(HealthCheck))]
+    public async Task<IActionResult> HealthCheck(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get")]
+        HttpRequest req,
+        FunctionContext executionContext, CancellationToken cancellationToken)
+    {
+        logger.LogInformation($"{nameof(HealthCheck)} is run");
+
+        return new OkObjectResult(true);
+    }
+    
     [Function("GetAllExpenses")]
     public async Task<IActionResult> GetAllExpenses(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get")]
@@ -46,6 +58,13 @@ public class GoogleSheetAzureFunction(IExpenseRepository expenseRepository,
 
             return new OkObjectResult(expenses.Select(Mapper.ToDto));
         }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.TooManyRequests)
+        {
+            return new ObjectResult(new { error = "rate_limited", message = ex.Message })
+            {
+                StatusCode = StatusCodes.Status429TooManyRequests
+            };
+        }
         catch (Exception e)
         {
             logger.LogError("Couldn't read an expense: {e}", e);
@@ -71,6 +90,12 @@ public class GoogleSheetAzureFunction(IExpenseRepository expenseRepository,
             await expenseRepository.Write(new List<MoneyTransfer>() { expense }, cancellationToken);
             response.StatusCode = HttpStatusCode.OK;
             logger.LogInformation("All expenses are successfully saved");
+        }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.TooManyRequests)
+        {
+            logger.LogError("Couldn't save an expense: {ex}", ex);
+            response.StatusCode = HttpStatusCode.TooManyRequests;
+            await response.WriteStringAsync(ex.ToString(), cancellationToken);
         }
         catch (Exception e)
         {
@@ -102,6 +127,12 @@ public class GoogleSheetAzureFunction(IExpenseRepository expenseRepository,
             await expenseRepository.Write(expenses?.ToList()?? [], cancellationToken);
             response.StatusCode = HttpStatusCode.OK;
             logger.LogInformation("All expenses are successfully saved");
+        }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.TooManyRequests)
+        {
+            logger.LogError("Couldn't save an expense: {ex}", ex);
+            response.StatusCode = HttpStatusCode.TooManyRequests;
+            await response.WriteStringAsync(ex.ToString(), cancellationToken);
         }
         catch (Exception e)
         {
@@ -137,6 +168,12 @@ public class GoogleSheetAzureFunction(IExpenseRepository expenseRepository,
             await incomeRepository.Write(income, cancellationToken);
             response.StatusCode = HttpStatusCode.OK;
             logger.LogInformation("The income are successfully saved");
+        }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.TooManyRequests)
+        {
+            logger.LogError("Couldn't save an expense: {ex}", ex);
+            response.StatusCode = HttpStatusCode.TooManyRequests;
+            await response.WriteStringAsync(ex.ToString(), cancellationToken);
         }
         catch (Exception e)
         {
@@ -180,6 +217,13 @@ public class GoogleSheetAzureFunction(IExpenseRepository expenseRepository,
             
             return new OkObjectResult(incomes.Select(Mapper.ToDto));
         }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.TooManyRequests)
+        {
+            return new ObjectResult(new { error = "rate_limited", message = ex.Message })
+            {
+                StatusCode = StatusCodes.Status429TooManyRequests
+            };
+        }
         catch (Exception e)
         {
             logger.LogError("Couldn't read an income: {e}", e);
@@ -215,6 +259,13 @@ public class GoogleSheetAzureFunction(IExpenseRepository expenseRepository,
             
             return new OkObjectResult(exchanges.Select(Mapper.ToCurrencyExchangeDto));
         }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.TooManyRequests)
+        {
+            return new ObjectResult(new { error = "rate_limited", message = ex.Message })
+            {
+                StatusCode = StatusCodes.Status429TooManyRequests
+            };
+        }
         catch (Exception e)
         {
             logger.LogError("Couldn't read a currency exchange: {e}", e);
@@ -239,6 +290,13 @@ public class GoogleSheetAzureFunction(IExpenseRepository expenseRepository,
             logger.LogInformation($"All {futureExpenses.Count} future expenses are successfully read");
 
             return new OkObjectResult(futureExpenses.Select(Mapper.ToFutureExpenseDto));
+        }
+        catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.TooManyRequests)
+        {
+            return new ObjectResult(new { error = "rate_limited", message = ex.Message })
+            {
+                StatusCode = StatusCodes.Status429TooManyRequests
+            };
         }
         catch (Exception e)
         {

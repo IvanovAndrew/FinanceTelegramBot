@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
+using GoogleSheetWriter.Infrastructure;
 
 [assembly: InternalsVisibleTo("GoogleSheetWriter.Test")]
 
@@ -21,18 +22,16 @@ namespace GoogleSheetWriter
         public DateOnly Date => DateOnly.TryParse(GetByColumnName(_columnNames.DateColumn), _culture, DateTimeStyles.None, out var date)? date : DateOnly.MinValue;
 
         public string Category =>
-            _columnNames.Category != null ? _columnNames.Category! :
-             GetByColumnName(_columnNames.CategoryColumn)?? "UNKNOWN";
+            _columnNames.Category?? GetByColumnName(_columnNames.CategoryColumn)?? "UNKNOWN";
 
         public string? SubCategory => GetByColumnName(_columnNames.SubCategoryColumn);
+        public string? Shop => GetByColumnName(_columnNames.ShopColumn);
         public string? Description => GetByColumnName(_columnNames.DescriptionColumn);
 
-        public decimal Amount => ParseAmount(GetByColumnName(_columnNames.AmountRurColumn), GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn), GetByColumnName(_columnNames.AmountEurColumn), GetByColumnName(_columnNames.AmountRsdColumn), GetByColumnName(_columnNames.AmountTryColumn));
+        public decimal Amount => ParseAmount(GetByColumnName(_columnNames.AmountRurColumn), GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.OtherAmountColumn));
 
-        public Currency Currency => ParseCurrency(GetByColumnName(_columnNames.AmountRurColumn),
-            GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.AmountGelColumn), GetByColumnName(_columnNames.AmountUsdColumn), GetByColumnName(_columnNames.AmountEurColumn), 
-            GetByColumnName(_columnNames.AmountRsdColumn),
-            GetByColumnName(_columnNames.AmountTryColumn)); 
+        public string Currency => ParseCurrency(GetByColumnName(_columnNames.AmountRurColumn),
+            GetByColumnName(_columnNames.AmountAmdColumn), GetByColumnName(_columnNames.OtherAmountColumn), GetByColumnName(_columnNames.OtherCurrencyColumn)); 
 
         private string? GetByColumnName(ExcelColumn? excelColumn)
         {
@@ -55,33 +54,34 @@ namespace GoogleSheetWriter
             return 0;
         }
 
-        private Currency ParseCurrency(
-            string? rurColumn, string? amdColumn, string? gelColumn, string? usdColumn, string? eurColumn, string? rsdColumn, string? tryColumn)
+        private string ParseCurrency(
+            string? rurColumn, string? amdColumn, string? otherAmountColumn, string? otherCurrencyColumn)
         {
-            var currencies = new (string? Column, Currency Type)[]
+            var defaultCurrency = Constants.Currency.RUR; 
+            
+            var currencies = new (string? Column, string Type)[]
             {
-                (rurColumn, Currency.RUR),
-                (amdColumn, Currency.AMD),
-                (gelColumn, Currency.GEL),
-                (usdColumn, Currency.USD),
-                (eurColumn, Currency.EUR),
-                (rsdColumn, Currency.RSD),
-                (tryColumn, Currency.TRY),
+                (rurColumn, Constants.Currency.RUR),
+                (amdColumn, Constants.Currency.AMD),
             };
 
             foreach (var (column, currency) in currencies)
             {
                 var value = Normalize(column);
-                if (currency == Currency.RUR && value.Contains("Загрузка", StringComparison.CurrentCultureIgnoreCase))
-                    return Currency.RUR;
+                if (currency == nameof(Constants.Currency.RUR) && value.Contains("Загрузка", StringComparison.CurrentCultureIgnoreCase))
+                    return defaultCurrency;
 
                 if (decimal.TryParse(value, NumberStyles.Currency, _culture, out var parsed))
                     return currency;
             }
 
-            return Currency.RUR;
+            if (decimal.TryParse(Normalize(otherAmountColumn), NumberStyles.Currency, _culture, out var parsedAmount) &&
+                !string.IsNullOrEmpty(otherCurrencyColumn))
+            {
+                return otherCurrencyColumn;
+            }
 
-            //throw new ArgumentOutOfRangeException($"Couldn't parse money from columns: {string.Join(", ", currencies.Select(c => c.Column))}");
+            return defaultCurrency;
         }
         
         private string Normalize(string? input) => (input ?? string.Empty).Trim();
