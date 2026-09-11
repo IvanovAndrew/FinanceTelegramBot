@@ -49,8 +49,6 @@ namespace TelegramBot
             services.AddSingleton<IConversation, TelegramConversation>();
             services.AddSingleton<IConversationStateStore, ConversationStateStore>();
 
-            var telegramToken = Environment.GetEnvironmentVariable("TELEGRAM_TOKEN");
-
             services.AddMemoryCache();
             services.AddScoped<IExpenseCategoryMappingCache, ExpenseCategoryMappingCache>();
 
@@ -63,8 +61,11 @@ namespace TelegramBot
                     Environment.GetEnvironmentVariable("FNS_TOKEN") ?? "FNS_TOKEN"));
             services.AddSingleton<IRecurringExpensesService, RecurringExpensesService>();
             services.AddTransient<FinanceStatisticsService>();
-            services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s =>
-                ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
+            
+            var telegramToken = Environment.GetEnvironmentVariable("TELEGRAM_TOKEN");
+            builder.Services.AddHttpClient("telegram_bot")
+                .AddTypedClient<ITelegramBotClient>((httpClient) => 
+                    new TelegramBotClient(telegramToken, httpClient));
 
             services.AddSingleton<IFnsReceiptProvider, FnsReceiptProvider>();
 
@@ -119,8 +120,8 @@ namespace TelegramBot
             services.AddSingleton<IFnsShopNameResolver, FnsShopNameResolver>();
 
             services.AddSingleton<IYerevanCityReceiptProvider, YerevanCityReceiptProvider>();
-            services.AddSingleton<IYerevanCityAPI, YerevanCityAPI>();
-
+            builder.Services.AddHttpClient<IYerevanCityAPI, YerevanCityAPI>((httpClient, _) => new YerevanCityAPI(httpClient, Environment.GetEnvironmentVariable("YEREVANCITY_AUTH")));
+            
             services.AddSingleton<IExpenseJsonParser>(sp => new ExpenseJsonParserChain([
                 sp.GetRequiredService<YerevanCityExpenseJsonParser>(),
                 sp.GetRequiredService<RussianCheckExpenseJsonParser>()
