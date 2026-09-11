@@ -1,5 +1,8 @@
-﻿using Domain;
+﻿using System.Net;
+using Domain;
+using Domain.Services;
 using Microsoft.Extensions.Logging;
+using Refit;
 
 namespace Infrastructure.GoogleSpreadsheet;
 
@@ -11,85 +14,48 @@ public class GoogleSpreadsheetService(
     private readonly IGoogleSpreadsheetApi _api = googleSpreadsheetApi ?? throw new ArgumentNullException(nameof(googleSpreadsheetApi));
     private readonly ILogger<IGoogleSpreadsheetService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public async Task<SaveResult> SaveIncomeAsync(IMoneyTransfer income, CancellationToken cancellationToken)
-    {
-        try
+    private const string QuotaExceededMessage = "Google Sheets quota exceeded, try again later.";
+
+    public Task<SaveResult> SaveIncomeAsync(IMoneyTransfer income, CancellationToken cancellationToken) =>
+        ExecuteSaveAsync(async () =>
         {
             var incomeDto = GoogleSpreadsheetIncomeDto.FromIncome(income);
-
             var response = await _api.SaveIncomeAsync(incomeDto, cancellationToken);
-
             return await HandleResponseAsync(response, income.ToString(), cancellationToken);
-        }
-        catch (Exception ex)
+        }, nameof(SaveIncomeAsync));
+
+    public Task<List<Income>> GetIncomesAsync(FinanceFilter financeFilter, CancellationToken cancellationToken) =>
+        ExecuteAsync(async () =>
         {
-            _logger.LogError(ex, "Unexpected error while saving income.");
-            return SaveResult.Fail($"Unexpected error: {ex.Message}");
-        }
-    }
-
-    public async Task<List<Income>> GetIncomesAsync(FinanceFilter financeFilter,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            string jsonPayload = financeFilter.ToJsonPayload(false);
-            _logger.LogInformation("Getting incomes with filter: {Filter}", jsonPayload);
-
-            var dtos = await _api.GetIncomesAsync(jsonPayload, cancellationToken);
-
+            var dtos = await _api.GetIncomesAsync(financeFilter.DateFrom, financeFilter.DateTo,
+                financeFilter.Category?.Name, financeFilter.Currency?.Name, cancellationToken);
             return dtos?.Select(GoogleSpreadsheetIncomeDto.ToIncome).ToList() ?? [];
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error while getting incomes.");
-            return new List<Income>();
-        }
-    }
+        }, nameof(GetIncomesAsync));
 
-    public async Task<List<Outcome>> GetExpensesAsync(FinanceFilter financeFilter,
-        CancellationToken cancellationToken)
-    {
-        try
+    public Task<List<Outcome>> GetExpensesAsync(FinanceFilter financeFilter, CancellationToken cancellationToken) =>
+        ExecuteAsync(async () =>
         {
-            string jsonPayload = financeFilter.ToJsonPayload(true);
-            _logger.LogInformation("Getting expenses with filter: {Filter}", jsonPayload);
+            var dtos = await _api.GetExpensesAsync(financeFilter.DateFrom, financeFilter.DateTo,
+                financeFilter.Category?.Name, financeFilter.Subcategory?.Name, financeFilter.Currency?.Name,
+                cancellationToken);
+            return dtos?.Select(d => GoogleSpreadsheetExpenseDto.ToExpense(d, _logger)).ToList() ?? [];
+        }, nameof(GetExpensesAsync));
 
-            var dtos = await _api.GetExpensesAsync(jsonPayload, cancellationToken);
-            return dtos?.Select(d => GoogleSpreadsheetExpenseDto.ToExpense(d, _logger)).ToList() ??
-                   [];
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error while getting expenses.");
-            return [];
-        }
-    }
-
-    public async Task<SaveResult> SaveExpenseAsync(IMoneyTransfer expense, CancellationToken cancellationToken)
-    {
-        try
+    public Task<SaveResult> SaveExpenseAsync(Outcome expense, CancellationToken cancellationToken) =>
+        ExecuteSaveAsync(async () =>
         {
             var expenseDto = GoogleSpreadsheetExpenseDto.FromExpense(expense);
             var response = await _api.SaveExpenseAsync(expenseDto, cancellationToken);
-
             return await HandleResponseAsync(response, expense.ToString(), cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while saving income.");
-            return SaveResult.Fail($"Unexpected error: {ex}");
-        }
-    }
+        }, nameof(SaveExpenseAsync));
 
-    public async Task<SaveResult> SaveAllExpensesAsync(IReadOnlyCollection<IMoneyTransfer> expenses,
-        CancellationToken cancellationToken)
-    {
-        try
+    public Task<SaveResult> SaveAllExpensesAsync(IReadOnlyCollection<Outcome> expenses,
+        CancellationToken cancellationToken) =>
+        ExecuteSaveAsync(async () =>
         {
             var dtos = expenses.Select(GoogleSpreadsheetExpenseDto.FromExpense).ToArray();
 
-            if (dtos == null || dtos.Length == 0)
+            if (dtos.Length == 0)
             {
                 _logger.LogWarning("Attempted to save empty or null expense batch!");
                 return SaveResult.Fail("No expenses to save.");
@@ -112,11 +78,57 @@ public class GoogleSpreadsheetService(
                 $"Failed to save expenses batch. Status: {(int)response.StatusCode} {response.ReasonPhrase}. Response: {content}";
             _logger.LogWarning(message);
             return SaveResult.Fail(message);
+        }, nameof(SaveAllExpensesAsync));
+
+    public Task<List<CurrencyExchange>> GetCurrencyExchanges(Currency currency, DateOnly dateFrom, DateOnly? dateTo,
+        CancellationToken cancellationToken) =>
+        ExecuteAsync(async () =>
+        {
+            var dtos = await _api.GetCurrencyExchangesAsync(dateFrom, dateTo, currency?.Name, cancellationToken);
+            return dtos?.Select(d => GoogleSpreadsheetCurrencyExchangeDto.ToCurrencyExchange(d, _logger)).ToList() ?? [];
+        }, nameof(GetCurrencyExchanges));
+
+    public Task<List<RecurringExpenseDefinition>> GetFutureExpenses(Currency currency,
+        CancellationToken cancellationToken) =>
+        ExecuteAsync(async () =>
+        {
+            var dtos = await _api.GetFutureExpensesAsync(currency.Name, cancellationToken);
+            return dtos?.Select(d => GoogleSpreadsheetFutureExpenseDto.ToRecurringExpenseDefinition(d, _logger)).ToList() ?? [];
+        }, nameof(GetFutureExpenses));
+
+    private async Task<T> ExecuteAsync<T>(Func<Task<T>> operation, string operationName)
+    {
+        try
+        {
+            return await operation();
+        }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests)
+        {
+            _logger.LogWarning(ex, "Google Sheets rate limit exceeded during {Operation}.", operationName);
+            throw new GoogleSpreadsheetServiceException(QuotaExceededMessage, ex, isTransient: true);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while saving batch expenses.");
-            return SaveResult.Fail($"Unexpected error: {ex}");
+            _logger.LogError(ex, "Error during {Operation}.", operationName);
+            throw new GoogleSpreadsheetServiceException($"Failed during {operationName}.", ex, IsTransientError(ex));
+        }
+    }
+
+    private async Task<SaveResult> ExecuteSaveAsync(Func<Task<SaveResult>> operation, string operationName)
+    {
+        try
+        {
+            return await operation();
+        }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests)
+        {
+            _logger.LogWarning(ex, "Google Sheets rate limit exceeded during {Operation}.", operationName);
+            return SaveResult.Fail(QuotaExceededMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during {Operation}.", operationName);
+            return SaveResult.Fail($"Unexpected error: {ex.Message}");
         }
     }
 
@@ -133,4 +145,7 @@ public class GoogleSpreadsheetService(
         _logger.LogWarning(message);
         return SaveResult.Fail(message);
     }
+
+    private static bool IsTransientError(Exception ex) =>
+        ex is HttpRequestException { StatusCode: HttpStatusCode.TooManyRequests };
 }

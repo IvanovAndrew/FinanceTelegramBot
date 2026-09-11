@@ -5,13 +5,14 @@ namespace Domain
     public class Currency
     {
         // the order is important! Rur/Amd/Gel should follow before _mapping 
-        public static Currency RUR = new("RUR", "₽");
-        public static Currency AMD = new("AMD", "֏");
+        public static Currency RUR = new("RUR", "₽", isPopular: true);
+        public static Currency AMD = new("AMD", "֏", isPopular: true);
         public static Currency GEL = new("GEL", "₾");
         public static Currency USD = new("USD", "$", "C2");
         public static Currency EUR = new("EUR", "€", "C2");
         public static Currency RSD = new("RSD", "din");
         public static Currency TRY = new("TRY", "\u20ba");
+        public static Currency THB = new("THB", "฿");
         
         private static Dictionary<string, Currency> _mapping = new()
         {
@@ -26,17 +27,21 @@ namespace Domain
             ["din"] = RSD,
             ["lir"] = TRY,
             ["лир"] = TRY,
+            ["бат"] = THB,
+            ["bat"] = THB,
         };
         
         public readonly string Name;
         public readonly string Symbol;
         public readonly string Format;
+        public readonly bool IsPopular;
 
-        private Currency(string s, string symbol, string format = "C0")
+        private Currency(string s, string symbol, string format = "C0", bool isPopular = false)
         {
             Name = s;
             Symbol = symbol;
             Format = format;
+            IsPopular = isPopular;
         }
 
         public static Currency Parse(string text)

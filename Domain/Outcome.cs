@@ -6,6 +6,7 @@ namespace Domain
         public DateOnly Date { get; init; }
         public Category Category { get; init; }
         public SubCategory? SubCategory { get; init; }
+        public Shop? Shop { get; init; }
         public string? Description { get; init; }
         public Money Amount { get; init; }
 
@@ -16,6 +17,7 @@ namespace Domain
                 $"Date: {Date:dd.MM.yyyy}",
                 $"Category: {Category.Name}",
                 $"Subcategory: {SubCategory?.Name.ToString()}",
+                $"Shop: {Shop}",
                 $"Description: {Description ?? string.Empty}",
                 $"Amount: {Amount}",
                 "");

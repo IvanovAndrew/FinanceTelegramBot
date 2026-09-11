@@ -1,6 +1,5 @@
 ﻿using Domain;
 using Domain.Services;
-using Microsoft.Extensions.Logging;
 
 public record FinancialPeriod
 {
@@ -24,28 +23,28 @@ public record FinancialPeriod
     public bool Includes(DateOnly date) => Start <= date && date <= End;
 }
 
-public record DailyBudget(Money dailyMoney, Money unpaidRecurring);
+public record DailyBudget(Money dailyMoney, Money futureExpensesSum, IReadOnlyList<MissingRecurringExpense> futureExpenses);
 
 public class FinanceStatisticsService(IRecurringExpensesService recurringExpensesService/*, ILogger<FinanceStatisticsService> logger*/)
 {
-    public DailyBudget CalculateMoneyPerDay(Money balance, IEnumerable<IMoneyTransfer> outcomes, YearMonth monthFrom, FinancialPeriod period)
+    public DailyBudget CalculateMoneyPerDay(
+        Money balance, IEnumerable<Outcome> outcomes, YearMonth monthFrom, FinancialPeriod period, DateOnly today,
+        IReadOnlyCollection<RecurringExpenseDefinition> recurringDefinitions,
+        IReadOnlyCollection<Outcome> recurringHistory)
     {
         var zero = Money.Zero(balance.Currency);
-        
+
         var spentSoFar = outcomes
-            .Where(o => monthFrom.ToDateOnly(1) <= o.Date)
+            .Where(o => monthFrom.ToDateOnly() <= o.Date)
             .Select(o => o.Amount)
             .Aggregate(zero, (a, b) => a + b);
-        
-        var unpaidRecurring = recurringExpensesService.GetMissingRecurringExpenses(outcomes, period.Start)
-            .Aggregate(zero, (a, b) => a + b);
-        
+
+        var missingRecurring = recurringExpensesService.GetMissingRecurringExpenses(recurringDefinitions, recurringHistory, today);
+        var unpaidRecurring = missingRecurring.Select(m => m.ResolvedAmount ?? zero).Aggregate(zero, (a, b) => a + b);
+
         var moneyLeft = balance - spentSoFar - unpaidRecurring;
-        
-        //logger.LogInformation($"Spent: {spentSoFar} Unpaid: {unpaidRecurring} Money left: {moneyLeft}");
-        
         var dailyMoney = moneyLeft.Amount > 0 ? moneyLeft / period.DaysRemaining : zero;
 
-        return new DailyBudget(dailyMoney, unpaidRecurring);
+        return new DailyBudget(dailyMoney, unpaidRecurring, missingRecurring);
     }
 }

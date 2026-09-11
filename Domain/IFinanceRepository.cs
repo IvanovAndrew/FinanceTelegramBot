@@ -7,14 +7,18 @@ public interface IFinanceRepository
         SaveAllOutcomes(new List<Outcome>() { expense }, cancellationToken);
 
     Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<Outcome> expenses, CancellationToken cancellationToken);
-    Task<List<Outcome>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
-    Task<List<Income>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Outcome>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Income>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken);
 
     Task<SaveResult> Save(IMoneyTransfer transfer, CancellationToken cancellationToken)
     {
-        if (transfer.IsIncome)
-            return SaveIncome((Income)transfer, cancellationToken);
-        else 
-            return SaveOutcome((Outcome) transfer, cancellationToken);
+        return transfer.IsIncome ? SaveIncome((Income)transfer, cancellationToken) : SaveOutcome((Outcome) transfer, cancellationToken);
     }
+
+    Task<IReadOnlyList<CurrencyExchange>> ReadCurrencyExchanges(FinanceFilter financeFilter,
+        CancellationToken cancellationToken)
+        => ReadCurrencyExchanges(financeFilter.Currency, financeFilter.DateFrom.Value, financeFilter.DateTo, cancellationToken);
+
+    Task<IReadOnlyList<CurrencyExchange>>
+        ReadCurrencyExchanges(Currency currency, DateOnly dateFrom, DateOnly? dateTo, CancellationToken cancellationToken);
 }

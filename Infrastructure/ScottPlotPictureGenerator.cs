@@ -1,4 +1,5 @@
-﻿using Application;
+﻿using Application.Bot;
+using Application.Core;
 using Domain;
 using ScottPlot;
 
@@ -6,6 +7,67 @@ namespace Infrastructure;
 
 public class ScottPlotPictureGenerator : IPictureGenerator
 {
+    public byte[] GeneratePlot(IReadOnlyList<(ChartBucket bucket, decimal value)> data, Currency currency, PictureOptions options)
+    {
+        if (data == null || !data.Any())
+            return Array.Empty<byte>();
+
+        double step = CalculateStepSize(data.Select(x => x.value));
+    
+        // Подготовка данных для ScottPlot 5
+        double[] xs = data.Select(d => d.bucket.Date.ToDateTime(TimeOnly.MinValue).ToOADate()).ToArray();
+        double[] ys = data.Select(d => (double)d.value).ToArray();
+
+        var plot = new Plot();
+
+        var scatter = plot.Add.Scatter(xs, ys, Colors.RoyalBlue);
+        scatter.LegendText = "Daily Expenses";
+        scatter.LineWidth = 2;
+        scatter.MarkerSize = 8f;
+
+        // Настройка оси X (Даты)
+        plot.Axes.Bottom.TickGenerator = CreateDayTickGenerator(data.Select(d => d.bucket.Date).ToList());
+        plot.Axes.Bottom.TickLabelStyle.Alignment = Alignment.UpperCenter;
+
+        // Настройка оси Y (Суммы)
+        double maxVal = ys.Max();
+        int tickCount = (int)(maxVal / step) + 2;
+        double[] tickPositions = Enumerable.Range(0, tickCount).Select(i => i * step).ToArray();
+        string[] tickLabels = tickPositions.Select(v => $"{v:N0} {currency.Name}").ToArray();
+
+        plot.Axes.Left.TickGenerator = new ScottPlot.TickGenerators.NumericManual(tickPositions, tickLabels);
+
+        // Визуальные настройки
+        plot.Title(options.Title);
+        plot.XLabel(options.xLable);
+        plot.YLabel(options.yLable);
+        
+        plot.ShowLegend(Alignment.UpperRight);
+    
+        // Небольшие отступы, чтобы крайние точки не прилипали
+        plot.Axes.Margins(0.1, 0);
+
+        return plot.GetImageBytes(1200, 800, ImageFormat.Png);
+    }
+    
+    private static ScottPlot.TickGenerators.NumericManual CreateDayTickGenerator(IReadOnlyList<DateOnly> days)
+    {
+        // Если дней много (больше 14), показываем каждый 3-й, иначе каждый день
+        int interval = days.Count > 14 ? (days.Count / 10) : 1;
+        if (interval < 1) interval = 1;
+
+        var ticks = days
+            .Where((_, index) => index % interval == 0)
+            .Select(d => {
+                DateTime dt = d.ToDateTime(TimeOnly.MinValue);
+                double pos = dt.ToOADate();
+                string label = dt.ToString("dd.MM"); // Формат "25.04"
+                return new Tick(pos, label);
+            }).ToArray();
+
+        return new ScottPlot.TickGenerators.NumericManual(ticks);
+    }
+
     public byte[] GeneratePlot(IReadOnlyList<MonthlyBalance> data, Currency currency, PictureOptions options)
     {
         double step = CalculateStepSize(data);
@@ -60,7 +122,6 @@ public class ScottPlotPictureGenerator : IPictureGenerator
     {
         double step = CalculateStepSize(data.Select(c => c.value));
         
-        // ScottPlot работает с DateTime
         //double[] dates = data.Select(d => d.date.ToDateTime().ToOADate()).ToArray();
         var dates = data.Select(c => c.date.ToDateTime()).ToArray();
         double[] outcomes = data.Select(d => (double) d.value).ToArray();
@@ -76,8 +137,6 @@ public class ScottPlotPictureGenerator : IPictureGenerator
         plot.Axes.Bottom.TickGenerator = CreateMonthTickGenerator(data.Select(c => c.date).ToList());
         plot.Axes.Bottom.TickLabelStyle.Alignment = Alignment.UpperCenter;
         
-        // 4. Настройка ОСИ Y
-        // Определяем максимальное значение для сетки
         double maxVal = outcomes.Max();
         int tickCount = (int)(maxVal / step) + 2;
 

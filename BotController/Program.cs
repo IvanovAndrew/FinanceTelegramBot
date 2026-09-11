@@ -4,6 +4,7 @@ namespace TelegramBot
     {
         public static void Main(string[] args)
         {
+            Console.WriteLine($"[COLD START] Process started at {DateTime.UtcNow:O}");
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -12,8 +13,9 @@ namespace TelegramBot
             return Host.CreateDefaultBuilder(args)
                 .UseDefaultServiceProvider((context, options) =>
                 {
-                    options.ValidateScopes = true;
-                    options.ValidateOnBuild = true; 
+                    var isDev = context.HostingEnvironment.IsDevelopment();
+                    options.ValidateScopes = isDev;
+                    options.ValidateOnBuild = isDev; 
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

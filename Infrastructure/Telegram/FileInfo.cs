@@ -1,7 +1,6 @@
-﻿using Application;
-using Infrastructure.Telegram;
+﻿using Application.Bot;
 
-namespace TelegramBot.Services;
+namespace Infrastructure.Telegram;
 
 public class FileInfo : IFileInfo
 {

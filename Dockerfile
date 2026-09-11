@@ -1,20 +1,18 @@
 ﻿# --- Runtime image ---
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS base
 WORKDIR /app
 
-# Install locales
-RUN apt-get update && apt-get install -y --no-install-recommends locales \
-    && sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
-    && sed -i 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen \
-    && locale-gen
-
-# Scott Plot dependencies
+# Locales + ScottPlot runtime dependencies (single layer)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    locales \
     libgdiplus \
-    libx11-dev \
+    libx11-6 \
     fontconfig \
     libfreetype6 \
     fonts-dejavu-core \
+    && sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && sed -i 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen \
+    && locale-gen \
     && ln -s /usr/lib/libgdiplus.so /usr/lib/gdiplus.dll \
     && fc-cache -f -v \
     && rm -rf /var/lib/apt/lists/*
@@ -23,28 +21,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
+ENV ASPNETCORE_ENVIRONMENT=Production
 
 # Azure Container Apps provides HTTP internally; TLS is already terminated externally
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
 # --- Build image ---
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy only .csproj to cache restore
 COPY */*.csproj ./
-RUN dotnet restore "BotController.csproj"
+RUN dotnet restore "BotController.csproj" -r linux-x64
 
 # Copy the rest of the source code
 COPY . .
 
-WORKDIR "/src/BotController"
-RUN dotnet build "BotController.csproj" -c Release -o /app/build
-
 # --- Publish ---
 FROM build AS publish
-RUN dotnet publish "BotController.csproj" -c Release -o /app/publish /p:UseAppHost=false
+WORKDIR "/src/BotController"
+RUN dotnet publish "BotController.csproj" -c Release -o /app/publish \
+    -r linux-x64 --self-contained false \
+    -p:PublishReadyToRun=true -p:UseAppHost=false
 
 # --- Final lite image ---
 FROM base AS final

@@ -1,41 +1,71 @@
-﻿using Application;
+﻿using Application.Contracts.FNS;
+using Application.Core;
 using Domain;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Fns;
 
-public class RussianCheckExpenseJsonParser : IExpenseJsonParser
+public class RussianCheckExpenseJsonParser(IFnsShopNameResolver shopNameResolver, IExternalCategoryMapper externalCategoryMapper, ILogger<RussianCheckExpenseJsonParser> logger) : IExpenseJsonParser
 {
     public Currency Currency => Currency.RUR;
 
     public bool CanParse(string json)
     {
-        return json.Contains("fnsurl", StringComparison.InvariantCultureIgnoreCase);
+        return json.Contains("messageFiscalSign", StringComparison.InvariantCultureIgnoreCase);
     }
 
-    public IReadOnlyList<Outcome> ParseOutcomes(string json, Category defaultCategory)
+    public Check ParseCheck(string json)
     {
-        var result = new List<Outcome>();
-        dynamic order = JsonConvert.DeserializeObject(json)!;
+        FnsCheckInfo check = JsonSerializer.Deserialize<FnsCheckInfo>(json);
 
-        var date = DateOnly.FromDateTime(DateTime.Parse(order["dateTime"].ToString()));
+        return ParseCheck(check);
+    }
 
-        foreach (var jsonExpense in order["items"])
+    public Check ParseCheck(FnsCheckInfo check)
+    {
+        var date = DateOnly.FromDateTime(check.DateTime.Hour < 4? check.DateTime.AddDays(-1) : check.DateTime);
+        
+        var shop = shopNameResolver.Resolve(check);
+        var newCodes = new HashSet<string>();
+        
+        var outcomes = new List<Outcome>();
+        foreach (var item in check.Items)
         {
-            var amount = decimal.Parse(jsonExpense["sum"].ToString()) / 100;
-            var description = jsonExpense["name"].ToString();
+            var amount = item.Sum / 100;
+            var description = item.Name;
+            
+            Category category = Categories.Outcome.DefaultCategory;
+            SubCategory? subCategory = null;
+            if (item.ProductCodeNew?.Gs1m?.Gtin is { } productCode)
+            {
+                var mappingResult = externalCategoryMapper.Map(new ExternalCategory{Source = "Gtin", RawName = productCode});
+                if (mappingResult.Item1 != Categories.Outcome.DefaultCategory)
+                {
+                    category = mappingResult.Item1;
+                    subCategory = mappingResult.Item2;
+                    
+                    logger.LogInformation($"Fount category for product code {productCode}: {category.Code}");
+                }
+                else
+                {
+                    newCodes.Add(productCode);
+                    logger.LogInformation($"New product code: {productCode}");
+                }
+            }
 
             var expense = new Outcome()
             {
                 Amount = new Money { Amount = amount, Currency = Currency },
+                Shop = shop,
                 Description = description,
                 Date = date,
-                Category = defaultCategory,
+                Category = category,
+                SubCategory = subCategory,
             };
             
-            result.Add(expense);
+            outcomes.Add(expense);
         }
 
-        return result;
+        return new Check(){Outcomes = outcomes, NewOptions = newCodes};
     }
 }

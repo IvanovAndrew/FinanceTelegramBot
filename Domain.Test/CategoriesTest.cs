@@ -17,7 +17,7 @@ public class CategoriesTest
     [Fact]
     public void Category_Can_Be_Found_By_Code()
     {
-        Assert.NotNull(Categories.Outcome.GetCategory("CulturalLife"));
+        Assert.NotNull(Categories.Outcome.GetCategory("Leisure"));
     }
 
     [Fact]

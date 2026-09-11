@@ -1,6 +1,6 @@
 ﻿namespace Domain;
 
-public sealed class SpendingHistoryPeriod
+public class SpendingHistoryPeriod
 {
     public DateOnly From { get; }
     public DateOnly To { get; }

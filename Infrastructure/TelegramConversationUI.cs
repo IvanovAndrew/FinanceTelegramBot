@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
-using Application;
+using Application.Bot;
+using Application.Core;
 
 namespace Infrastructure;
 
@@ -16,7 +17,15 @@ public class TelegramConversation(IMessageService telegram, IConversationStateSt
             messageId = activeMessageId;
             if (mode == ScreenMode.Update)
             {
-                await telegram.EditSentTextMessageAsync(sessionId, activeMessageId, screen.Text, screen.Options, screen.Table, cancellationToken: ct);
+                if (screen.Bytes is { Length: > 0 })
+                {
+                    await telegram.SendPictureAsync(sessionId, screen.Bytes, screen.Text, cancellationToken: ct);
+                }
+                else
+                {
+                    await telegram.EditSentTextMessageAsync(sessionId, activeMessageId, screen.Text, screen.Options, screen.Table, useMarkdown:screen.UseMarkdown, cancellationToken: ct);
+                }
+                
                 sendMessage = false;
             }
             else if (mode == ScreenMode.Replace)
@@ -27,38 +36,40 @@ public class TelegramConversation(IMessageService telegram, IConversationStateSt
         
         if (sendMessage)
         {
-            var newMessageId = await telegram.SendTextMessageAsync(sessionId, screen.Text, screen.Options, screen.Table, cancellationToken: ct);
+            int newMessageId = 0;
+            if (screen.Bytes is { Length: > 0 })
+            {
+                newMessageId = await telegram.SendPictureAsync(sessionId, screen.Bytes, screen.Text, cancellationToken: ct);
+            }
+            else
+            {
+                newMessageId = await telegram.SendTextMessageAsync(sessionId, screen.Text, screen.Options, screen.Table, screen.UseMarkdown, cancellationToken: ct);
+            }
+            
             messageId = newMessageId;
         }
 
         state.SetActiveMessageId(sessionId, messageId, screen.Mode);
     }
-}
 
-public interface IConversationStateStore
-{
-    (int?, ScreenMode) GetActiveMessageId(long sessionId);
-    void SetActiveMessageId(long sessionId, int messageId, ScreenMode mode);
-    void Clear(long sessionId);
-}
-
-public class ConversationStateStore : IConversationStateStore
-{
-    private readonly ConcurrentDictionary<long, (int?, ScreenMode)> activeMessageIds =
-        new ConcurrentDictionary<long, (int?, ScreenMode)>();
-
-    public (int?, ScreenMode) GetActiveMessageId(long sessionId)
+    public async Task Finish(long sessionId, CancellationToken ct)
     {
-        return activeMessageIds.GetValueOrDefault(sessionId);
-    }
+        var (activeMessage, mode) = state.GetActiveMessageId(sessionId);
 
-    public void SetActiveMessageId(long sessionId, int messageId, ScreenMode mode)
-    {
-        activeMessageIds[sessionId] = (messageId, mode);
-    }
-
-    public void Clear(long sessionId)
-    {
-        activeMessageIds.Remove(sessionId, out _);
+        if (activeMessage is {} messageId)
+        {
+            switch (mode)
+            {
+                case ScreenMode.Update:
+                case ScreenMode.Replace:
+                    await telegram.RemoveMessageButtonsAsync(sessionId, messageId, ct);
+                    break;
+                
+                default:break;
+            }
+        }
+        
+        state.Clear(sessionId);
     }
 }
+

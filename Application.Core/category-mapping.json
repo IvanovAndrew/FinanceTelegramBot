@@ -1,0 +1,354 @@
+﻿{
+  "Yerevan City": {
+    "Categories": {
+      "Beauty": {
+        "cosmetics": [
+          "Nail Care"
+        ]
+      },
+      "ClothesAndShoes": {
+        "clothes": [
+          "Hangers",
+          "Linens",
+          "Pillows"
+        ]
+      },
+      "Food": {
+        "alcohol": [
+          "Armenian beer",
+          "Imported beer",
+          "Low alcohol cocktails and cider",
+          "Wine"
+        ],
+        "fruits": [
+          "Cucumbers",
+          "Exotic fruits",
+          "Greens in box",
+          "Nuts",
+          "Vegetables"
+        ],
+        "products": [
+          "Batter",
+          "Beans",
+          "Beef",
+          "Breadcrumbs",
+          "Buckwheat",
+          "Canned fish",
+          "Canned meat",
+          "Cheese product",
+          "Citrus fruit",
+          "Coffee blends (mixed coffee)",
+          "Cold dishes",
+          "Corn",
+          "Crab meat and sticks",
+          "Diabetic crispbreads",
+          "Diet bread",
+          "Drinks",
+          "Drinking water",
+          "Dry soap",
+          "Dumplings, khinkali",
+          "Eggs 10pcs",
+          "Eggs 15pcs",
+          "Eggs 20pcs",
+          "Eggs 30pcs",
+          "Feta,brined, bryndza, mozzarella cheeses",
+          "French bread",
+          "Fresh chicken",
+          "Fresh fish",
+          "Frozen chicken",
+          "Fruits",
+          "Grain",
+          "Grilled, mix vegetable",
+          "Ham",
+          "Hard and semihard cheeses",
+          "Imported tomato paste",
+          "Industrial bread",
+          "Juices",
+          "Kefir",
+          "Kololak",
+          "Local bread",
+          "Local tomato paste",
+          "Lori cheese",
+          "Mascarpone, ricotta, burrata cheeses",
+          "Matsoni, strained matsun",
+          "Meals with meat and seafood",
+          "Meals with vegetables",
+          "Milk",
+          "Milk and milk cocktail",
+          "Milk cocktail, drink",
+          "Mineral water",
+          "Moldy cheeses",
+          "Natural caviar",
+          "Natural coffee",
+          "Oat flakes, Hercules",
+          "Olive oil",
+          "Pasta",
+          "Pepper",
+          "Pork fillet",
+          "Porridge",
+          "Processed and cottage cheeses",
+          "Rice",
+          "Salads",
+          "Sauces for meat and fish",
+          "Sauces for salads",
+          "Sauces for sushi and Asian cuisine",
+          "Sesame oil",
+          "Slicing",
+          "Sour cream",
+          "Sparkling water",
+          "Strained yogurt",
+          "Sugar",
+          "Tea leaf",
+          "Tea similar drinks",
+          "Tomato sauces",
+          "Vegetable caviar",
+          "Yeast"
+        ],
+        "snacks": [
+          "Ayran",
+          "Baklava, dry cake and muffine",
+          "Caffeinated carbonated drinks",
+          "Cakes",
+          "Candy dragee",
+          "Candy jelly",
+          "Candy sets with filling",
+          "Canned fruits",
+          "Carbonated drinks",
+          "Chocolate and nuts cream",
+          "Chocolate bars",
+          "Chocolate candies",
+          "Cocoa powder",
+          "Condensed milk",
+          "Cookies",
+          "Corn chips",
+          "Cottage cheese",
+          "Cracker",
+          "Croissants and buns",
+          "Cupcake, croissants, donuts",
+          "Curd products",
+          "Dragee",
+          "Dried fruits",
+          "Dry cookies",
+          "Flakes",
+          "Flour chips",
+          "Fresh on spot bread City",
+          "Gingerbread, cookies",
+          "Gums",
+          "Hot chocolate",
+          "Ice cream Cup",
+          "Ice cream Eskimo",
+          "Ice cream Sandwich",
+          "Imported crackers",
+          "Jelly",
+          "Jelly cake",
+          "Kvass",
+          "Local crackers",
+          "Marmalade",
+          "Marshmallows-Zefir",
+          "Nougat",
+          "Nuggets, snack",
+          "Okroshka",
+          "Popcorn",
+          "Potato chips",
+          "Sandviches",
+          "Salted corn",
+          "Salted sticks",
+          "Seasonings",
+          "Sets of cakes",
+          "Snacks",
+          "Soups",
+          "Sujuk",
+          "Various candies",
+          "Waffles",
+          "Yogurt",
+          "Yogurt product, dessert, pudding",
+          "Yogurts"
+        ]
+      },
+      "ForHouse": {
+        "forkitchen": [
+          "Casseroles",
+          "Cutting boards",
+          "Forks",
+          "Frying pans",
+          "Glasses and cups",
+          "Graters",
+          "Hand towel",
+          "Jugs",
+          "Kitchenwares",
+          "Kitchen towel",
+          "Plates",
+          "Salad and sauce bowls",
+          "Spoons",
+          "Sponge Patisserie",
+          "Sponges and scrapers"
+        ],
+        "forwashing": [
+          "Capsules",
+          "Drying goods"
+        ],
+        "fordevices": [
+          "Batteries",
+          "Bulbs"
+        ],
+        "fortoilet": [
+          "Bath towel",
+          "Toilet paper"
+        ],
+        "forcleanup": [
+          "Baby wet wipes",
+          "Glass cleansers",
+          "Napkins",
+          "Pocket napkins",
+          "Simple napkins"
+        ],
+        "cancellior": [
+          "Folders",
+          "Pens",
+          "Staplers, brackets"
+        ],
+        "packages": [
+          "Bag-packages",
+          "Baskets and garbage bags",
+          "Gift bags",
+          "Plastic packets"
+        ]
+      },
+      "Health": {
+        "hygiene": [
+          "Cotton pads",
+          "Daily pads",
+          "Hygiene pads",
+          "Mouthwash",
+          "Toothbrush",
+          "Toothpaste",
+          "Wet wipes"
+        ]
+      },
+      "Other": {
+        "": [
+          "Test goods"
+        ]
+      },
+      "Pets": {
+        "stray": [
+          "Dry cat food",
+          "Dry dog food",
+          "Wet cat food",
+          "Wet dog food"
+        ]
+      }
+    }
+  },
+  "Gtin": {
+    "Categories": {
+      "ClothesAndShoes": {
+        "clothes": [
+          "04620703470014",
+          "08052663407384",
+          "08052663408800",
+          "08052663463779",
+          "08052663464042",
+          "08605063798493"
+        ]
+      },
+      "Food": {
+        "alcohol": [
+          "04600682042358",
+          "04601501461978",
+          "04607004012990",
+          "04610139208510",
+          "04627110025240",
+          "04640033503459",
+          "04640200464545"
+        ], 
+        "products": [
+          "04600605026533",
+          "04600605029534",
+          "04600605033470",
+          "04600742013274",
+          "04601075393132",
+          "04601075393552",
+          "04601662006162",
+          "04601662006315",
+          "04602547000046",
+          "04602547000091",
+          "04603934000250",
+          "04603934000779",
+          "04603934000786",
+          "04603934001387",
+          "04605035006964",
+          "04605490000675",
+          "04606068573409",
+          "04606791016815",
+          "04607009693729",
+          "04607017093894",
+          "04607018771647",
+          "04607053226003",
+          "04607054321417",
+          "04607065715113",
+          "04607931608327",
+          "04640174750118",
+          "04640174750729",
+          "04640213810230",
+          "04650100421272",
+          "04660253290113",
+          "04690228112058",
+          "04690228112072",
+          "04810093015654",
+          "04810904001036",
+          "04811465002890",
+          "05997255703273"
+        ],
+        "snacks": [
+          "04600493559007",
+          "04602014021772",
+          "04607065607999",
+          "04620032654604",
+          "04640001734236",
+          "04682237250999",
+          "04690388121471",
+          "04690388122492",
+          "04810093016316",
+          "06958116557267"
+        ]
+      },
+      "ForHouse": {
+        "forcleanup":[
+          "04606068007652",
+          "04606068021443"
+        ] 
+      },
+      "Health": {
+        "hygiene": [
+          "04600697101934",
+          "08714100917633"
+          
+        ],
+        "pills": [
+          "03760001042610",
+          "03838989732851",
+          "04601969009781",
+          "04607045191883",
+          "04607085319964",
+          "04650069651710",
+          "05702150151339",
+          "08904091143818",
+          "18901148227337"
+        ]
+      },
+      "Pets": {
+        "stray": [
+          "04660085513985",
+          "04660085514371",
+          "04660085514395",
+          "04660085514418",
+          "04670082520893",
+          "04670082523504",
+          "04670082523764",
+          "04670082523948"
+        ]
+      }
+    }
+  }
+}

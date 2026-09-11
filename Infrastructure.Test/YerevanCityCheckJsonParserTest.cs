@@ -1,5 +1,6 @@
-﻿using Application;
+﻿using Application.Core;
 using Domain;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Infrastructure.Test;
 
@@ -20,13 +21,13 @@ public class YerevanCityCheckJsonParserTest
     }
     
     [Fact]
-    public void All_Parsed_Expenses_Have_Prefix()
+    public void All_Parsed_Expenses_Have_ShopName()
     {
         var text = GetStringJson();
         
         var expenses = ParseExpenses(text);
 
-        Assert.True(expenses.All(c => c.Description.StartsWith("Ереван-сити:")));
+        Assert.True(expenses.All(c => c.Shop.Name == "Yerevan City"));
     }
 
     private static string GetStringJson()
@@ -577,10 +578,10 @@ public class YerevanCityCheckJsonParserTest
         return text;
     }
 
-    private static List<Outcome> ParseExpenses(string text)
+    private static IReadOnlyCollection<Outcome> ParseExpenses(string text)
     {
-        var parser = new YerevanCityExpenseJsonParser(new ExternalCategoryMapper());
+        var parser = new YerevanCityExpenseJsonParser(new ExternalCategoryMapper(new NullLogger<ExternalCategoryMapper>()), new NullLogger<YerevanCityExpenseJsonParser>());
         
-        return parser.ParseOutcomes(text, Categories.Outcome.DefaultCategory).ToList();
+        return parser.ParseCheck(text).Outcomes;
     }
 }

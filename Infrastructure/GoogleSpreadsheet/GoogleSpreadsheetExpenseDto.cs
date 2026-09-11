@@ -6,20 +6,22 @@ namespace Infrastructure.GoogleSpreadsheet;
 [Serializable]
 public class GoogleSpreadsheetExpenseDto
 {
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
     public string Category { get; set; }
     public string? Subcategory { get; set; }
+    public string? Shop { get; set; }
     public string? Description { get; set; }
     public decimal Amount { get; set; }
     public string Currency { get; set; }
 
-    public static GoogleSpreadsheetExpenseDto FromExpense(IMoneyTransfer expense)
+    public static GoogleSpreadsheetExpenseDto FromExpense(Outcome expense)
     {
         return new GoogleSpreadsheetExpenseDto()
         {
-            Date = expense.Date.ToDateTime(default),
+            Date = expense.Date,
             Category = expense.Category.Name,
             Subcategory = expense.SubCategory?.Name,
+            Shop = expense.Shop?.Name,
             Description = expense.Description,
             Amount = expense.Amount.Amount,
             Currency = expense.Amount.Currency.Name
@@ -28,17 +30,7 @@ public class GoogleSpreadsheetExpenseDto
 
     public static Outcome ToExpense(GoogleSpreadsheetExpenseDto dto, ILogger<IGoogleSpreadsheetService> logger)
     {
-        Domain.Currency currency = int.Parse(dto.Currency) switch
-        {
-            0 => Domain.Currency.RUR,
-            1 => Domain.Currency.AMD,
-            2 => Domain.Currency.GEL,
-            3 => Domain.Currency.USD,
-            4 => Domain.Currency.EUR,
-            5 => Domain.Currency.RSD,
-            6 => Domain.Currency.TRY,
-            _ => throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}")
-        };
+        var currency = Domain.Currency.Parse(dto.Currency);
 
         var category = Categories.Outcome.GetCategory(dto.Category);
         if (category == null)
@@ -49,15 +41,17 @@ public class GoogleSpreadsheetExpenseDto
         var domainSubcategory = category.Sub(dto.Subcategory);
         if (category != null && category.Subcategories.Any() && domainSubcategory == null)
         {
-            logger.LogWarning($"Subcategory for {dto.Category} {dto.Subcategory} not found");
+            logger.LogWarning($"Subcategory for {dto.Category} {dto.Subcategory} not found {dto.Date}");
         }
 
         return new Outcome()
         {
-            Date = DateOnly.FromDateTime(dto.Date),
-            Category = category,
-            SubCategory = domainSubcategory?? SubCategory.FromString(dto.Subcategory),
+            Date = dto.Date,
+            Category = category,    
+            SubCategory = domainSubcategory,
+            Shop = Domain.Shop.Create(dto.Shop),
             Description = dto.Description,
+            
             Amount = new Money()
             {
                 Amount = dto.Amount,

@@ -1,4 +1,4 @@
-﻿using Application;
+﻿using Application.Bot;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Infrastructure;

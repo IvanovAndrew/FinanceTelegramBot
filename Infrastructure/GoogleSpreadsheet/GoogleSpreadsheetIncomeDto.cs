@@ -5,7 +5,7 @@ namespace Infrastructure.GoogleSpreadsheet;
 [Serializable]
 public class GoogleSpreadsheetIncomeDto
 {
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
     public string Category { get; set; }
     public string? Description { get; set; }
     public decimal Amount { get; set; }
@@ -15,7 +15,7 @@ public class GoogleSpreadsheetIncomeDto
     {
         return new GoogleSpreadsheetIncomeDto()
         {
-            Date = income.Date.ToDateTime(default),
+            Date = income.Date,
             Category = income.Category.Name,
             Description = income.Description,
             Amount = income.Amount.Amount,
@@ -25,43 +25,15 @@ public class GoogleSpreadsheetIncomeDto
 
     public static Income ToIncome(GoogleSpreadsheetIncomeDto dto)
     {
-        Domain.Currency currency;
-        switch (int.Parse(dto.Currency))
-        {
-            case 0:
-                currency = Domain.Currency.RUR;
-                break;
-            case 1:
-                currency = Domain.Currency.AMD;
-                break;
-            case 2:
-                currency = Domain.Currency.GEL;
-                break;
-            case 3:
-                currency = Domain.Currency.USD;
-                break;
-            case 4:
-                currency = Domain.Currency.EUR;
-                break;
-            case 5:
-                currency = Domain.Currency.RSD;
-                break;
-            case 6:
-                currency = Domain.Currency.TRY;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException($"Unknown currency code {dto.Currency}");
-        }
-        
         return new Income()
         {
-            Date = DateOnly.FromDateTime(dto.Date),
-            Category = Categories.Income.GetCategory(dto.Category?? string.Empty)?? Categories.Income.Others,
+            Date = dto.Date,
+            Category = Categories.Income.GetCategory(dto.Category)?? Categories.Income.Others,
             Description = dto.Description,
             Amount = new Money()
             {
                 Amount = dto.Amount,
-                Currency = currency
+                Currency = Domain.Currency.Parse(dto.Currency)
             }
         };
     }

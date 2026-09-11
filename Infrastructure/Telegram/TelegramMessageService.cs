@@ -1,16 +1,16 @@
 using System.Text;
-using Application;
+using Application.Bot;
 using Domain;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBot.Services;
-using Message = Application.Message;
 
 namespace Infrastructure.Telegram;
 
-public class TelegramMessageService(ITelegramBotClient telegramBotClient)
+public class TelegramMessageService(ITelegramBotClient telegramBotClient, ILogger<TelegramMessageService> logger)
     : IMessageService
 {
     public async Task<int> SendTextMessageAsync(long chatId, string text, IReadOnlyCollection<Option>? options = null,
@@ -74,6 +74,18 @@ public class TelegramMessageService(ITelegramBotClient telegramBotClient)
             cancellationToken: cancellationToken);
 
         return message.Id;
+    }
+
+    public async Task RemoveMessageButtonsAsync(long chatId, int messageId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await telegramBotClient.EditMessageReplyMarkup(chatId, messageId, cancellationToken: cancellationToken);
+        }
+        catch (Exception e)
+        {
+            logger.LogError($"Couldn't remove message buttons: {e}" );
+        }
     }
 
     private InlineKeyboardMarkup MapOptions(IReadOnlyCollection<Option> messageOptions)

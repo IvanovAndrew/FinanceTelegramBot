@@ -1,31 +1,26 @@
 ﻿using System.Collections.Concurrent;
 using Domain;
-using Infrastructure.GoogleSpreadsheet;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-
-namespace Infrastructure;
 
 public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<FinanceRepositoryDecorator> logger)
     : IFinanceRepository
 {
     private readonly ILogger _logger = logger;
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
-    private static readonly MemoryCacheEntryOptions DefaultCacheOptions =
-        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
     private readonly ConcurrentDictionary<object, SemaphoreSlim> _locks = new();
+
+    private readonly ConcurrentDictionary<string, FinanceFilter> _cachedFilters = new();
 
     public async Task<SaveResult> SaveIncome(Income income, CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"FinanceRepository is trying to save an income");
-        
+        _logger.LogInformation("FinanceRepository is trying to save an income");
         var result = await repository.SaveIncome(income, cancellationToken);
-        
         _logger.LogInformation($"FinanceRepository has got result {result}");
-        
-        // TODO maybe it makes sense to add the expense to the cache
+
         _logger.LogInformation("Remove all cached entries");
         _cache.Clear();
+        _cachedFilters.Clear();
 
         return result;
     }
@@ -33,173 +28,112 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<F
     public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<Outcome> expenses, CancellationToken cancellationToken)
     {
         _logger.LogInformation($"ExpenseRepository is trying to save {expenses.Count} expense(s)");
-        
         var saveResult = await repository.SaveAllOutcomes(expenses, cancellationToken);
-        
         _logger.LogInformation($"ExpenseRepository has got result {saveResult}");
-        
-        // TODO maybe it makes sense to add the expense to the cache
+
         _logger.LogInformation("Remove all cached entries");
         _cache.Clear();
+        _cachedFilters.Clear();
 
         return saveResult;
     }
 
-    public async Task<List<Outcome>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<Outcome>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken) =>
+        GetOrLoad("Outcome", financeFilter, repository.ReadOutcomes, cancellationToken);
+
+    public Task<IReadOnlyList<Income>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken) =>
+        GetOrLoad("Income", financeFilter, repository.ReadIncomes, cancellationToken);
+
+    public async Task<IReadOnlyList<CurrencyExchange>> ReadCurrencyExchanges(Currency currency, DateOnly dateFrom, DateOnly? dateTo, 
+        CancellationToken cancellationToken)
     {
-        var cacheKey = BuildCacheKey("Outcome", financeFilter);
+        var financeFilter = new FinanceFilter(){DateFrom = dateFrom, DateTo = dateTo, Currency = currency};
+        var cacheKey = BuildCacheKey("CurrencyExchange", financeFilter);
         
-        _logger.LogInformation($"Finding cached version of key {cacheKey}");
-        
-        if (!_cache.TryGetValue(cacheKey, out List<Outcome> items))
+        if (_cache.TryGetValue(cacheKey, out IReadOnlyList<CurrencyExchange> exact))
         {
-            _logger.LogInformation("Cache key is not found");
-            
-            SemaphoreSlim mylock = _locks.GetOrAdd(cacheKey, k => new SemaphoreSlim(1, 1));
-            await mylock.WaitAsync(cancellationToken);
-            try
+            _logger.LogInformation($"CurrencyExchange: exact cache hit for {cacheKey}");
+            return exact;
+        }
+
+        var result = await repository.ReadCurrencyExchanges(currency, dateFrom, dateTo, cancellationToken);
+
+        if (result.Any())
+        {
+            SetCache(cacheKey, result, financeFilter);
+        }
+
+        return result;
+    }
+
+    private async Task<IReadOnlyList<T>> GetOrLoad<T>(
+        string type,
+        FinanceFilter filter,
+        Func<FinanceFilter, CancellationToken, Task<IReadOnlyList<T>>> load,
+        CancellationToken cancellationToken)
+        where T : IMoneyTransfer
+    {
+        var cacheKey = BuildCacheKey(type, filter);
+
+        if (_cache.TryGetValue(cacheKey, out List<T> exact))
+        {
+            _logger.LogInformation($"{type}: exact cache hit for {cacheKey}");
+            return exact;
+        }
+
+        var broaderKey = _cachedFilters
+            .Where(kv => kv.Key.StartsWith($"{type}:") && kv.Value.IsSupersetOf(filter))
+            .Select(kv => kv.Key)
+            .FirstOrDefault();
+
+        if (broaderKey is not null && _cache.TryGetValue(broaderKey, out IReadOnlyList<T> broaderItems))
+        {
+            _logger.LogInformation($"{type}: serving {cacheKey} from broader cached entry {broaderKey}, no repository call");
+            return broaderItems.Where(t => t.Matches(filter)).ToList();
+        }
+
+        var mylock = _locks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
+        await mylock.WaitAsync(cancellationToken);
+        try
+        {
+            if (!_cache.TryGetValue(cacheKey, out IReadOnlyList<T> cachedItems))
             {
-                if (!_cache.TryGetValue(cacheKey, out List<Outcome> cachedItems))
+                _logger.LogInformation($"Loading {type.ToLower()}s from the repository for {cacheKey}");
+                cachedItems = await load(filter, cancellationToken);
+                
+                if (cachedItems != null && cachedItems.Count > 0)
                 {
-                    _logger.LogInformation("Loading expenses from the repository");
-                    
-                    cachedItems = await repository.ReadOutcomes(financeFilter, cancellationToken);
-                    _cache.Set(cacheKey, cachedItems, DefaultCacheOptions);
-
-                    _logger.LogInformation($"{cachedItems.Count} expenses saved to the cache");
+                    SetCache(cacheKey, cachedItems, filter);
+                    _logger.LogInformation($"{cachedItems.Count} {type.ToLower()}(s) saved to the cache");
                 }
-                else
-                {
-                    _logger.LogInformation($"{cachedItems.Count} expenses are taken from the cache");
-                }
-                items = cachedItems;
             }
-            finally
+            else
             {
-                mylock.Release();
+                _logger.LogInformation($"{cachedItems.Count} {type.ToLower()}(s) are taken from the cache");
             }
+
+            return cachedItems;
         }
-        else
+        finally
         {
-            _logger.LogInformation($"{items.Count} expenses are taken from the cache");
+            mylock.Release();
         }
-
-        return items;
     }
 
-    public async Task<List<Income>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
+    private void SetCache<T>(string key, IReadOnlyList<T> items, FinanceFilter filter)
     {
-        var cacheKey = BuildCacheKey("Income", financeFilter);
-        
-        if (!_cache.TryGetValue(cacheKey, out List<Income> items))
-        {
-            SemaphoreSlim mylock = _locks.GetOrAdd(cacheKey, k => new SemaphoreSlim(1, 1));
-            await mylock.WaitAsync(cancellationToken);
-            try
-            {
-                if (!_cache.TryGetValue(cacheKey, out List<Income> cachedItems))
-                {
-                    _logger.LogInformation("Loading incomes from the repository");
-                    
-                    cachedItems = await repository.ReadIncomes(financeFilter, cancellationToken);
-            
-                    _cache.Set(cacheKey, cachedItems, DefaultCacheOptions);
-                    
-                    _logger.LogInformation($"{cachedItems.Count} incomes saved to the cache");
-                }
-                else
-                {
-                    _logger.LogInformation($"{items?.Count ?? 0} incomes are taken from the cache");
-                }
-                items = cachedItems;
-            }
-            finally
-            {
-                mylock.Release();
-            }
-        }
-        else
-        {
-            _logger.LogInformation($"{items.Count} incomes are taken from the cache");
-        }
+        var options = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromMinutes(15))
+            .RegisterPostEvictionCallback((evictedKey, _, _, _) => _cachedFilters.TryRemove((string)evictedKey, out _));
 
-        return items;
-    }
-    
-    private string BuildCacheKey(string type, FinanceFilter filter)
-    {
-        return $"{type}:DateFrom={filter.DateFrom:yyyy-MM-dd};" +
-               $"DateTo={filter.DateTo:yyyy-MM-dd};" +
-               $"Category={filter.Category};" +
-               $"Subcategory={filter.Subcategory};" +
-               $"Currency={filter.Currency?.Name}";
-    }
-    
-    private FinanceFilter ParseCacheKey(string cacheKey)
-    {
-        // Пример ключа:
-        // "Outcome:DateFrom=2025-09-08;DateTo=2025-09-10;Category=Food;Subcategory=Snacks;Currency=Rur"
-
-        var parts = cacheKey.Split(':', 2); // отделяем тип (Outcome/Income)
-        if (parts.Length < 2)
-            throw new ArgumentException("Invalid cache key format", nameof(cacheKey));
-
-        var filters = parts[1].Split(';', StringSplitOptions.RemoveEmptyEntries);
-
-        var financeFilter = new FinanceFilter();
-
-        foreach (var filterPart in filters)
-        {
-            var kv = filterPart.Split('=', 2);
-            if (kv.Length != 2) continue;
-
-            var key = kv[0];
-            var value = kv[1];
-
-            switch (key)
-            {
-                case "DateFrom":
-                    financeFilter.DateFrom = DateOnly.Parse(value);
-                    break;
-                case "DateTo":
-                    financeFilter.DateTo = DateOnly.Parse(value);
-                    break;
-                case "Category":
-                    financeFilter.Category = Categories.Outcome.GetCategory(value);
-                    break;
-                case "Subcategory":
-                    financeFilter.Subcategory = financeFilter.Category?.GetSubcategoryByName(value);
-                    break;
-                case "Currency":
-                    financeFilter.Currency = Currency.TryParse(value, out var currency) ? currency : null;
-                    break;
-            }
-        }
-
-        return financeFilter;
+        _cache.Set(key, items, options);
+        _cachedFilters[key] = filter;
     }
 
-}
-
-public class FinanceRepository(IGoogleSpreadsheetService spreadsheetService) : IFinanceRepository
-{
-    public async Task<SaveResult> SaveIncome(Income income, CancellationToken cancellationToken)
-    {
-        return await spreadsheetService.SaveIncomeAsync(income, cancellationToken);
-    }
-
-    public async Task<SaveResult> SaveAllOutcomes(IReadOnlyCollection<Outcome> expenses, CancellationToken cancellationToken)
-    {
-        return await spreadsheetService.SaveAllExpensesAsync(expenses, cancellationToken);
-    }
-
-    public async Task<List<Outcome>> ReadOutcomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
-    {
-        return await spreadsheetService.GetExpensesAsync(financeFilter, cancellationToken);
-    }
-
-    public async Task<List<Income>> ReadIncomes(FinanceFilter financeFilter, CancellationToken cancellationToken)
-    {
-        return await spreadsheetService.GetIncomesAsync(financeFilter, cancellationToken);
-    }
+    private string BuildCacheKey(string type, FinanceFilter filter) =>
+        $"{type}:DateFrom={filter.DateFrom:yyyy-MM-dd};" +
+        $"DateTo={filter.DateTo:yyyy-MM-dd};" +
+        $"Category={filter.Category};" +
+        $"Subcategory={filter.Subcategory};" +
+        $"Currency={filter.Currency?.Name}";
 }

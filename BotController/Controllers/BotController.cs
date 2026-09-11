@@ -1,9 +1,9 @@
-using Application.Services;
+using Application.Bot;
 using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using FileInfo = TelegramBot.Services.FileInfo;
+using FileInfo = Infrastructure.Telegram.FileInfo;
 using Message = Telegram.Bot.Types.Message;
 
 namespace TelegramBot.Controllers
@@ -21,7 +21,7 @@ namespace TelegramBot.Controllers
         public async Task<IActionResult> Post([FromBody] Update update, CancellationToken cancellationToken)
         {
             var message = FromUpdate(update);
-        
+
             try
             {
                 await botEngine.Proceed(message, cancellationToken);
@@ -46,24 +46,29 @@ namespace TelegramBot.Controllers
                 //     await botClient.SendTextMessageAsync(new NotEditableMessageToSend(){ChatId = message.ChatId, Text = $"{e}"});
                 // }
             }
-            
+
             return Ok();
 
-            Application.Message FromTelegramMessage(Message telegramMessage, string? text = null, bool edited = false)
+            Application.Bot.Message FromTelegramMessage(Message telegramMessage, string? text = null, bool edited = false)
             {
-                return new Application.Message()
+                return new Application.Bot.Message()
                 {
                     Id = telegramMessage.MessageId,
                     ChatId = telegramMessage.Chat.Id,
                     Date = telegramMessage.Date,
-                    Text = text?? telegramMessage.Text?? string.Empty,
+                    Text = text ?? telegramMessage.Text ?? string.Empty,
                     Edited = edited,
-                    FileInfo = telegramMessage.Document != null? new FileInfo()
-                        { FileId = telegramMessage.Document.FileId, FileName = telegramMessage.Document.FileName, MimeType = telegramMessage.Document.MimeType } : null,
+                    FileInfo = telegramMessage.Document != null
+                        ? new FileInfo()
+                        {
+                            FileId = telegramMessage.Document.FileId, FileName = telegramMessage.Document.FileName,
+                            MimeType = telegramMessage.Document.MimeType
+                        }
+                        : null,
                 };
             }
-            
-            Application.Message FromUpdate(Update update)
+
+            Application.Bot.Message FromUpdate(Update update)
             {
                 if (update.Type == UpdateType.Message)
                 {
@@ -75,7 +80,7 @@ namespace TelegramBot.Controllers
                 }
                 else if (update.Type == UpdateType.EditedMessage)
                 {
-                    return FromTelegramMessage(update.EditedMessage!, edited:true);
+                    return FromTelegramMessage(update.EditedMessage!, edited: true);
                 }
 
                 throw new ArgumentOutOfRangeException(

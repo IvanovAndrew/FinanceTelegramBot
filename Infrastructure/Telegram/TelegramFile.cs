@@ -1,4 +1,6 @@
-﻿namespace Infrastructure.Telegram;
+﻿using Application.Bot;
+
+namespace Infrastructure.Telegram;
 
 public class TelegramFile : IFile
 {

@@ -1,16 +1,18 @@
 using System.Globalization;
-using Application;
+using Application.Api;
+using Application.Bot;
 using Application.Contracts;
-using Application.Events;
-using Application.Services;
+using Application.Core;
+using Application.Core.Services;
 using Domain;
 using Domain.Services;
 using Infrastructure;
 using Infrastructure.Fns;
 using Infrastructure.GoogleSpreadsheet;
 using Infrastructure.Telegram;
-using MediatR;
-using Microsoft.OpenApi.Models;
+using Infrastructure.YerevanCity;
+using Microsoft.OpenApi;
+using Polly;
 using Refit;
 using Telegram.Bot;
 
@@ -27,8 +29,18 @@ namespace TelegramBot
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var builder = services.AddControllers().AddNewtonsoftJson();
-            services.ConfigureTelegramBotMvc();
+            var builder = services.AddControllers();
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy
+                        .AllowAnyOrigin() // Или .WithOrigins("http://localhost:3000", "https://your-telegram-app.com")
+                        .AllowAnyHeader() // Разрешает ваш заголовок Authorization: tma ...
+                        .AllowAnyMethod(); // Разрешает GET, POST, OPTIONS и т.д.
+                });
+            });
 
             services.AddLogging();
             services.AddSingleton<IDateTimeService, DateTimeService>();
@@ -39,56 +51,56 @@ namespace TelegramBot
 
             var telegramToken = Environment.GetEnvironmentVariable("TELEGRAM_TOKEN");
 
-            if (!long.TryParse(Environment.GetEnvironmentVariable("TELEGRAM_SUPPORT_CHAT"), out var supportChatId))
-            {
-                supportChatId = 0;
-            }
-            
             services.AddMemoryCache();
             services.AddScoped<IExpenseCategoryMappingCache, ExpenseCategoryMappingCache>();
-            
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UserStartedEventHandler).Assembly));
-            builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SavingExpenseNotificationBehavior<,>));
-            
+
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(LongOperationCanceledEvent).Assembly, typeof(GetBalanceStatisticApiCommand).Assembly, typeof(GetDayOutcomesRequestCommandHandler).Assembly));
+
             services.AddRefitClient<IFnsApi>()
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://proverkacheka.com"));
             services.AddSingleton<IFnsAPIService, FnsApiService>(s =>
-                ActivatorUtilities.CreateInstance<FnsApiService>(s, Environment.GetEnvironmentVariable("FNS_TOKEN")));
-            services.AddSingleton<ICurrencyProvider, CurrencyProvider>();
+                ActivatorUtilities.CreateInstance<FnsApiService>(s, s.GetRequiredService<IFnsApi>(),
+                    Environment.GetEnvironmentVariable("FNS_TOKEN") ?? "FNS_TOKEN"));
             services.AddSingleton<IRecurringExpensesService, RecurringExpensesService>();
             services.AddTransient<FinanceStatisticsService>();
-            services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s => ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
-            
-            services.AddSingleton<ICheckDownloader, CheckDownloader>();
-            
+            services.AddSingleton<ITelegramBotClient, TelegramBotClient>(s =>
+                ActivatorUtilities.CreateInstance<TelegramBotClient>(s, telegramToken));
+
+            services.AddSingleton<IFnsReceiptProvider, FnsReceiptProvider>();
+
             services.Configure<SalarySettings>(_configuration.GetSection("SalarySettings"));
             services.AddSingleton<ISalaryDayService, SalaryDayService>();
             services.AddSingleton<ISalaryScheduleProvider, SalaryScheduleProvider>();
             services.AddSingleton<ISpendingDayPolicy, SpendingDayPolicy>();
             services.AddScoped<IBalanceStatisticService, BalanceStatisticService>();
-        
+
             services.AddTransient<RefitMessageHandler>();
-            
-            services.AddRefitClient<IGoogleSpreadsheetApi>(new RefitSettings
-                {
-                    ContentSerializer = new NewtonsoftJsonContentSerializer()
-                })
+
+            services.AddRefitClient<IGoogleSpreadsheetApi>()
                 .ConfigureHttpClient(c =>
                 {
                     c.BaseAddress = new Uri(Environment.GetEnvironmentVariable("GOOGLESPREADSHEET_URL"));
+                    c.Timeout = TimeSpan.FromMinutes(2);
                 })
-                .AddHttpMessageHandler<RefitMessageHandler>();
+                .AddHttpMessageHandler<RefitMessageHandler>()
+                .AddTransientHttpErrorPolicy(policy => policy
+                    .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromMilliseconds(200 * Math.Pow(2, retryAttempt))))
+                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+                {
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+                    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(1)
+                });
 
-            services.AddScoped<IGoogleSpreadsheetService, GoogleSpreadsheetService>();
-            services.AddScoped<IProgressNotifier, TelegramProgressNotifier>();
+            services.AddSingleton<IGoogleSpreadsheetService, GoogleSpreadsheetService>();
+            services.AddSingleton<IRecurringExpenseDefinitionsRepository, RecurringExpenseDefinitionsRepository>();
 
             services.AddSingleton<IPictureGenerator, ScottPlotPictureGenerator>();
-            
+
             // Register the core service
-            services.AddScoped<FinanceRepository>();
+            services.AddSingleton<FinanceRepository>();
 
             // Register the decorator by specifying it to use the core service as a dependency
-            services.AddScoped<IFinanceRepository>(provider =>
+            services.AddSingleton<IFinanceRepository>(provider =>
             {
                 var coreService = provider.GetRequiredService<FinanceRepository>();
                 var logger = provider.GetRequiredService<ILogger<FinanceRepositoryDecorator>>();
@@ -97,17 +109,38 @@ namespace TelegramBot
 
             services.AddScoped<IExpenseCategorizer, ExpenseHistoryCategorizer>();
             services.AddSingleton<IExternalCategoryMapper, ExternalCategoryMapper>();
+            services.AddSingleton<ICurrencyExchangeOutcomeMatcher, CurrencyExchangeOutcomeMatcher>();
+            services.AddSingleton<IFlowStepRenderer, FlowStepRenderer>();
             
+            services.AddSingleton<IExpensesService, ExpensesService>();
+
             services.AddSingleton<YerevanCityExpenseJsonParser>();
             services.AddSingleton<RussianCheckExpenseJsonParser>();
+            services.AddSingleton<IFnsShopNameResolver, FnsShopNameResolver>();
+
+            services.AddSingleton<IYerevanCityReceiptProvider, YerevanCityReceiptProvider>();
+            services.AddSingleton<IYerevanCityAPI, YerevanCityAPI>();
 
             services.AddSingleton<IExpenseJsonParser>(sp => new ExpenseJsonParserChain([
                 sp.GetRequiredService<YerevanCityExpenseJsonParser>(),
                 sp.GetRequiredService<RussianCheckExpenseJsonParser>()
             ]));
 
+            var authenticatedIds = ParseIdsFromEnv("AUTHENTICATED_USER_IDS");
+            var adminIds = ParseIdsFromEnv("ADMIN_USER_IDS");
+
+            services.AddSingleton(new UserSettings
+            {
+                Authenticated = authenticatedIds,
+                Admins = adminIds
+            });
+
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IAdminNotificationService, AdminNotificationService>();
             services.AddScoped<BotEngine>();
-            
+
             services.AddSwaggerGen(c =>
                 c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Warrior's finance bot", Version = "v1" }));
         }
@@ -116,21 +149,24 @@ namespace TelegramBot
         {
             CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
             CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Warrior's finance bot"));
             }
 
-            app.UseSwagger();
-            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Warrior's finance bot"));
-        
+            app.UseCors("AllowAll");
             app.UseRouting();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-        } 
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        }
+
+        private static List<long> ParseIdsFromEnv(string variableName) =>
+            (Environment.GetEnvironmentVariable(variableName) ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(long.Parse)
+            .ToList();
     }
 }

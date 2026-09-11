@@ -1,17 +1,9 @@
-﻿namespace Infrastructure.GoogleSpreadsheet;
+﻿using Domain;
 
-public class GoogleSpreadsheetServiceException : Exception
-{
-    public GoogleSpreadsheetServiceException(string message) : base(message)
-    {
-        
-    }
-}
+namespace Infrastructure.GoogleSpreadsheet;
 
-public class GoogleSpreadsheetServiceMissingParameterException : GoogleSpreadsheetServiceException
+public class GoogleSpreadsheetServiceException(string message, Exception innerException, bool isTransient = false)
+    : FinanceRepositoryException(message, innerException, isTransient)
 {
-    public GoogleSpreadsheetServiceMissingParameterException(string parameter) : base($"Parameter {parameter} is missing")
-    {
-        
-    }
+    
 }

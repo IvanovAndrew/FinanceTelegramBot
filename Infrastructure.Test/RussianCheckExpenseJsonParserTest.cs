@@ -1,5 +1,7 @@
-﻿using Domain;
+﻿using Application.Core;
+using Domain;
 using Infrastructure.Fns;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Infrastructure.Test;
 
@@ -274,12 +276,14 @@ public class RussianCheckExpenseJsonParserTest
                 new Money(){Currency = Currency.RUR, Amount = 49.99m},
                 new Money(){Currency = Currency.RUR, Amount = 29.99m},
             }, expenses.Select(c => c.Amount));
+        
+        Assert.All(expenses, c => c.Description.StartsWith("ТК \"Прогресс\""));
     }
 
-    private static List<Outcome> ParseExpenses(string text)
+    private static IReadOnlyCollection<Outcome> ParseExpenses(string text)
     {
-        var parser = new RussianCheckExpenseJsonParser();
-        var expenses = parser.ParseOutcomes(text, Categories.Outcome.DefaultCategory).ToList();
-        return expenses;
+        var parser = new RussianCheckExpenseJsonParser(new FnsShopNameResolver(), new ExternalCategoryMapper(new NullLogger<ExternalCategoryMapper>()), new NullLogger<RussianCheckExpenseJsonParser>());
+        var check = parser.ParseCheck(text);
+        return check.Outcomes;
     }
 }
