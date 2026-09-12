@@ -20,7 +20,7 @@ public class GetOutcomeApiHandler(IFinanceRepository financeRepository, ILogger<
             {
                 if (outcome.Date != date) continue;
 
-                var shop = outcome.Shop ?? Shop.UnknownShop;
+                var shop = outcome.Shop ?? Shop.Create(outcome.Category.Name);
                 if (!shopToOutcomes.TryGetValue(shop, out var checkPositions))
                 {
                     checkPositions = new List<Outcome>();

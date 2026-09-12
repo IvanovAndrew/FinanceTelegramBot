@@ -2,8 +2,6 @@
 
 public class Shop : IEquatable<Shop>
 {
-    public static readonly Shop UnknownShop = new Shop("Unknown");
-    
     public string Name { get; }
     private readonly string _cleanedName;
 
