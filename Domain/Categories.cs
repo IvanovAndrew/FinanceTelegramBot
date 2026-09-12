@@ -47,21 +47,27 @@ public static class Categories
 
         public static readonly Category Health = Cat(
             "Health",
-            "Здоровье, гигиена", null,
-                Sub("doctor", "Врач"),
-                Sub("analysis", "Анализы"),
-                Sub("pills", "Лекарства"),
-                Sub("hygiene", "Гигиена"),
-                Sub("massauge", "Массаж"),
-                Sub("wc", "Туалет"),
-                Sub("other", "Прочее"));
+            "Здоровье", null,
+            Sub("doctor", "Врач"),
+            Sub("analysis", "Анализы"),
+            Sub("pills", "Лекарства"),
+            Sub("massauge", "Массаж"));
+        
+        public static readonly Category Hygiene = Cat(
+            "Hygiene",
+            "Гигиена", null,
+            Sub("personalcate", "Уход"),
+            Sub("wc", "Туалет"),
+            Sub("haircut", "Стрижка"),
+            Sub("dentalprophylaxis", "Чистка зубов"),
+            Sub("epilation", "Эпиляция"),
+            Sub("other", "Прочее"));
 
         public static readonly Category Beauty = Cat("Beauty", "Красота", null,
                 Sub("perfume", "Духи"),
                 Sub("manicure", "Маникюр"),
-                Sub("haircut", "Стрижка"),
                 Sub("cosmetics", "Косметика"),
-                Sub("epilation", "Эпиляция"),
+                Sub("cosmeticprocedure", "Косметологические процедуры"),
                 Sub("jewelry", "Украшение"));
 
         public static readonly Category Pets = Cat("Pets", "Домашние животные", "Коты",
@@ -175,7 +181,7 @@ public static class Categories
         [
             Food, Pets, Bank, BigDeal, Beauty, Cigarettes, 
             ClothesAndShoes, Devices, Leisure, CurrencyExchange, Delivery, Documents, 
-            Education, Flat, ForHouse, Gifts, Health, Hobby, 
+            Education, Flat, ForHouse, Gifts, Health, Hobby, Hygiene,
             OnlineService, Phone, Psycologist, Restaurants, Savings, Transport, 
             Travel, Other
         ];
@@ -184,7 +190,7 @@ public static class Categories
         [
             Food, Pets, Beauty, 
             Leisure, Education, ForHouse, 
-            Health, Hobby, OnlineService, 
+            Health, Hobby, Hygiene, OnlineService, 
             Psycologist, Restaurants, Transport
         ];
 
