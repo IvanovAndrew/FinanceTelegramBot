@@ -9,8 +9,11 @@ using Domain.Services;
 using Infrastructure;
 using Infrastructure.Fns;
 using Infrastructure.GoogleSpreadsheet;
+using Infrastructure.HealthChecks;
 using Infrastructure.Telegram;
 using Infrastructure.YerevanCity;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using Polly;
 using Refit;
@@ -126,6 +129,11 @@ namespace TelegramBot
                 sp.GetRequiredService<YerevanCityExpenseJsonParser>(),
                 sp.GetRequiredService<RussianCheckExpenseJsonParser>()
             ]));
+            
+            builder.Services.AddHealthChecks()
+                .AddCheck<GoogleSpreadsheetHealthCheck>("GoogleSpreadsheet")
+                .AddCheck<YerevanCityHealthCheck>("Yerevan city API")
+                .AddCheck<FnsHealthCheck>("FNS API");
 
             var authenticatedIds = ParseIdsFromEnv("AUTHENTICATED_USER_IDS");
             var adminIds = ParseIdsFromEnv("ADMIN_USER_IDS");
@@ -161,7 +169,25 @@ namespace TelegramBot
             app.UseCors("AllowAll");
             app.UseRouting();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                
+                endpoints.MapHealthChecks("/api/health", new HealthCheckOptions
+                {
+                    ResponseWriter = async (context, report) =>
+                    {
+                        context.Response.ContentType = "application/json";
+
+                        var response = report.Entries.ToDictionary(
+                            entry => entry.Key,
+                            entry => entry.Value.Status == HealthStatus.Healthy
+                        );
+
+                        await context.Response.WriteAsJsonAsync(response);
+                    }
+                });
+            });
         }
 
         private static List<long> ParseIdsFromEnv(string variableName) =>
