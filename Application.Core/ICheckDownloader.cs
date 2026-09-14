@@ -5,5 +5,7 @@ namespace Application.Core;
 public record Check
 {
     public IReadOnlyCollection<Outcome> Outcomes { get; init; } = new List<Outcome>();
-    public HashSet<string> NewOptions { get; init; } = new HashSet<string>();
+    public IReadOnlyList<NewOption> NewOptions { get; init; } = [];
 }
+
+public record NewOption(string Code, string Description);

@@ -26,7 +26,7 @@ public class RussianCheckExpenseJsonParser(IFnsShopNameResolver shopNameResolver
         var date = DateOnly.FromDateTime(check.DateTime.Hour < 4? check.DateTime.AddDays(-1) : check.DateTime);
         
         var shop = shopNameResolver.Resolve(check);
-        var newCodes = new HashSet<string>();
+        var newCodes = new List<NewOption>();
         
         var outcomes = new List<Outcome>();
         foreach (var item in check.Items)
@@ -48,8 +48,9 @@ public class RussianCheckExpenseJsonParser(IFnsShopNameResolver shopNameResolver
                 }
                 else
                 {
-                    newCodes.Add(productCode);
-                    logger.LogInformation($"New product code: {productCode}");
+                    var newOption = new NewOption(productCode, item.Name);
+                    newCodes.Add(newOption);
+                    logger.LogInformation($"New product code: {newOption}");
                 }
             }
 

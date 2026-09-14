@@ -29,14 +29,14 @@ public class YerevanCityExpenseJsonParser(IExternalCategoryMapper externalCatego
         
         var outcomes = new List<Outcome>(orderResponse.Data.OrderItems.Count);
         
-        var newOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var newOptions = new List<NewOption>();
 
         foreach (var item in orderResponse.Data.OrderItems)
         {
             var outcome = MapToOutcome(item, date);
             if (outcome.Category == Categories.Outcome.DefaultCategory)
             {
-                newOptions.Add(item.CategoryName);
+                newOptions.Add(new NewOption(item.CategoryName, item.Name));
             }
             
             outcomes.Add(outcome);

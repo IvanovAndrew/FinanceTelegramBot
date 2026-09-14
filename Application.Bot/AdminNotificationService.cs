@@ -1,4 +1,5 @@
-﻿using Application.Core.Services;
+﻿using Application.Core;
+using Application.Core.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Bot;
@@ -48,19 +49,21 @@ public class AdminNotificationService(
         }
     }
 
-    public async Task NotifyNewProductCodes(HashSet<string> unknownOptions, CancellationToken cancellationToken)
+    public async Task NotifyNewProductCodes(IReadOnlyList<NewOption> unknownOptions, CancellationToken cancellationToken)
     {
+        var unknownOptionsString = string.Join(", ", unknownOptions.Select(x => $"{x.Code} - {x.Description}"));
+        
         try
         {
             var admins = await authenticationService.GetAdmins(cancellationToken);
 
             if (admins.Count == 0)
             {
-                logger.LogWarning("No admins found to notify about new product codes: {ProductCodes}", string.Join(", ", unknownOptions));
+                logger.LogWarning("No admins found to notify about new product codes: {ProductCodes}", unknownOptionsString);
                 return;
             }
 
-            var notificationText = $"New product codes are available:{Environment.NewLine}{string.Join($"{Environment.NewLine}", unknownOptions)}";
+            var notificationText = $"New product codes are available:{Environment.NewLine}{unknownOptionsString}";
 
             foreach (var admin in admins)
             {
@@ -73,7 +76,7 @@ public class AdminNotificationService(
 
                     logger.LogInformation(
                         "Notified admin {AdminChatId} about new product codes: {ProductCodes}",
-                        admin.TelegramChatId, string.Join(", ", unknownOptions));
+                        admin.TelegramChatId, unknownOptionsString);
                 }
                 catch (Exception ex)
                 {
@@ -83,7 +86,7 @@ public class AdminNotificationService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error notifying admins about new product codes: {ProductCodes}", string.Join(", ", unknownOptions));
+            logger.LogError(ex, "Error notifying admins about new product codes: {ProductCodes}", unknownOptionsString);
         }
     }
 
