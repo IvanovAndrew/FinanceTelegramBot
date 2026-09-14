@@ -67,7 +67,7 @@ public static class Categories
                 Sub("perfume", "Духи"),
                 Sub("manicure", "Маникюр"),
                 Sub("cosmetics", "Косметика"),
-                Sub("cosmeticprocedure", "Косметологические процедуры"),
+                Sub("cosmeticprocedure", "Косметические процедуры"),
                 Sub("jewelry", "Украшение"));
 
         public static readonly Category Pets = Cat("Pets", "Домашние животные", "Коты",
