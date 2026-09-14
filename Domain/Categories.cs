@@ -190,8 +190,8 @@ public static class Categories
         [
             Food, Pets, Beauty, 
             Leisure, Education, ForHouse, 
-            Health, Hobby, Hygiene, OnlineService, 
-            Psycologist, Restaurants, Transport
+            Hobby, Hygiene, Psycologist, 
+            Restaurants, Transport
         ];
 
         public static readonly IReadOnlyList<Category> OutDated = [Cigarettes];
