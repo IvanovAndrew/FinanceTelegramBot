@@ -5,7 +5,7 @@ public class CategoriesTest
     [Fact]
     public void Category_Can_Be_Found_By_Name()
     {
-        Assert.NotNull(Categories.Outcome.GetCategory("Здоровье, гигиена"));
+        Assert.NotNull(Categories.Outcome.GetCategory("Здоровье"));
     }
     
     [Fact]
