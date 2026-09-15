@@ -71,7 +71,8 @@ namespace GoogleSheetWriter
                 Frequency = GetValue(info.FrequencyColumn),
                 Way = GetValue(info.WayColumn),
                 Amount = ParseAmount(GetValue(info.SumColumn)),
-                Currency = GetValue(info.CurrencyColumn) ?? string.Empty
+                Currency = GetValue(info.CurrencyColumn) ?? string.Empty,
+                IsActual = GetValue(info.IsActualColumn)?.ToLowerInvariant() is "1" or "true",
             };
         }
     }

@@ -145,6 +145,7 @@ var host = new HostBuilder()
                 WayColumn = ExcelColumn.FromString("F"),
                 SumColumn = ExcelColumn.FromString("G"),
                 CurrencyColumn = ExcelColumn.FromString("H"),
+                IsActualColumn = ExcelColumn.FromString("I"),
             };
             return instance;
         });

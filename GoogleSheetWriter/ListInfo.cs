@@ -181,6 +181,9 @@ namespace GoogleSheetWriter
         
         [ExcelColumn(Write = false, Read = true)]
         public ExcelColumn CurrencyColumn;
+        
+        [ExcelColumn(Write = false, Read = true)]
+        public ExcelColumn IsActualColumn;
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]

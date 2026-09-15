@@ -12,4 +12,5 @@ public class FutureExpense
     
     public decimal? Amount { get; init; }
     public string Currency { get; init; }
+    public bool IsActual { get; init; }
 }
