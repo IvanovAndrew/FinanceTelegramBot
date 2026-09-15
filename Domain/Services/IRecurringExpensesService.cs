@@ -26,6 +26,7 @@ public class RecurringExpensesService : IRecurringExpensesService
             {
                 var alreadyPaid = history.Any(e =>
                     e.Category == def.Category && e.SubCategory == def.SubCategory && e.Shop == def.Shop &&
+                    (def.Way != Way.Fixed || e.Amount == def.ExpectedAmount) &&
                     period.Contains(e.Date));
 
                 if (alreadyPaid) continue;

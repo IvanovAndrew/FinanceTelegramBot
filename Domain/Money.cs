@@ -101,6 +101,13 @@ namespace Domain
             if (obj.GetType() != this.GetType()) return false;
             return Equals((Money)obj);
         }
+        
+        public static bool operator ==(Money? left, Money? right) => EqualityComparer<Money>.Default.Equals(left, right);
+
+        public static bool operator !=(Money? left, Money? right)
+        {
+            return !(left == right);
+        }
 
         public override int GetHashCode()
         {
