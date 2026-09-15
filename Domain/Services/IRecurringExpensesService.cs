@@ -22,15 +22,16 @@ public class RecurringExpensesService : IRecurringExpensesService
 
         foreach (var def in definitions)
         {
-            var currentPeriod = RecurringPeriodCalculator.CurrentPeriod(def.Frequency, today);
+            foreach (var period in RecurringPeriodCalculator.PeriodsUntilEndOfMonth(def.Frequency, today))
+            {
+                var alreadyPaid = history.Any(e =>
+                    e.Category == def.Category && e.SubCategory == def.SubCategory && e.Shop == def.Shop &&
+                    period.Contains(e.Date));
 
-            var alreadyPaid = history.Any(e =>
-                e.Category == def.Category && e.SubCategory == def.SubCategory && e.Shop == def.Shop &&
-                currentPeriod.Contains(e.Date));
+                if (alreadyPaid) continue;
 
-            if (alreadyPaid) continue;
-
-            missing.Add(new MissingRecurringExpense(def, Resolve(def, history, today)));
+                missing.Add(new MissingRecurringExpense(def, Resolve(def, history, today)));
+            }
         }
 
         return missing;

@@ -7,6 +7,25 @@ public readonly record struct PeriodRange(DateOnly From, DateOnly To)
 
 public static class RecurringPeriodCalculator
 {
+    public static IEnumerable<PeriodRange> PeriodsUntilEndOfMonth(RecurringFrequency frequency, DateOnly today)
+    {
+        if (frequency == RecurringFrequency.Monthly)
+        {
+            yield return CurrentPeriod(frequency, today);
+            yield break;
+        }
+
+        var monthEnd = new DateOnly(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
+        var step = frequency == RecurringFrequency.Weekly ? 7 : 14;
+        var period = CurrentPeriod(frequency, today);
+
+        while (period.From <= monthEnd)
+        {
+            yield return period;
+            period = new PeriodRange(period.From.AddDays(step), period.To.AddDays(step));
+        }
+    }
+    
     public static PeriodRange CurrentPeriod(RecurringFrequency frequency, DateOnly today) => frequency switch
     {
         RecurringFrequency.Monthly => MonthRange(YearMonth.From(today)),
