@@ -1,11 +1,12 @@
-﻿using Application.Core.Events;
+﻿using Application.Core;
+using Application.Core.Events;
 using Domain;
 using MediatR;
 
 namespace Application.Bot.Statistic;
 
 public abstract class StatisticQueryHandlerBase<TRequest>(
-    IFinanceRepository financeRepository, IMediator mediator) : IRequestHandler<TRequest>
+    IExpensesService expensesService, IMediator mediator) : IRequestHandler<TRequest>
     where TRequest : IRequest
 {
     protected abstract long GetSessionId(TRequest request);
@@ -16,7 +17,7 @@ public abstract class StatisticQueryHandlerBase<TRequest>(
     {
         try
         {
-            var outcomes = await financeRepository.ReadOutcomes(BuildFilter(request), ct);
+            var outcomes = await expensesService.GetAllExpenses(BuildFilter(request), ct);
             if (outcomes.Any())
                 await mediator.Publish(BuildReadEvent(request, outcomes), ct);
         }

@@ -1,9 +1,8 @@
-﻿using Application.Bot.Flows;
-using Application.Bot.Statistic;
+﻿using Application.Core;
 using Domain;
 using MediatR;
 
-namespace Application.Core.Statistic;
+namespace Application.Bot.Statistic;
 
 public record StatisticDayByDayRequestCommand : IRequest
 {
@@ -11,8 +10,8 @@ public record StatisticDayByDayRequestCommand : IRequest
     public StatisticsQuery Query { get; init; }
 }
 
-public class StatisticDayByDayRequestCommandHandler(IFinanceRepository repo, IMediator mediator) :
-    StatisticQueryHandlerBase<StatisticDayByDayRequestCommand>(repo, mediator)
+public class StatisticDayByDayRequestCommandHandler(IExpensesService expensesService, IMediator mediator) :
+    StatisticQueryHandlerBase<StatisticDayByDayRequestCommand>(expensesService, mediator)
 {
     protected override long GetSessionId(StatisticDayByDayRequestCommand request)
     {

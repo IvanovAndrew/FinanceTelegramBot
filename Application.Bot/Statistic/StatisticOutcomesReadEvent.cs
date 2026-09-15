@@ -1,7 +1,7 @@
 ﻿using Application.Core;
-using Application.Core.Statistic;
 using Domain;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Bot.Statistic;
 
@@ -22,7 +22,7 @@ public class StatisticTableEventHandler(IConversation conversation) : INotificat
 {
     public async Task Handle(StatisticOutcomesReadEvent notification, CancellationToken cancellationToken)
     {
-        if (!notification.Statistic.Rows.Any())
+        if (notification.Statistic == null || notification.Statistic.Rows == null || !notification.Statistic.Rows.Any())
         {
             return;
         }
@@ -39,14 +39,18 @@ public class StatisticTableEventHandler(IConversation conversation) : INotificat
     }
 }
 
-public class StatisticOutcomesDiagramEventHandler(IPictureGenerator pictureGenerator, IConversation conversation) : INotificationHandler<StatisticOutcomesReadEvent>
+public class StatisticOutcomesDiagramEventHandler(IPictureGenerator pictureGenerator, IConversation conversation, ILogger<StatisticOutcomesDiagramEventHandler> logger) : INotificationHandler<StatisticOutcomesReadEvent>
 {
     public async Task Handle(StatisticOutcomesReadEvent notification, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Handling {nameof(StatisticOutcomesReadEvent)}");
+        
         if (!notification.ChartPoints.Any() || string.IsNullOrEmpty(notification.DiagramTitle))
             return;
         
-        foreach (var currency in notification.Statistic.Currencies)
+        logger.LogInformation($"{notification.ChartPoints.Count} chart points");
+        
+        foreach (var currency in notification.ChartPoints.First().Values.Keys)
         {
             var data = notification.ChartPoints
                 .Where(p => p.Values.ContainsKey(currency))
@@ -56,5 +60,7 @@ public class StatisticOutcomesDiagramEventHandler(IPictureGenerator pictureGener
             var bytes = pictureGenerator.GeneratePlot(data, currency, new PictureOptions(notification.DiagramTitle));
             await conversation.Update(notification.SessionId, Screens.Notify(notification.DiagramTitle, bytes), cancellationToken);
         }
+        
+        logger.LogInformation($"{nameof(StatisticOutcomesReadEvent)} finished");
     }
 }

@@ -1,7 +1,6 @@
-using Application.Core;
 using Domain;
 
-namespace Application.Bot.Flows;
+namespace Application.Core;
 
 public record StatisticsQuery(
     DateRange Period,

@@ -5,8 +5,8 @@ using MediatR;
 
 namespace Application.Bot.Statistic;
 
-public class StatisticDayRequestCommandHandler(IFinanceRepository repo, IMediator mediator)
-    : StatisticQueryHandlerBase<StatisticDayRequestCommand>(repo, mediator)
+public class StatisticDayRequestCommandHandler(IExpensesService expensesService, IMediator mediator)
+    : StatisticQueryHandlerBase<StatisticDayRequestCommand>(expensesService, mediator)
 {
     protected override long GetSessionId(StatisticDayRequestCommand r) => r.SessionId;
 

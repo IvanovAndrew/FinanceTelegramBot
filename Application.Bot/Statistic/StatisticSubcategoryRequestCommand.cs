@@ -11,7 +11,7 @@ public class StatisticSubcategoryRequestCommand : IRequest
     public StatisticsQuery Query { get; init; }
 }
 
-public class StatisticSubcategoryRequestCommandHandler(IFinanceRepository financeRepository, IMediator mediator) : StatisticQueryHandlerBase<StatisticSubcategoryRequestCommand>(financeRepository, mediator)
+public class StatisticSubcategoryRequestCommandHandler(IExpensesService expensesService, IMediator mediator) : StatisticQueryHandlerBase<StatisticSubcategoryRequestCommand>(expensesService, mediator)
 {
     protected override long GetSessionId(StatisticSubcategoryRequestCommand request)
     {

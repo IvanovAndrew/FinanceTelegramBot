@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Application.Bot.Statistic;
 
-public class StatisticSubcategoryMonthRequestCommandHandler(IFinanceRepository financeRepository, IMediator mediator) : StatisticQueryHandlerBase<StatisticSubcategoryMonthRequestCommand>(financeRepository, mediator)
+public class StatisticSubcategoryMonthRequestCommandHandler(IExpensesService expensesService, IMediator mediator) : StatisticQueryHandlerBase<StatisticSubcategoryMonthRequestCommand>(expensesService, mediator)
 {
     protected override long GetSessionId(StatisticSubcategoryMonthRequestCommand request)
     {
