@@ -32,4 +32,13 @@ public static class FinanceFilterExtensions
         if (filter.Currency is not null && transfer.Amount.Currency != filter.Currency) return false;
         return true;
     }
+    
+    public static bool Matches(this CurrencyExchange currencyExchange, FinanceFilter filter)
+    {
+        if (filter.DateFrom is { } from && currencyExchange.Date < from) return false;
+        if (filter.DateTo is { } to && currencyExchange.Date > to) return false;
+        if (filter.Currency is { } currency && currencyExchange.SourceAmount.Currency != currency && currencyExchange.TargetAmount.Currency != currency) return false;
+        
+        return true;
+    }
 }

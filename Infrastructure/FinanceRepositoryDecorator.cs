@@ -47,20 +47,31 @@ public class FinanceRepositoryDecorator(IFinanceRepository repository, ILogger<F
     public async Task<IReadOnlyList<CurrencyExchange>> ReadCurrencyExchanges(Currency currency, DateOnly dateFrom, DateOnly? dateTo, 
         CancellationToken cancellationToken)
     {
-        var financeFilter = new FinanceFilter(){DateFrom = dateFrom, DateTo = dateTo, Currency = currency};
-        var cacheKey = BuildCacheKey("CurrencyExchange", financeFilter);
+        var filter = new FinanceFilter(){DateFrom = dateFrom, DateTo = dateTo, Currency = currency};
+        var cacheKey = BuildCacheKey("CurrencyExchange", filter);
         
         if (_cache.TryGetValue(cacheKey, out IReadOnlyList<CurrencyExchange> exact))
         {
             _logger.LogInformation($"CurrencyExchange: exact cache hit for {cacheKey}");
             return exact;
         }
+        
+        var broaderKey = _cachedFilters
+            .Where(kv => kv.Key.StartsWith($"CurrencyExchange:") && kv.Value.IsSupersetOf(filter))
+            .Select(kv => kv.Key)
+            .FirstOrDefault();
+
+        if (broaderKey is not null && _cache.TryGetValue(broaderKey, out IReadOnlyList<CurrencyExchange> broaderItems))
+        {
+            _logger.LogInformation($"CurrencyExchange: serving {cacheKey} from broader cached entry {broaderKey}, no repository call");
+            return broaderItems.Where(t => t.Matches(filter)).ToList();
+        }
 
         var result = await repository.ReadCurrencyExchanges(currency, dateFrom, dateTo, cancellationToken);
 
         if (result.Any())
         {
-            SetCache(cacheKey, result, financeFilter);
+            SetCache(cacheKey, result, filter);
         }
 
         return result;
