@@ -7,6 +7,7 @@ public static class Categories
         public static readonly Category Food = Cat("Food", "Еда", null,
                 Sub("products", "Продукты"),
                 Sub("snacks", "Перекусы"),
+                Sub("icecream", "Мороженое"),
                 Sub("alcohol", "Алкоголь"),
                 Sub("fruits", "Фрукты/овощи"));
 

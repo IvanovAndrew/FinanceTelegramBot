@@ -27,6 +27,11 @@
           "Nuts",
           "Vegetables"
         ],
+        "icecream": [
+          "Ice cream Cup",
+          "Ice cream Eskimo",
+          "Ice cream Sandwich"
+        ],
         "products": [
           "Batter",
           "Beans",
@@ -135,9 +140,6 @@
           "Gingerbread, cookies",
           "Gums",
           "Hot chocolate",
-          "Ice cream Cup",
-          "Ice cream Eskimo",
-          "Ice cream Sandwich",
           "Imported crackers",
           "Jelly",
           "Jelly cake",
