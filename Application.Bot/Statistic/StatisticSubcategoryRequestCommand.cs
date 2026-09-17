@@ -1,6 +1,7 @@
 ﻿using Application.Bot.Flows;
 using Application.Core;
 using Domain;
+using Domain.Services;
 using MediatR;
 
 namespace Application.Bot.Statistic;

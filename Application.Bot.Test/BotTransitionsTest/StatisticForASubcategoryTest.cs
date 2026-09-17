@@ -15,8 +15,8 @@ public class StatisticForASubcategoryTest
         await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 6, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 6, 22), Category = Categories.Outcome.Pets, SubCategory = Categories.Outcome.Pets.Sub("Feed"), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = Categories.Outcome.Pets, SubCategory = Categories.Outcome.Pets.Sub("Feed"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);
@@ -38,6 +38,7 @@ public class StatisticForASubcategoryTest
         Assert.Contains("Subcategory", table.FirstColumnName);
         Assert.Contains("Перекусы", table.Rows.Select(r => r.FirstColumnValue));
         Assert.Contains("Продукты", table.Rows.Select(r => r.FirstColumnValue));
+        Assert.DoesNotContain("Корм", table.Rows.Select(r => r.FirstColumnValue));
         Assert.Contains("Total", table.Rows.Select(r => r.FirstColumnValue));
     }
     
@@ -50,8 +51,8 @@ public class StatisticForASubcategoryTest
         await scenario.Repo.SaveAllOutcomes(
             new List<Outcome>()
             {
-                new Outcome(){Date = new DateOnly(2023, 5, 22), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
-                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = Categories.Outcome.Pets, Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 6, 22), Category = Categories.Outcome.Pets, SubCategory = Categories.Outcome.Pets.Sub("Feed"), Amount = new Money(){Amount = 10_000m, Currency = Currency.AMD}},
+                new Outcome(){Date = new DateOnly(2023, 6, 23), Category = Categories.Outcome.Pets, SubCategory = Categories.Outcome.Pets.Sub("Feed"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 7, 23), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Snacks"), Amount = new Money(){Amount = 1_000m, Currency = Currency.AMD}},
                 new Outcome(){Date = new DateOnly(2023, 7, 24), Category = Categories.Outcome.Food, SubCategory = Categories.Outcome.Food.Sub("Products"), Amount = new Money(){Amount = 5_000m, Currency = Currency.AMD}},
             }, default);

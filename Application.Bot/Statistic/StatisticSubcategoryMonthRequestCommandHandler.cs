@@ -1,6 +1,7 @@
 ﻿using Application.Core;
 using Application.Core.Statistic;
 using Domain;
+using Domain.Services;
 using MediatR;
 
 namespace Application.Bot.Statistic;
@@ -30,12 +31,12 @@ public class StatisticSubcategoryMonthRequestCommandHandler(IExpensesService exp
     {
         var currencies = outcomes.Select(c => c.Amount.Currency).Distinct().ToArray();
         
-        var expenseAggregator = new ExpensesAggregator<DateOnly>(e => e.Date.FirstDayOfMonth(), false, sortAsc: true);
+        var expenseAggregator = new ExpensesAggregator<YearMonth>(e => YearMonth.From(e.Date), false, sortAsc: true);
         var statistic = expenseAggregator.Aggregate(outcomes, currencies);
         
         
         var chartPoints = statistic.Rows
-            .Select(r => (ChartBucket.ForMonth(YearMonth.From(r.Row)),
+            .Select(r => (ChartBucket.ForMonth(r.Row),
                 (IReadOnlyDictionary<Currency, Money>)currencies.ToDictionary(c => c, c => r[c])))
             .ToList();
         
@@ -48,7 +49,7 @@ public class StatisticSubcategoryMonthRequestCommandHandler(IExpensesService exp
                        $"Expenses from {request.Query.MonthRange.From.ToString(DateFormat.FullMonthName)}",
             FirstColumnName = "Month",
             
-            Statistic = StatisticMapper.Map(statistic, new DateOnlyColumnFactory()),
+            Statistic = StatisticMapper.Map(statistic, new MonthColumnFactory()),
             
             DiagramTitle = $"{request.Query.Category.Name} {request.Query.SubCategory.Name} expenses since {request.Query.MonthRange.From.ToString(DateFormat.FullMonthName)}",
             ChartPoints = chartPoints,

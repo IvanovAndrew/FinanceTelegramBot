@@ -57,7 +57,7 @@ public sealed class StatisticsFlow : UserFlow
                 }
                 else
                 {
-                    Draft.Day = date;
+                    Draft.SetFromDate(date);
                 }
                 break;
             }

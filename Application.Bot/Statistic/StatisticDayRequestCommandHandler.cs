@@ -1,6 +1,7 @@
 ﻿using Application.Core;
 using Application.Core.Statistic;
 using Domain;
+using Domain.Services;
 using MediatR;
 
 namespace Application.Bot.Statistic;

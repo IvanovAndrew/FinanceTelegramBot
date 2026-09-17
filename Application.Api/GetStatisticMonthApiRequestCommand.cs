@@ -1,5 +1,6 @@
 ﻿using Application.Core;
 using Domain;
+using Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

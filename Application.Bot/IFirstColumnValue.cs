@@ -1,4 +1,5 @@
 ﻿using Application.Core;
+using Domain;
 
 namespace Application.Bot;
 
@@ -23,6 +24,14 @@ public class DateOnlyColumnFactory : IFirstColumnFactory<DateOnly>
     }
 }
 
+public class MonthColumnFactory : IFirstColumnFactory<YearMonth>
+{
+    public IFirstColumnValue Create(YearMonth value)
+    {
+        return new MonthOnlyColumnValue(value);
+    }
+}
+
 public interface IFirstColumnValue
 {
     string GetString();
@@ -41,5 +50,13 @@ public class DateOnlyColumnValue : IFirstColumnValue
     public DateOnly Value { get; }
 
     public DateOnlyColumnValue(DateOnly value) => Value = value;
+    public string GetString() => Value.ToString(DateFormat.FullMonthName);
+}
+
+public class MonthOnlyColumnValue : IFirstColumnValue
+{
+    public YearMonth Value { get; }
+
+    public MonthOnlyColumnValue(YearMonth value) => Value = value;
     public string GetString() => Value.ToString(DateFormat.FullMonthName);
 }

@@ -1,7 +1,7 @@
-﻿using Application.Bot.Flows;
+﻿using Application.Core;
 using MediatR;
 
-namespace Application.Core.Statistic;
+namespace Application.Bot.Statistic;
 
 public record StatisticSubcategoryMonthRequestCommand : IRequest
 {

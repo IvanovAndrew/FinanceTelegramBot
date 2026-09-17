@@ -32,11 +32,11 @@ public class ExpensesService(IFinanceRepository financeRepository, ICurrencyExch
         var foreignOutcomesByCurrency = new Dictionary<Currency, IReadOnlyCollection<Outcome>>();
         foreach (var fc in foreignCurrencies)
         {
-            var fo = await financeRepository.ReadOutcomes(new FinanceFilter { Currency = fc, DateFrom = filter.DateFrom, DateTo = filter.DateTo }, cancellationToken);
+            var fo = await financeRepository.ReadOutcomes(new FinanceFilter { Currency = fc, DateFrom = filter.DateFrom, DateTo = filter.DateTo, Category = filter.Category, Subcategory = filter.Subcategory}, cancellationToken);
             foreignOutcomesByCurrency[fc] = fo.ToList();
         }
 
-        var matchedOutcomes = currencyExchangeOutcomeMatcher.Match(exchangesFromCurrency, foreignOutcomesByCurrency);
+        var matchedOutcomes = currencyExchangeOutcomeMatcher.Match(exchangesFromCurrency, foreignOutcomesByCurrency).Where(o => o.Matches(filter));
         
         return outcomes.Union(matchedOutcomes).ToList();
     }

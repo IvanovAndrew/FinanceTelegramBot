@@ -1,4 +1,4 @@
-﻿namespace Domain
+﻿namespace Domain.Services
 {
     public class ExpensesAggregator<T>
     {

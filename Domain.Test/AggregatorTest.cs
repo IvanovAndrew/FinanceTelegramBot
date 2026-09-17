@@ -1,4 +1,6 @@
-﻿namespace Domain.Test;
+﻿using Domain.Services;
+
+namespace Domain.Test;
 
 public class AggregatorTest
 {
