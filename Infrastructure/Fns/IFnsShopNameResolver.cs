@@ -12,6 +12,7 @@ public class FnsShopNameResolver : IFnsShopNameResolver
 {
     private static Dictionary<string, string> _shopNameReplacements = new Dictionary<string, string>
     {
+        { "ПАО", string.Empty },
         { "ООО", string.Empty },
         { "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ", string.Empty },
         { "Общество с ограниченной ответственностью", string.Empty },
