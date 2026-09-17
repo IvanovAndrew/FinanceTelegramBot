@@ -84,12 +84,13 @@ public static class Categories
         public static readonly Category ClothesAndShoes = Cat("ClothesAndShoes", "Одежда, обувь", null,
             Sub("clothes", "Одежда"),
             Sub("shoes", "Обувь"),
+            Sub("accessories", "Аксессуары"),
             Sub("atelier", "Ателье"),
             Sub("laundry", "Прачечная"),
             Sub("drycleaning", "Химчистка"));
 
         public static readonly Category Leisure = Cat("Leisure", "Досуг", null,
-            Sub("cinamatheatre", "Кино/театры"),
+            Sub("cinematheatre", "Кино/театры"),
             Sub("museum", "Музей"),
             Sub("concert", "Концерт"),
             Sub("stadium", "Стадион"),
