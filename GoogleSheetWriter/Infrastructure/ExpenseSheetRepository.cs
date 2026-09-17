@@ -25,7 +25,6 @@ public class ExpenseSheetRepository : IExpenseRepository
         _categoryMapping = categoryMapping;
     }
 
-    // ExpenseSheetRepository.cs — Read() переписан под батч
     public async Task<IReadOnlyList<MoneyTransfer>> Read(MoneyTransferSearchOption searchOptions, CancellationToken cancellationToken)
     {
         var factory = new SheetRowFactory(_culture);
@@ -44,8 +43,8 @@ public class ExpenseSheetRepository : IExpenseRepository
             .ToList();
 
         var resultsByList = await _reader.ReadRowsBatch(requests, cancellationToken);
-        
-        return resultsByList.Values.SelectMany(r => r).ToList();
+
+        return resultsByList.Values.SelectMany(m => m).ToList();
     }
 
     public async Task Write(IReadOnlyList<MoneyTransfer> expenses, CancellationToken cancellationToken)

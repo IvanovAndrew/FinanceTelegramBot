@@ -1,5 +1,5 @@
-﻿using Domain;
-using Microsoft.Extensions.Logging;
+﻿using Application.Core.Services;
+using Domain;
 
 namespace Infrastructure.GoogleSpreadsheet;
 
@@ -28,23 +28,34 @@ public class GoogleSpreadsheetExpenseDto
         };
     }
 
-    public static Outcome ToExpense(GoogleSpreadsheetExpenseDto dto, ILogger<IGoogleSpreadsheetService> logger)
+    public static (Outcome? outcome, CategoryResolutionIssueBase? issue) ToExpense(GoogleSpreadsheetExpenseDto dto)
     {
         var currency = Domain.Currency.Parse(dto.Currency);
 
         var category = Categories.Outcome.GetCategory(dto.Category);
         if (category == null)
         {
-            logger.LogError($"Category for {dto.Category} not found");
+            return (null, new CategoryResolutionIssue
+                {
+                    Date = dto.Date, 
+                    RawCategory = dto.Category, 
+                    Description = dto.Description
+                });
         }
         
         var domainSubcategory = category.Sub(dto.Subcategory);
         if (category != null && category.Subcategories.Any() && domainSubcategory == null)
         {
-            logger.LogWarning($"Subcategory for {dto.Category} {dto.Subcategory} not found {dto.Date}");
+            return (null, new SubCategoryResolutionIssue
+                { 
+                    Date = dto.Date, 
+                    RawCategory = dto.Category, 
+                    RawSubcategory = dto.Subcategory, 
+                    Description = dto.Description 
+                });
         }
 
-        return new Outcome()
+        return (new Outcome()
         {
             Date = dto.Date,
             Category = category,    
@@ -57,6 +68,6 @@ public class GoogleSpreadsheetExpenseDto
                 Amount = dto.Amount,
                 Currency = currency
             }
-        };
+        }, null);
     }
 }

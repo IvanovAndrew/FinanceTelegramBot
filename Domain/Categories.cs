@@ -84,6 +84,7 @@ public static class Categories
         public static readonly Category ClothesAndShoes = Cat("ClothesAndShoes", "Одежда, обувь", null,
             Sub("clothes", "Одежда"),
             Sub("shoes", "Обувь"),
+            Sub("renovation", "Ремонт"),
             Sub("accessories", "Аксессуары"),
             Sub("atelier", "Ателье"),
             Sub("laundry", "Прачечная"),
@@ -216,6 +217,7 @@ public static class Categories
         public static readonly Category Bonus = Cat("Bonus", "Бонус");
         
         public static readonly Category VacationBonuses = Cat("VacationBonuses", "Отпускные");
+        public static readonly Category TaxRefund = Cat("TaxRefund", "Возврат налогов");
         
         public static readonly Category Cashback = Cat("Cashback", "Кэшбек");
     
@@ -232,7 +234,7 @@ public static class Categories
         public static IReadOnlyList<Category> Salaries = [Salary, VacationBonuses, Bonus];
     
         public static IReadOnlyList<Category> All =>
-            [Salary, VacationBonuses, Bonus, Cashback, Interests, Rent, Improvisation, Savings, Others];
+            [Salary, VacationBonuses, TaxRefund, Bonus, Cashback, Interests, Rent, Improvisation, Savings, Others];
     
         public static Category? GetCategory(string input)
         {

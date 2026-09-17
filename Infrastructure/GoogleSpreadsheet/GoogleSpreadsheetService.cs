@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Application.Core.Services;
 using Domain;
 using Domain.Services;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,7 @@ namespace Infrastructure.GoogleSpreadsheet;
 
 public class GoogleSpreadsheetService(
     IGoogleSpreadsheetApi googleSpreadsheetApi,
+    IAdminNotificationService adminNotificationService,
     ILogger<IGoogleSpreadsheetService> logger)
     : IGoogleSpreadsheetService
 {
@@ -38,7 +40,21 @@ public class GoogleSpreadsheetService(
             var dtos = await _api.GetExpensesAsync(financeFilter.DateFrom, financeFilter.DateTo,
                 financeFilter.Category?.Name, financeFilter.Subcategory?.Name, financeFilter.Currency?.Name,
                 cancellationToken);
-            return dtos?.Select(d => GoogleSpreadsheetExpenseDto.ToExpense(d, _logger)).ToList() ?? [];
+
+            var issues = new List<CategoryResolutionIssueBase>();
+            var expenses = new List<Outcome>();
+
+            foreach (var dto in dtos ?? [])
+            {
+                var (expense, issue) = GoogleSpreadsheetExpenseDto.ToExpense(dto);
+                if (expense is not null) expenses.Add(expense);
+                if (issue is not null) issues.Add(issue);
+            }
+
+            if (issues.Count > 0)
+                await adminNotificationService.NotifyCategoryIssues(issues, cancellationToken);
+
+            return expenses;
         }, nameof(GetExpensesAsync));
 
     public Task<SaveResult> SaveExpenseAsync(Outcome expense, CancellationToken cancellationToken) =>

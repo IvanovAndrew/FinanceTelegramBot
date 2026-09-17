@@ -23,6 +23,14 @@ public class FnsShopNameResolverTest
         
         Assert.Equal("Fix Price", shop?.Name);
     }
+    
+    [Fact]
+    public void Aeroflot()
+    {
+        var shop = GetShopName("ПАО \"Аэрофлот\"", "https://www.aeroflot.ru");
+        
+        Assert.Equal("Аэрофлот", shop?.Name);
+    }
 
     private Shop? GetShopName(string user, string retailPlace)
     {
